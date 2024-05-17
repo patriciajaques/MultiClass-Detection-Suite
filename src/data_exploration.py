@@ -94,6 +94,21 @@ def get_personality_features(df):
     personality_features = personality_features.loc[:, ~personality_features.columns.str.endswith('_cat')]
     return personality_features
 
+def get_behavior_features(df):
+    """
+    Retorna apenas as colunas que são features de comportamento.
+
+    Args:
+        df (pd.DataFrame): DataFrame contendo os dados.
+    
+    Returns:
+        pd.DataFrame: DataFrame contendo apenas as features de comportamento.
+    """
+    
+    # Selecionar apenas as colunas cujos nomes iniciam com 'comportamento_'
+    behavior_features = df.loc[:, df.columns.str.startswith('comportamento_') | df.columns.str.startswith('ultimo_comportamento_')]
+    return behavior_features
+
 def split_features_and_target(df):
     """
     Splits the DataFrame into features (X) and target (y).
@@ -107,7 +122,7 @@ def split_features_and_target(df):
     """
     removed_features = determine_features_to_remove(df)
     X = df.drop(columns=removed_features.columns.tolist())
-    y = get_personality_features(removed_features)
+    y = get_behavior_features(removed_features)
     return X, y
 
 def concat_features_and_target(X, y):
