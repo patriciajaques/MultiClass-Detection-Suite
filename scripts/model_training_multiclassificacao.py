@@ -15,6 +15,7 @@ import numpy as np
 from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import randint
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
+from sklearn.metrics import make_scorer, balanced_accuracy_score
 
 import utils
 import data_exploration as de
@@ -66,14 +67,19 @@ def split_train_test_data (X, y):
     return X_train, X_test, y_train, y_test
 
 
-def train_and_evaluate_models(X_train, X_test, y_train, y_test):
+def train_and_evaluate_models(X_train, X_test, y_train, y_test, enable_cv=True, enable_gridsearch=True, enable_randomsearch=True, enable_bayesian_optimization=True):
     """
     Recebe a lista de modelos e chama o método execute_pipeline para cada modelo.
 
     Args:
-    data_path (str): Caminho para o arquivo de dados CSV.
-    target_column (str): Nome da coluna alvo.
-    student_column (str): Nome da coluna de identificação do estudante.
+    X_train (DataFrame): Conjunto de treinamento.
+    X_test (DataFrame): Conjunto de teste.
+    y_train (Series): Rótulos de treinamento.
+    y_test (Series): Rótulos de teste.
+    enable_cv (bool): Habilitar/Desabilitar validação cruzada.
+    enable_gridsearch (bool): Habilitar/Desabilitar GridSearchCV.
+    enable_randomsearch (bool): Habilitar/Desabilitar RandomizedSearchCV.
+    enable_bayesian_optimization (bool): Habilitar/Desabilitar Bayesian Optimization.
 
     Returns:
     None
@@ -129,14 +135,18 @@ def train_and_evaluate_models(X_train, X_test, y_train, y_test):
 
     # Treinamento e avaliação dos modelos usando execute_pipeline
     for model_name, model in models.items():
-        print(f'Executing pipeline for {model_name} com cv apenas ...\n')
-        execute_pipeline_cv (model_name, model, preprocessor, X_train, y_train, X_test, y_test, label_encoder)
-        print(f'Executing pipeline for {model_name} com GridSearch ...\n')
-        execute_pipeline_with_gridsearch (model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_grid)
-        print(f'Executing pipeline for {model_name} com RandomSearch ...\n')
-        execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_distributions, n_iter=50)
-        print(f'Executing pipeline for {model_name} com Bayesian Optimization ...\n')
-        execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor, X_train, y_train, X_test, y_test, space, max_evals=50)
+        if enable_cv:
+            print(f'Executing pipeline for {model_name} com cv apenas ...\n')
+            execute_pipeline_cv (model_name, model, preprocessor, X_train, y_train, X_test, y_test, label_encoder)
+        if enable_gridsearch:
+            print(f'Executing pipeline for {model_name} com GridSearch ...\n')
+            execute_pipeline_with_gridsearch (model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_grid)
+        if enable_randomsearch:
+            print(f'Executing pipeline for {model_name} com RandomSearch ...\n')
+            execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_distributions, n_iter=50)
+        if enable_bayesian_optimization:
+            print(f'Executing pipeline for {model_name} com Bayesian Optimization ...\n')
+            execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor, X_train, y_train, X_test, y_test, space, max_evals=50)
 
 def execute_pipeline_cv (model_name, model, preprocessor, X_train, y_train, X_test, y_test, label_encoder):
     """
@@ -190,10 +200,9 @@ def execute_pipeline_with_gridsearch(model_name, model, preprocessor, X_train, y
     None
     """
     clf = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', model)])
-    
-    # Configurar GridSearchCV
-    grid_search = GridSearchCV(estimator=clf, param_grid=param_grid, cv=5, verbose=1, n_jobs=-1)
-    
+
+    balanced_accuracy_scorer = make_scorer(balanced_accuracy_score)
+    grid_search = GridSearchCV(estimator=clf, param_grid=param_grid, cv=5, verbose=1, n_jobs=-1, scoring=balanced_accuracy_scorer)
     # Ajustar GridSearchCV
     grid_search.fit(X_train, y_train)
     
@@ -227,16 +236,19 @@ def execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train,
     None
     """
     clf = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', model)])
-    
+
+    # Criar um "scorer" para acurácia balanceada
+    balanced_accuracy_scorer = make_scorer(balanced_accuracy_score)
+
     # Configurar RandomizedSearchCV
-    random_search = RandomizedSearchCV(estimator=clf, param_distributions=param_distributions, n_iter=n_iter, cv=5, verbose=1, n_jobs=-1, random_state=42)
-    
+    random_search = RandomizedSearchCV(estimator=clf, param_distributions=param_distributions, n_iter=n_iter, cv=5, verbose=1, n_jobs=-1, random_state=42, scoring=balanced_accuracy_scorer)
+
     # Ajustar RandomizedSearchCV
     random_search.fit(X_train, y_train)
-    
+
     # Imprimir os melhores parâmetros e o melhor score
     print(f'Best parameters for {model_name}: {random_search.best_params_}')
-    print(f'Best cross-validation score for {model_name}: {random_search.best_score_}')
+    print(f'Best cross-validation score for {model_name}: {random_search.best_score_}')    
     
     # Avaliar no conjunto de teste
     y_pred_test = random_search.predict(X_test)
@@ -262,9 +274,11 @@ def execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor,
     Returns:
     None
     """
+    # Função objetivo para otimização Bayesiana
     def objective(params):
         clf = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', model.set_params(**params))])
-        score = cross_val_score(clf, X_train, y_train, scoring='accuracy', cv=5).mean()
+        balanced_accuracy_scorer = make_scorer(balanced_accuracy_score)
+        score = cross_val_score(clf, X_train, y_train, scoring=balanced_accuracy_scorer, cv=5).mean()
         return {'loss': -score, 'status': STATUS_OK}
 
     trials = Trials()

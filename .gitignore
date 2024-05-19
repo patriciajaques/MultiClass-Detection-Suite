@@ -26,6 +26,3 @@ node_modules/
 
 # Ignorar arquivos compilados Python
 *.pyc
-
-# Ignorar arquivos e diretórios específicos do projeto
-output/
