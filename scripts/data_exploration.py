@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-import utils
+import preprocessing as pp
 
 def load_data(file_path = '../data/new_logs_labels.csv'):
     """
@@ -143,34 +143,13 @@ def vis_corr_num(df) :
     plt.title('Matriz de Correlação')
     plt.show()
 
-def get_categorical_data(data) :
-    """
-    Visualiza a matriz de correlação do DataFrame apenas para variáveis categóricas.
-
-    Args:
-        df (pd.DataFrame): DataFrame contendo os dados.
-    """
-    
-    # Selecionar colunas que são int64 ou object e possuem menos de 5 classes
-    selected_columns = [col for col in data.columns if (data[col].dtype == 'int64' or data[col].dtype == 'object') and has_few_classes(data[col])]
-
-    # Criar um novo DataFrame com as colunas selecionadas
-    selected_data = data[selected_columns].copy()
-
-    # Converter colunas para o tipo categórico
-    for col in selected_data.columns:
-        selected_data[col] = selected_data[col].astype('category')
-
-    # Verificar os tipos das variáveis no novo DataFrame
-    return selected_data
-
 def vis_corr_cat(X, y, output_dir='../output/heatmaps', batch_size=25):
     # Criação do diretório de saída se não existir
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    X_cat = get_categorical_data(X)
-    y_cat = get_categorical_data(y)
+    X_cat = pp.get_categorical_data(X)
+    y_cat = pp.get_categorical_data(y)
 
     n = len(X_cat.columns)
     m = len(y_cat.columns)
@@ -198,3 +177,4 @@ def vis_corr_cat(X, y, output_dir='../output/heatmaps', batch_size=25):
 
 # Exemplo de chamada da função
 # vis_corr_cat(X, y, output_dir='heatmaps', batch_size=25)
+
