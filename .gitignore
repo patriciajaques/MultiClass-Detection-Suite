@@ -24,5 +24,8 @@ node_modules/
 .history
 .idea/
 
+# Ignorar arquivos compilados Python
+*.pyc
+
 # Ignorar arquivos e diretórios específicos do projeto
 output/
