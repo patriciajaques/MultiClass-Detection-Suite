@@ -1,7 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+import utils
 
-def load_data(file_path):
+def load_data(file_path = '../data/new_logs_labels.csv'):
     """
     Lê um arquivo CSV com delimitador ';' e inspeciona seu conteúdo.
 
@@ -17,7 +20,11 @@ def load_data(file_path):
 
     return df
 
-def inspect_data (df):
+# Função para verificar se uma coluna possui menos de 5 classes
+def has_few_classes(column, num_classes=5):
+    return column.nunique() < num_classes
+
+def inspect_df (df):
     """
     Inspeciona o DataFrame.
 
@@ -35,14 +42,34 @@ def inspect_data (df):
     print(df.info())
     print('\n')
 
-    # Exibir estatísticas descritivas do DataFrame
+def inspect_num_data (df):
+        # Exibir estatísticas descritivas do DataFrame
     print('Estatísticas descritivas do DataFrame:')
-    print(df.describe())
+    print(df.select_dtypes(include=['float64']).describe())
     print('\n')
 
-    # Exibir a contagem de valores únicos por coluna
-    print('Contagem de valores únicos por coluna:')
-    print(df.nunique())
+
+def inspect_cat_data (df):
+    # Exibir o número de instancias para cada classe
+    print('Nro de instancias por classe:')
+    
+    if isinstance(df, pd.Series):
+        if df.nunique() < 10:
+            for category in df.unique():
+                count = (df == category).sum()
+                print(f"Categoria: {category}, Contagem: {count}")
+        else:
+            print(f"Número de categorias: {df.nunique()}")
+    else:
+        for i, column in enumerate(df.columns, start=1):
+            if df[column].nunique() < 5:
+                print(f"({i}) {column}:")
+                for category in df[column].unique():
+                    count = (df[column] == category).sum()
+                    print(f"    Categoria: {category}, Contagem: {count}")
+            else:
+                print(f"({i}) {column}: Número de categorias: {df[column].nunique()}")
+    print('\n')
 
 def create_metadata_file (df, file_path='data/metadata.csv'):
 
@@ -60,70 +87,6 @@ def create_metadata_file (df, file_path='data/metadata.csv'):
     metadata.to_csv(file_path, header=['data_type'], sep=';')
 
     print('Metadados salvos em data/metadata.csv')
-
-def determine_features_to_remove(df):
-    """
-    Retorna apenas as colunas que são features.
-
-    Args:
-        df (pd.DataFrame): DataFrame contendo os dados.
-    
-    Returns:
-        pd.DataFrame: DataFrame contendo apenas as features.
-    """
-    
-    # Selecionar apenas as colunas cujos nomes iniciam com 'traco_', 'estado_', 'comportamento_' e 'ultimo_'
-    removed_features = df.loc[:, df.columns.str.startswith('traco_') | df.columns.str.startswith('estado_') | df.columns.str.startswith('comportamento') | df.columns.str.startswith('ultimo_')]
-    removed_features = removed_features.drop('ultimo_passo_correto', axis=1)
-    return removed_features
-
-def get_personality_features(df):
-    """
-    Retorna apenas as colunas que são features de personalidade.
-
-    Args:
-        df (pd.DataFrame): DataFrame contendo os dados.
-    
-    Returns:
-        pd.DataFrame: DataFrame contendo apenas as features de personalidade.
-    """
-    
-    # Selecionar apenas as colunas cujos nomes iniciam com 'traco_'
-    personality_features = df.loc[:, df.columns.str.startswith('traco_')]
-    # Remover as colunas cujos nomes finalizam com '_cat''
-    personality_features = personality_features.loc[:, ~personality_features.columns.str.endswith('_cat')]
-    return personality_features
-
-def get_behavior_features(df):
-    """
-    Retorna apenas as colunas que são features de comportamento.
-
-    Args:
-        df (pd.DataFrame): DataFrame contendo os dados.
-    
-    Returns:
-        pd.DataFrame: DataFrame contendo apenas as features de comportamento.
-    """
-    
-    # Selecionar apenas as colunas cujos nomes iniciam com 'comportamento_'
-    behavior_features = df.loc[:, df.columns.str.startswith('comportamento_') | df.columns.str.startswith('ultimo_comportamento_')]
-    return behavior_features
-
-def split_features_and_target(df):
-    """
-    Splits the DataFrame into features (X) and target (y).
-    
-    Parameters:
-    - df: pd.DataFrame - The DataFrame containing features and target.
-    
-    Returns:
-    - X: pd.DataFrame - containing the features.
-    - y: pd.DataFrame - containing the target.
-    """
-    removed_features = determine_features_to_remove(df)
-    X = df.drop(columns=removed_features.columns.tolist())
-    y = get_behavior_features(removed_features)
-    return X, y
 
 def concat_features_and_target(X, y):
     """
@@ -160,7 +123,7 @@ def vis_histogram(df, num_bins = 10, x_min = 0, x_max = 0, y_min = 0, y_max = 0)
 
     plt.show()
 
-def vis_corr(df) :
+def vis_corr_num(df) :
     """
     Visualiza a matriz de correlação do DataFrame.
 
@@ -180,10 +143,58 @@ def vis_corr(df) :
     plt.title('Matriz de Correlação')
     plt.show()
 
-# Chamar a função para carregar e inspecionar os dados
-if __name__ == "__main__":
-    # Caminho para o arquivo CSV
-    file_path = 'data/new_logs_labels.csv'
-    df = load_data(file_path)
-    inspect_data(df)
-    create_metadata_file(df)
+def get_categorical_data(data) :
+    """
+    Visualiza a matriz de correlação do DataFrame apenas para variáveis categóricas.
+
+    Args:
+        df (pd.DataFrame): DataFrame contendo os dados.
+    """
+    
+    # Selecionar colunas que são int64 ou object e possuem menos de 5 classes
+    selected_columns = [col for col in data.columns if (data[col].dtype == 'int64' or data[col].dtype == 'object') and has_few_classes(data[col])]
+
+    # Criar um novo DataFrame com as colunas selecionadas
+    selected_data = data[selected_columns].copy()
+
+    # Converter colunas para o tipo categórico
+    for col in selected_data.columns:
+        selected_data[col] = selected_data[col].astype('category')
+
+    # Verificar os tipos das variáveis no novo DataFrame
+    return selected_data
+
+def vis_corr_cat(X, y, output_dir='../output/heatmaps', batch_size=25):
+    # Criação do diretório de saída se não existir
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    X_cat = get_categorical_data(X)
+    y_cat = get_categorical_data(y)
+
+    n = len(X_cat.columns)
+    m = len(y_cat.columns)
+
+    total_plots = n * m
+    batches = (total_plots // batch_size) + (total_plots % batch_size != 0)
+
+    plot_count = 0
+    for batch in range(batches):
+        fig, axs = plt.subplots(min(batch_size, total_plots), 1, figsize=(5, min(batch_size, total_plots)*5))
+        for k in range(batch_size):
+            if plot_count >= total_plots:
+                break
+            i, j = divmod(plot_count, m)
+            col_x = X_cat.columns[i]
+            col_y = y_cat.columns[j]
+            contingency_table = pd.crosstab(index=X_cat[col_x], columns=y_cat[col_y])
+            sns.heatmap(contingency_table, annot=True, cmap='coolwarm', fmt=".2f", ax=axs[k % batch_size])
+            axs[k % batch_size].set_title(f'{col_x} e {col_y}')
+            plot_count += 1
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f'heatmap_batch_{batch + 1}.png'))
+        plt.close(fig)
+
+# Exemplo de chamada da função
+# vis_corr_cat(X, y, output_dir='heatmaps', batch_size=25)
