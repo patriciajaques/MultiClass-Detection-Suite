@@ -1,0 +1,28 @@
+# Ignorar arquivos e diretórios de configuração do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar diretórios de ambientes virtuais (Python)
+venv/
+env/
+
+# Ignorar diretórios de compilação
+build/
+dist/
+
+# Ignorar diretórios de dependências
+node_modules/
+.npm/
+
+# Ignorar arquivos de cache do VS Code
+.vscode/
+
+# Ignorar arquivos de configuração do VS Code
+.history
+.idea/
+
+# Ignorar arquivos e diretórios específicos do projeto
+output/
