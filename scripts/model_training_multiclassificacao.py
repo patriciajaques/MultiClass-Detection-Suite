@@ -7,8 +7,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
+import xgboost as xgb
 from sklearn.metrics import classification_report
-import pandas as pd
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
 import numpy as np
@@ -66,7 +66,6 @@ def split_train_test_data (X, y):
     y_test = test_data['comportamento']
     return X_train, X_test, y_train, y_test
 
-
 def train_and_evaluate_models(X_train, X_test, y_train, y_test, enable_cv=True, enable_gridsearch=True, enable_randomsearch=True, enable_bayesian_optimization=True):
     """
     Recebe a lista de modelos e chama o método execute_pipeline para cada modelo.
@@ -98,55 +97,178 @@ def train_and_evaluate_models(X_train, X_test, y_train, y_test, enable_cv=True, 
     preprocessor = pp.create_preprocessor(numeric_features, categorical_features)
 
     # Lista de modelos para treinamento e avaliação
-    # models = {
-    #     'Logistic Regression': LogisticRegression(max_iter=1000),
-    #     'Decision Tree': DecisionTreeClassifier(),
-    #     'Random Forest': RandomForestClassifier(),
-    #     'Gradient Boosting': GradientBoostingClassifier(),
-    #     'SVM': SVC(decision_function_shape='ovo'),
-    #     'KNN': KNeighborsClassifier()
-    # }
-
     models = {
+        'Logistic Regression': LogisticRegression(max_iter=1000),
+        'Decision Tree': DecisionTreeClassifier(),
         'Random Forest': RandomForestClassifier(),
+        'Gradient Boosting': GradientBoostingClassifier(),
+        'SVM': SVC(),
+        'KNN': KNeighborsClassifier(),
+        'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
     }
 
     # Definir as grades e distribuições de parâmetros
-    param_grid = {
-        'classifier__n_estimators': [10, 50, 100, 200],
-        'classifier__max_depth': [None, 10, 20, 30],
-        'classifier__min_samples_split': [2, 5, 10],
-        'classifier__min_samples_leaf': [1, 2, 4]
+    param_grids = {
+        'Logistic Regression': {
+            'classifier__penalty': ['l1', 'l2', 'elasticnet', 'None'],
+            'classifier__C': [0.1, 1, 10, 100],
+            'classifier__solver': ['lbfgs', 'liblinear', 'saga']
+        },
+        'Decision Tree': {
+            'classifier__max_depth': [None, 10, 20, 30, 40, 50],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4]
+        },
+        'Random Forest': {
+            'classifier__n_estimators': [10, 50, 100, 200],
+            'classifier__max_depth': [None, 10, 20, 30],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4]
+        },
+        'Gradient Boosting': {
+            'classifier__n_estimators': [10, 50, 100, 200],
+            'classifier__learning_rate': [0.01, 0.1, 0.2],
+            'classifier__max_depth': [3, 5, 10],
+            'classifier__subsample': [0.5, 0.7, 1.0]
+        },
+        'SVM': {
+            'classifier__C': [0.1, 1, 10, 100],
+            'classifier__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+            'classifier__gamma': ['scale', 'auto']
+        },
+        'KNN': {
+            'classifier__n_neighbors': [3, 5, 10, 20],
+            'classifier__weights': ['uniform', 'distance'],
+            'classifier__metric': ['euclidean', 'manhattan', 'minkowski']
+        },
+        'XGBoost': {
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__learning_rate': [0.01, 0.1, 0.2],
+            'classifier__max_depth': [3, 5, 7],
+            'classifier__subsample': [0.7, 0.8, 1.0],
+            'classifier__colsample_bytree': [0.7, 0.8, 1.0]
+        }
     }
 
     param_distributions = {
-        'classifier__n_estimators': randint(10, 200),
-        'classifier__max_depth': randint(1, 30),
-        'classifier__min_samples_split': randint(2, 10),
-        'classifier__min_samples_leaf': randint(1, 10)
+        'Logistic Regression': {
+            'classifier__penalty': ['l1', 'l2', 'elasticnet', 'None'],
+            'classifier__C': randint(0.1, 100),
+            'classifier__solver': ['lbfgs', 'liblinear', 'saga']
+        },
+        'Decision Tree': {
+            'classifier__max_depth': randint(1, 50),
+            'classifier__min_samples_split': randint(2, 10),
+            'classifier__min_samples_leaf': randint(1, 4)
+        },
+        'Random Forest': {
+            'classifier__n_estimators': randint(10, 200),
+            'classifier__max_depth': randint(1, 30),
+            'classifier__min_samples_split': randint(2, 10),
+            'classifier__min_samples_leaf': randint(1, 4)
+        },
+        'Gradient Boosting': {
+            'classifier__n_estimators': randint(10, 200),
+            'classifier__learning_rate': hp.uniform('classifier__learning_rate', 0.01, 0.2),
+            'classifier__max_depth': randint(3, 10),
+            'classifier__subsample': hp.uniform('classifier__subsample', 0.5, 1.0)
+        },
+        'SVM': {
+            'classifier__C': randint(0.1, 100),
+            'classifier__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+            'classifier__gamma': ['scale', 'auto']
+        },
+        'KNN': {
+            'classifier__n_neighbors': randint(3, 20),
+            'classifier__weights': ['uniform', 'distance'],
+            'classifier__metric': ['euclidean', 'manhattan', 'minkowski']
+        },
+        'XGBoost': {
+            'classifier__n_estimators': randint(100, 300),
+            'classifier__learning_rate': hp.uniform('classifier__learning_rate', 0.01, 0.2),
+            'classifier__max_depth': randint(3, 7),
+            'classifier__subsample': hp.uniform('classifier__subsample', 0.7, 1.0),
+            'classifier__colsample_bytree': hp.uniform('classifier__colsample_bytree', 0.7, 1.0)
+        }
     }
 
     space = {
-        'n_estimators': hp.randint('n_estimators', 10, 200),
-        'max_depth': hp.randint('max_depth', 1, 30),
-        'min_samples_split': hp.randint('min_samples_split', 2, 10),
-        'min_samples_leaf': hp.randint('min_samples_leaf', 1, 10)
+        'Logistic Regression': {
+            'penalty': hp.choice('penalty', ['l1', 'l2', 'elasticnet', 'None']),
+            'C': hp.loguniform('C', np.log(0.1), np.log(100)),
+            'solver': hp.choice('solver', ['lbfgs', 'liblinear', 'saga'])
+        },
+        'Decision Tree': {
+            'max_depth': hp.randint('max_depth', 1, 50),
+            'min_samples_split': hp.randint('min_samples_split', 2, 10),
+            'min_samples_leaf': hp.randint('min_samples_leaf', 1, 4)
+        },
+        'Random Forest': {
+            'n_estimators': hp.randint('n_estimators', 10, 200),
+            'max_depth': hp.randint('max_depth', 1, 30),
+            'min_samples_split': hp.randint('min_samples_split', 2, 10),
+            'min_samples_leaf': hp.randint('min_samples_leaf', 1, 4)
+        },
+        'Gradient Boosting': {
+            'n_estimators': hp.randint('n_estimators', 10, 200),
+            'learning_rate': hp.uniform('learning_rate', 0.01, 0.2),
+            'max_depth': hp.randint('max_depth', 3, 10),
+            'subsample': hp.uniform('subsample', 0.5, 1.0)
+        },
+        'SVM': {
+            'C': hp.loguniform('C', np.log(0.1), np.log(100)),
+            'kernel': hp.choice('kernel', ['linear', 'poly', 'rbf', 'sigmoid']),
+            'gamma': hp.choice('gamma', ['scale', 'auto'])
+        },
+        'KNN': {
+            'n_neighbors': hp.randint('n_neighbors', 3, 20),
+            'weights': hp.choice('weights', ['uniform', 'distance']),
+            'metric': hp.choice('metric', ['euclidean', 'manhattan', 'minkowski'])
+        },
+        'XGBoost': {
+            'n_estimators': hp.randint('n_estimators', 100, 300),
+            'learning_rate': hp.uniform('learning_rate', 0.01, 0.2),
+            'max_depth': hp.randint('max_depth', 3, 7),
+            'subsample': hp.uniform('subsample', 0.7, 1.0),
+            'colsample_bytree': hp.uniform('colsample_bytree', 0.7, 1.0)
+        }
     }
+
+    # Lista para armazenar os resultados
+    results = []
 
     # Treinamento e avaliação dos modelos usando execute_pipeline
     for model_name, model in models.items():
+        config = 'CV'
         if enable_cv:
             print(f'Executing pipeline for {model_name} com cv apenas ...\n')
-            execute_pipeline_cv (model_name, model, preprocessor, X_train, y_train, X_test, y_test, label_encoder)
+            report_cv, report_test = execute_pipeline_cv(model_name, model, preprocessor, X_train, y_train, X_test, y_test, label_encoder)
         if enable_gridsearch:
             print(f'Executing pipeline for {model_name} com GridSearch ...\n')
-            execute_pipeline_with_gridsearch (model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_grid)
+            report_cv, report_test = execute_pipeline_with_gridsearch(model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_grids[model_name])
+            config = 'GridSearch'
         if enable_randomsearch:
             print(f'Executing pipeline for {model_name} com RandomSearch ...\n')
-            execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_distributions, n_iter=50)
+            report_cv, report_test = execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_distributions[model_name], n_iter=50)
+            config = 'RandomSearch'
         if enable_bayesian_optimization:
             print(f'Executing pipeline for {model_name} com Bayesian Optimization ...\n')
-            execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor, X_train, y_train, X_test, y_test, space, max_evals=50)
+            report_cv, report_test = execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor, X_train, y_train, X_test, y_test, space[model_name], max_evals=50)
+            config = 'BayesianOptimization'
+        
+        results.append({
+        'Model': model_name,
+        'Config': config,
+        'Set': 'Train',
+        **report_cv})
+        
+        results.append({
+        'Model': model_name,
+        'Config': config,
+        'Set': 'Test',
+        **report_test})
+
+    return results
 
 def execute_pipeline_cv (model_name, model, preprocessor, X_train, y_train, X_test, y_test, label_encoder):
     """
@@ -171,7 +293,8 @@ def execute_pipeline_cv (model_name, model, preprocessor, X_train, y_train, X_te
     y_pred_cv = cross_val_predict(clf, X_train, y_train, cv=5)
     
     print(f'Classification Report for {model_name} (Cross-Validation):\n')
-    print(classification_report(y_train, y_pred_cv, target_names=label_encoder.classes_))
+    report_cv = classification_report(y_train, y_pred_cv, target_names=label_encoder.classes_, output_dict=True)
+    print(report_cv)
     print('\n' + '='*80 + '\n')
 
     # Treinamento final e avaliação no conjunto de teste
@@ -179,8 +302,26 @@ def execute_pipeline_cv (model_name, model, preprocessor, X_train, y_train, X_te
     y_pred_test = clf.predict(X_test)
     
     print(f'Final Classification Report for {model_name} on Test Set:\n')
-    print(classification_report(y_test, y_pred_test, target_names=label_encoder.classes_))
+    report_test = classification_report(y_test, y_pred_test, target_names=label_encoder.classes_, output_dict=True)
+    print(report_test)
     print('\n' + '='*80 + '\n')
+
+    return report_cv, report_test
+
+def generate_report_searchcv (search, y_train):
+    # Calcular a média das previsões de todos os splits
+    all_y_pred_cv = []
+    for key in search.cv_results_:
+        if key.startswith('split') and key.endswith('test_score'):  # Filtra as chaves relevantes
+            all_y_pred_cv.append(search.cv_results_[key])  # Adiciona as previsões à lista
+
+    # Calcula a média das previsões dos splits e arredonda para inteiros (classes)
+    y_pred_cv_mean = np.mean(all_y_pred_cv, axis=0)  
+    y_pred_cv_mean = np.rint(y_pred_cv_mean).astype(int) 
+
+    # Gerar o relatório de classificação para a validação cruzada (usando a média)
+    report_cv = classification_report(y_train, y_pred_cv_mean, output_dict=True)
+    return report_cv
 
 def execute_pipeline_with_gridsearch(model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_grid):
     """
@@ -202,19 +343,23 @@ def execute_pipeline_with_gridsearch(model_name, model, preprocessor, X_train, y
     clf = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', model)])
 
     balanced_accuracy_scorer = make_scorer(balanced_accuracy_score)
-    grid_search = GridSearchCV(estimator=clf, param_grid=param_grid, cv=5, verbose=1, n_jobs=-1, scoring=balanced_accuracy_scorer)
+    search = GridSearchCV(estimator=clf, param_grid=param_grid, cv=5, verbose=1, n_jobs=-1, scoring=balanced_accuracy_scorer)
     # Ajustar GridSearchCV
-    grid_search.fit(X_train, y_train)
+    search.fit(X_train, y_train)
     
+    report_cv = generate_report_searchcv (search, y_train, output_dict=True)
     # Imprimir os melhores parâmetros e o melhor score
-    print(f'Best parameters for {model_name}: {grid_search.best_params_}')
-    print(f'Best cross-validation score for {model_name}: {grid_search.best_score_}')
+    print(f'Best parameters for {model_name}: {search.best_params_}')
+    print(f'Best cross-validation score for {model_name}: {search.best_score_}')
     
     # Avaliar no conjunto de teste
-    y_pred_test = grid_search.predict(X_test)
+    y_pred_test = search.predict(X_test)
     print(f'Final Classification Report for {model_name} on Test Set:\n')
-    print(classification_report(y_test, y_pred_test))
+    report_test = classification_report(y_test, y_pred_test, output_dict=True)
+    print(report_test)
     print('\n' + '='*80 + '\n')
+
+    return report_cv, report_test
 
 
 def execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train, y_train, X_test, y_test, param_distributions, n_iter=50):
@@ -246,6 +391,7 @@ def execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train,
     # Ajustar RandomizedSearchCV
     random_search.fit(X_train, y_train)
 
+    report_cv = generate_report_searchcv (random_search, y_train, output_dict=True)
     # Imprimir os melhores parâmetros e o melhor score
     print(f'Best parameters for {model_name}: {random_search.best_params_}')
     print(f'Best cross-validation score for {model_name}: {random_search.best_score_}')    
@@ -253,8 +399,47 @@ def execute_pipeline_with_randomsearch(model_name, model, preprocessor, X_train,
     # Avaliar no conjunto de teste
     y_pred_test = random_search.predict(X_test)
     print(f'Final Classification Report for {model_name} on Test Set:\n')
-    print(classification_report(y_test, y_pred_test))
+    report_test = classification_report(y_test, y_pred_test, output_dict=True)
+    print(report_test)
     print('\n' + '='*80 + '\n')
+
+    return report_cv, report_test  
+
+def generate_report_bayesian(trials, y_train):
+    """
+    Gera um relatório de classificação a partir dos resultados da otimização Bayesiana (Hyperopt).
+
+    Args:
+        trials (hyperopt.Trials): Objeto Trials do Hyperopt contendo os resultados das avaliações.
+        X_train (pd.DataFrame): DataFrame com os dados de treinamento.
+        y_train (pd.Series): Série com os rótulos de treinamento.
+
+    Returns:
+        dict: Dicionário com o relatório de classificação (output_dict=True).
+    """
+
+    all_y_pred_cv = []
+
+    # Itera sobre os trials (avaliações) do Hyperopt
+    for trial in trials.trials:
+        # Extrai as previsões de cada trial
+        # ATENÇÃO: Adapte esta linha para a estrutura do seu código Hyperopt
+        y_pred_cv = trial.result["y_pred"]  
+
+        # Garante que as previsões sejam do tipo inteiro (classes)
+        y_pred_cv = np.rint(y_pred_cv).astype(int)
+
+        all_y_pred_cv.append(y_pred_cv)
+
+    # Calcula a média das previsões de todos os trials
+    y_pred_cv_mean = np.mean(all_y_pred_cv, axis=0)
+    y_pred_cv_mean = np.rint(y_pred_cv_mean).astype(int)  # Arredonda para classes
+
+    # Gera o relatório de classificação
+    report_cv = classification_report(y_train, y_pred_cv_mean, output_dict=True)
+
+    return report_cv
+
 
 def execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor, X_train, y_train, X_test, y_test, space, max_evals=50):
     """
@@ -285,6 +470,8 @@ def execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor,
     best_params = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=max_evals, trials=trials, rstate=np.random.default_rng(42))
 
     print(f'Best parameters for {model_name}: {best_params}')
+
+    report_cv = generate_report_bayesian(trials, y_train)
     
     # Configurar o modelo com os melhores parâmetros
     model.set_params(**best_params)
@@ -296,5 +483,8 @@ def execute_pipeline_with_bayesian_optimization(model_name, model, preprocessor,
     # Avaliar no conjunto de teste
     y_pred_test = clf.predict(X_test)
     print(f'Final Classification Report for {model_name} on Test Set:\n')
-    print(classification_report(y_test, y_pred_test))
+    report_test = classification_report(y_test, y_pred_test, output_dict=True)
+    print(report_test)    
     print('\n' + '='*80 + '\n')
+
+    return report_cv, report_test
