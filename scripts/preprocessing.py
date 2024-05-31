@@ -1,8 +1,11 @@
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
 import utils
+import pandas as pd
+from data_exploration import concat_features_and_target 
+
 
 
 def get_categorical_data(data) :
@@ -35,7 +38,18 @@ def get_numerical_data(data) :
 def has_few_classes(column, num_classes=5):
     return column.nunique() < num_classes
 
-def create_preprocessor(numeric_features, categorical_features):
+
+def encode_labels(y_train):
+    label_encoder = LabelEncoder()
+    y_train_encoded = label_encoder.fit_transform(y_train)
+    return y_train_encoded, label_encoder
+
+def create_preprocessor(X_train):
+
+    # Identificar colunas numéricas e categóricas
+    numeric_features = X_train.select_dtypes(include=['int64', 'float64']).columns
+    categorical_features = X_train.select_dtypes(include=['object', 'category']).columns
+
     """
     Cria um ColumnTransformer que aplica StandardScaler às colunas numéricas e OneHotEncoder às colunas categóricas.
 
@@ -64,3 +78,46 @@ def create_preprocessor(numeric_features, categorical_features):
 
     return preprocessor
 
+def load_data (file_path = '../data/new_logs_labels.csv'):
+    """
+    Lê um arquivo CSV com delimitador ';' e inspeciona seu conteúdo.
+
+    Args:
+        file_path (str): Caminho para o arquivo CSV.
+    
+    Returns:
+        pd.DataFrame: DataFrame contendo os dados lidos.
+    """
+    df = pd.read_csv(file_path, delimiter=';')
+    X, y = utils.split_features_and_target(df)
+    y = y['comportamento']
+    X.info()
+    y.info()
+
+    return X, y
+
+def split_train_test_data (X, y):
+
+    """
+    Divide os dados em conjuntos de treino e teste.
+
+    Args:
+        X (pd.DataFrame): DataFrame contendo as features.
+        y (pd.DataFrame): DataFrame contendo o target.
+    
+    Returns:
+        X_train (pd.DataFrame): DataFrame contendo as features de treino.
+        X_test (pd.DataFrame): DataFrame contendo as features de teste.
+        y_train (pd.DataFrame): DataFrame contendo o target de treino.
+        y_test (pd.DataFrame): DataFrame contendo o target de teste.
+    """
+    
+    # Cria um novo dataframe que contém y concatenado com X
+    data = concat_features_and_target(X, y)
+    train_data, test_data = utils.split_data_stratified(data, test_size=0.3, target_column='aluno', n_splits=5)
+    # Separar features e rótulos
+    X_train = train_data.drop(columns=['comportamento'])
+    y_train = train_data['comportamento']
+    X_test = test_data.drop(columns=['comportamento'])
+    y_test = test_data['comportamento']
+    return X_train, X_test, y_train.values, y_test.values
