@@ -53,7 +53,13 @@ def train_model(X_train, y_train, training_type):
         config = training_configs[training_type]
         best_model, best_result = config["function"](model, *config["args"], **config["kwargs"])
 
-        trained_models[model_name] = best_model
+        # Armazenando mais informações sobre a configuração
+        trained_models[model_name] = {
+            'model': best_model,
+            'training_type': training_type,
+            'hyperparameters': model.get_params(),  # Pegando hiperparâmetros do modelo
+            'best_result': best_result
+        }
         print(f"{training_type} Best Result for {model_name}: {best_result}")
     
     return trained_models  # Retorna um dicionário com os modelos treinados

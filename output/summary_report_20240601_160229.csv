@@ -1,0 +1,17 @@
+Metric,precision-train,recall-train,f1-score-train,support-train,precision-test,recall-test,f1-score-test,support-test,Model
+accuracy,,,1.0,,,,0.82,,Decision Tree
+macro avg,1.0,1.0,1.0,3867.0,0.82,0.75,0.77,1658.0,Decision Tree
+weighted avg,1.0,1.0,1.0,3867.0,0.82,0.82,0.82,1658.0,Decision Tree
+balanced_accuracy,,,1.0,,,,0.75,,Decision Tree
+accuracy,,,1.0,,,,0.88,,Random Forest
+macro avg,1.0,1.0,1.0,3867.0,0.89,0.8,0.83,1658.0,Random Forest
+weighted avg,1.0,1.0,1.0,3867.0,0.88,0.88,0.88,1658.0,Random Forest
+balanced_accuracy,,,1.0,,,,0.8,,Random Forest
+accuracy,,,0.91,,,,0.83,,Gradient Boosting
+macro avg,0.95,0.88,0.91,3867.0,0.83,0.69,0.74,1658.0,Gradient Boosting
+weighted avg,0.92,0.91,0.91,3867.0,0.83,0.83,0.82,1658.0,Gradient Boosting
+balanced_accuracy,,,0.88,,,,0.69,,Gradient Boosting
+accuracy,,,1.0,,,,0.89,,XGBoost
+macro avg,1.0,1.0,1.0,3867.0,0.85,0.75,0.77,1658.0,XGBoost
+weighted avg,1.0,1.0,1.0,3867.0,0.88,0.89,0.88,1658.0,XGBoost
+balanced_accuracy,,,1.0,,,,0.75,,XGBoost
