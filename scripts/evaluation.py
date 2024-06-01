@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from datetime import datetime
 from sklearn.metrics import classification_report, balanced_accuracy_score
 
 def evaluate_and_report(model, X, y):
@@ -23,6 +24,11 @@ def generate_reports(trained_models, X_train, y_train, X_test, y_test):
 
 def print_reports(reports, directory=None, filename='report.txt'):
     """Prints and optionally saves detailed evaluation reports for each model."""
+    # Formatando o nome do arquivo com a data e hora atual
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{filename.split('.')[0]}_{timestamp}.txt"
+    file_path = os.path.join(directory, filename) if directory else filename
+
     report_output = ""
     for model_name, data in reports.items():
         report_output += f"\nEvaluating {model_name}:\n"
@@ -36,8 +42,8 @@ def print_reports(reports, directory=None, filename='report.txt'):
                 else:
                     report_output += f"Class {index} - Precision: {row['precision']}, Recall: {row['recall']}, F1-Score: {row['f1-score']}, Support: {row['support']}\n"
 
+
     if directory:
-        file_path = os.path.join(directory, filename)
         with open(file_path, 'w') as file:
             file.write(report_output)
 
@@ -45,6 +51,12 @@ def print_reports(reports, directory=None, filename='report.txt'):
 
 def save_reports_to_csv(reports, directory, detailed_filename='detailed_report.csv', summary_filename='summary_report.csv'):
     """Saves detailed and summary classification reports to CSV files."""
+
+    # Formatando o nome do arquivo com a data e hora atual
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    detailed_filename = f"{detailed_filename.split('.')[0]}_{timestamp}.csv"
+    summary_filename = f"{summary_filename.split('.')[0]}_{timestamp}.csv"
+
     all_data = []
     summary_data = []
     for model_name, data in reports.items():
