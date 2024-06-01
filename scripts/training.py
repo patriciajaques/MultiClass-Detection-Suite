@@ -43,7 +43,7 @@ def train_model(X_train, y_train, training_type):
         }
     }
 
-    results = {}  # Dicionário para armazenar os resultados de cada modelo
+    trained_models = {}  # Dicionário para armazenar os resultados de cada modelo
 
     for model_name, model_config in models.items():
         model = Pipeline([('preprocessor', preprocessor), ('classifier', model_config)])
@@ -53,14 +53,10 @@ def train_model(X_train, y_train, training_type):
         config = training_configs[training_type]
         best_model, best_result = config["function"](model, *config["args"], **config["kwargs"])
 
-        # Armazenar o melhor modelo e resultado no dicionário
-        results[model_name] = {
-            "model": best_model,
-            "result": best_result
-        }
+        trained_models[model_name] = best_model
         print(f"{training_type} Best Result for {model_name}: {best_result}")
     
-    return results  # Retorna o dicionário com todos os resultados
+    return trained_models  # Retorna um dicionário com os modelos treinados
 
 
 def execute_cv(model, X_train, y_train, cv=5):
