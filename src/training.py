@@ -9,11 +9,6 @@ from model_params import get_models, get_param_grids, get_hyperopt_spaces, get_p
 from preprocessing import create_preprocessor, create_pipeline
 from training_constants import CROSS_VALIDATION, GRID_SEARCH, RANDOM_SEARCH, BAYESIAN_OPTIMIZATION
 
-def objective(params, clf, X_train, y_train):
-    """Função objetivo para otimização bayesiana."""
-    model = clf.set_params(**params)
-    score = cross_val_score(model, X_train, y_train, scoring='balanced_accuracy', cv=5)
-    return {'loss': -np.mean(score), 'status': STATUS_OK}
 
 def train_model(X_train, y_train, training_type):
     models = get_models()
@@ -39,7 +34,6 @@ def train_model(X_train, y_train, training_type):
         BAYESIAN_OPTIMIZATION: {
             "function": execute_bayesian_optimization,
             "param_function": get_hyperopt_spaces,  # Função que retorna os parâmetros para bayesian optimization
-            "args": [lambda params: objective(params, model, X_train, y_train)],  # A função objective ainda precisa de X_train e y_train
             "kwargs": {"max_evals": 50}
         }
     }
@@ -92,7 +86,13 @@ def execute_random_search(model, param_distributions, X_train, y_train, n_iter=5
     best_model = search.best_estimator_
     return best_model, search.best_score_
 
-def execute_bayesian_optimization(model, objective, space, X_train, y_train, max_evals=50):
+def execute_bayesian_optimization(model, space, X_train, y_train, max_evals=50):
+    def objective(params):
+        """Função objetivo para otimização bayesiana."""
+        model.set_params(**params)
+        score = cross_val_score(model, X_train, y_train, scoring='balanced_accuracy', cv=5)
+        return {'loss': -np.mean(score), 'status': STATUS_OK}
+    
     trials = Trials()
     best_params = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
 
@@ -100,4 +100,4 @@ def execute_bayesian_optimization(model, objective, space, X_train, y_train, max
     best_params = {k: v[0] if isinstance(v, list) else v for k, v in best_params.items()}
     model.set_params(**best_params)
     model.fit(X_train, y_train) # Train the model with the best parameters
-    return model, trials.best_trial['result']['loss']
+    return model, -trials.best_trial['result']['loss']

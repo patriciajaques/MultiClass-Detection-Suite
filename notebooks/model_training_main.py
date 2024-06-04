@@ -11,8 +11,25 @@ from preprocessing import encode_labels, load_data, split_train_test_data
 # importlib.reload(utils)
 
 import os
+import warnings
+import numpy as np
+
+# Configurar variáveis de ambiente
 os.environ["MKL_CBWR"] = "AUTO"
 os.environ["MKL_VERBOSE"] = "0"
+os.environ["NUMPY_MKL_ERROR"] = "IGNORE"
+os.environ["MKL_SERVICE_FORCE_INTEL"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["MKL_DYNAMIC"] = "FALSE"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["KMP_WARNINGS"] = "FALSE"
+
+# Suprimir avisos de depreciação
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# Redefinir a configuração do NumPy
+np.__config__.show()
+
 
 # %%
 X, y = load_data("/Users/patricia/Documents/code/python/behavior-detection/data/new_logs_labels.csv")
