@@ -58,6 +58,8 @@ def print_reports(reports, directory=None, filename='report'):
     if directory:
         with open(file_path, 'w') as file:
             file.write(report_output)
+            file.flush()
+            os.fsync(file.fileno())
 
     return report_output
 

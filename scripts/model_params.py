@@ -4,7 +4,7 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 import xgboost as xgb
 
-from scipy.stats import randint
+from scipy.stats import randint, uniform
 from hyperopt import hp
 import numpy as np
 
@@ -67,7 +67,7 @@ def get_param_distributions():
     return {
         'Logistic Regression': {
             'classifier__penalty': ['l1', 'l2', 'elasticnet', 'None'],
-            'classifier__C': randint(0.1, 100),
+            'classifier__C': uniform(0.1, 100),
             'classifier__solver': ['lbfgs', 'liblinear', 'saga']
         },
         'Decision Tree': {
@@ -83,12 +83,12 @@ def get_param_distributions():
         },
         'Gradient Boosting': {
             'classifier__n_estimators': randint(10, 200),
-            'classifier__learning_rate': hp.uniform('classifier__learning_rate', 0.01, 0.2),
+            'classifier__learning_rate': uniform(0.01, 0.2),
             'classifier__max_depth': randint(3, 10),
-            'classifier__subsample': hp.uniform('classifier__subsample', 0.5, 1.0)
+            'classifier__subsample': uniform(0.5, 1.0)
         },
         'SVM': {
-            'classifier__C': randint(0.1, 100),
+            'classifier__C': uniform(0.1, 100),
             'classifier__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
             'classifier__gamma': ['scale', 'auto']
         },
@@ -99,10 +99,10 @@ def get_param_distributions():
         },
         'XGBoost': {
             'classifier__n_estimators': randint(100, 300),
-            'classifier__learning_rate': hp.uniform('classifier__learning_rate', 0.01, 0.2),
+            'classifier__learning_rate': uniform(0.01, 0.2),
             'classifier__max_depth': randint(3, 7),
-            'classifier__subsample': hp.uniform('classifier__subsample', 0.7, 1.0),
-            'classifier__colsample_bytree': hp.uniform('classifier__colsample_bytree', 0.7, 1.0)
+            'classifier__subsample': uniform(0.7, 0.3),
+            'classifier__colsample_bytree': uniform(0.7, 0.3)
         }
     }
 
