@@ -121,3 +121,4 @@ def split_train_test_data (X, y):
     X_test = test_data.drop(columns=['comportamento'])
     y_test = test_data['comportamento']
     return X_train, X_test, y_train.values, y_test.values
+

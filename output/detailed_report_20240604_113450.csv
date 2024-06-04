@@ -1,0 +1,31 @@
+Metric,precision-train,recall-train,f1-score-train,support-train,precision-test,recall-test,f1-score-test,support-test,Model
+0,1.0,0.82,0.9,17.0,1.0,0.42,0.59,19.0,Random Forest
+1,0.98,0.97,0.98,434.0,0.82,0.72,0.77,195.0,Random Forest
+2,1.0,0.99,0.99,637.0,0.86,0.82,0.84,270.0,Random Forest
+3,0.99,1.0,0.99,2231.0,0.89,0.94,0.91,928.0,Random Forest
+4,0.99,0.99,0.99,285.0,0.87,0.85,0.86,129.0,Random Forest
+5,0.99,0.98,0.99,263.0,0.83,0.86,0.85,117.0,Random Forest
+accuracy,,,0.99,,,,0.87,,Random Forest
+macro avg,0.99,0.96,0.97,3867.0,0.88,0.77,0.8,1658.0,Random Forest
+weighted avg,0.99,0.99,0.99,3867.0,0.87,0.87,0.87,1658.0,Random Forest
+balanced_accuracy,,,0.96,,,,0.77,,Random Forest
+0,1.0,1.0,1.0,17.0,0.9,0.47,0.62,19.0,Gradient Boosting
+1,1.0,1.0,1.0,434.0,0.85,0.71,0.77,195.0,Gradient Boosting
+2,1.0,1.0,1.0,637.0,0.87,0.89,0.88,270.0,Gradient Boosting
+3,1.0,1.0,1.0,2231.0,0.9,0.94,0.92,928.0,Gradient Boosting
+4,1.0,1.0,1.0,285.0,0.89,0.84,0.86,129.0,Gradient Boosting
+5,1.0,1.0,1.0,263.0,0.81,0.8,0.81,117.0,Gradient Boosting
+accuracy,,,1.0,,,,0.88,,Gradient Boosting
+macro avg,1.0,1.0,1.0,3867.0,0.87,0.78,0.81,1658.0,Gradient Boosting
+weighted avg,1.0,1.0,1.0,3867.0,0.88,0.88,0.88,1658.0,Gradient Boosting
+balanced_accuracy,,,1.0,,,,0.78,,Gradient Boosting
+0,1.0,1.0,1.0,17.0,0.8,0.21,0.33,19.0,XGBoost
+1,1.0,1.0,1.0,434.0,0.83,0.72,0.77,195.0,XGBoost
+2,1.0,1.0,1.0,637.0,0.86,0.91,0.89,270.0,XGBoost
+3,1.0,1.0,1.0,2231.0,0.91,0.93,0.92,928.0,XGBoost
+4,1.0,1.0,1.0,285.0,0.88,0.88,0.88,129.0,XGBoost
+5,1.0,1.0,1.0,263.0,0.82,0.85,0.83,117.0,XGBoost
+accuracy,,,1.0,,,,0.89,,XGBoost
+macro avg,1.0,1.0,1.0,3867.0,0.85,0.75,0.77,1658.0,XGBoost
+weighted avg,1.0,1.0,1.0,3867.0,0.88,0.89,0.88,1658.0,XGBoost
+balanced_accuracy,,,1.0,,,,0.75,,XGBoost
