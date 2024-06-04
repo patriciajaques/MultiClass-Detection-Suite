@@ -12,7 +12,7 @@ import numpy as np
 def get_models():
     return {
         # 'Logistic Regression': LogisticRegression(max_iter=5000),
-        'Decision Tree': DecisionTreeClassifier(),
+        #'Decision Tree': DecisionTreeClassifier(),
         'Random Forest': RandomForestClassifier(),
         'Gradient Boosting': GradientBoostingClassifier(),
         # 'SVM': SVC(),
