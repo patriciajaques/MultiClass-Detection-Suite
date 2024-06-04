@@ -6,7 +6,7 @@ from sklearn.pipeline import Pipeline
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
 
 from model_params import get_models, get_param_grids, get_hyperopt_spaces, get_param_distributions
-from preprocessing import create_preprocessor
+from preprocessing import create_preprocessor, create_pipeline
 from training_constants import CROSS_VALIDATION, GRID_SEARCH, RANDOM_SEARCH, BAYESIAN_OPTIMIZATION
 
 def objective(params, clf, X_train, y_train):
@@ -50,7 +50,7 @@ def train_model(X_train, y_train, training_type):
     
 
     for model_name, model_config in models.items():
-        model = Pipeline([('preprocessor', preprocessor), ('classifier', model_config)])
+        model = create_pipeline(preprocessor, model_config) 
         print(f"\nTraining and evaluating {model_name} with {training_type}:")
         
         # Acessar configuração de treinamento

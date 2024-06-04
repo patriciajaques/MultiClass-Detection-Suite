@@ -44,40 +44,6 @@ def encode_labels(y_train):
     y_train_encoded = label_encoder.fit_transform(y_train)
     return y_train_encoded, label_encoder
 
-def create_preprocessor(X_train):
-
-    # Identificar colunas numéricas e categóricas
-    numeric_features = X_train.select_dtypes(include=['int64', 'float64']).columns
-    categorical_features = X_train.select_dtypes(include=['object', 'category']).columns
-
-    """
-    Cria um ColumnTransformer que aplica StandardScaler às colunas numéricas e OneHotEncoder às colunas categóricas.
-
-    Args:
-    numeric_features (list): Lista de nomes de colunas numéricas.
-    categorical_features (list): Lista de nomes de colunas categóricas.
-
-    Returns:
-    ColumnTransformer: Um ColumnTransformer configurado.
-    """
-    # Criar pré-processadores para colunas numéricas e categóricas
-    numeric_transformer = Pipeline(steps=[
-        ('scaler', StandardScaler())
-    ])
-
-    categorical_transformer = Pipeline(steps=[
-        ('onehot', OneHotEncoder(handle_unknown='ignore'))
-    ])
-
-    # Combinar transformadores usando ColumnTransformer
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', numeric_transformer, numeric_features),
-            ('cat', categorical_transformer, categorical_features)
-        ])
-
-    return preprocessor
-
 def load_data (file_path = '../data/new_logs_labels.csv'):
     """
     Lê um arquivo CSV com delimitador ';' e inspeciona seu conteúdo.
@@ -122,3 +88,54 @@ def split_train_test_data (X, y):
     y_test = test_data['comportamento']
     return X_train, X_test, y_train.values, y_test.values
 
+def create_preprocessor(X_train):
+
+    # Identificar colunas numéricas e categóricas
+    numeric_features = X_train.select_dtypes(include=['int64', 'float64']).columns
+    categorical_features = X_train.select_dtypes(include=['object', 'category']).columns
+
+    """
+    Cria um ColumnTransformer que aplica StandardScaler às colunas numéricas e OneHotEncoder às colunas categóricas.
+
+    Args:
+    numeric_features (list): Lista de nomes de colunas numéricas.
+    categorical_features (list): Lista de nomes de colunas categóricas.
+
+    Returns:
+    ColumnTransformer: Um ColumnTransformer configurado.
+    """
+    # Criar pré-processadores para colunas numéricas e categóricas
+    numeric_transformer = Pipeline(steps=[
+        ('scaler', StandardScaler())
+    ])
+
+    categorical_transformer = Pipeline(steps=[
+        ('onehot', OneHotEncoder(handle_unknown='ignore'))
+    ])
+
+    # Combinar transformadores usando ColumnTransformer
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features)
+        ])
+
+    return preprocessor
+
+def create_pipeline(preprocessor, model_config, feature_selection=None):
+    """
+    Cria um pipeline que aplica pré-processamento, seleção de recursos (se fornecido) e classificação.
+
+    Returns:
+        Pipeline: Um pipeline configurado.
+    """
+    steps = [('preprocessor', preprocessor)]
+    
+    if feature_selection:
+        steps.append(('feature_selection', feature_selection))
+    
+    steps.append(('classifier', model_config))
+    
+    model = Pipeline(steps)
+
+    return model

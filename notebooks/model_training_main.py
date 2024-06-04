@@ -30,7 +30,7 @@ y_test = label_encoder.transform(y_test)
 # %%
 
 #importlib.reload(training)
-trained_models = training.train_model(X_train, y_train, tc.RANDOM_SEARCH)
+trained_models = training.train_model(X_train, y_train, tc.BAYESIAN_OPTIMIZATION)
 
 # %%
 import evaluation
