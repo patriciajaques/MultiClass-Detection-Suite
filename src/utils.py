@@ -140,7 +140,7 @@ def split_stratified_student_level(data, test_size=0.2, column_name='aluno', tar
 import pandas as pd
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 
-def split_data_stratified(data, test_size=0.2, target_column='comportamento', n_splits=10):
+def split_data_stratified(data, test_size=0.2, target_column='comportamento', n_splits=10, random_state=42):
     """
     Splits the DataFrame into train and test sets ensuring a representative number of classes in the test set.
     
@@ -154,7 +154,7 @@ def split_data_stratified(data, test_size=0.2, target_column='comportamento', n_
     - test_data: pd.DataFrame - Testing data.
     """
     # Inicializar StratifiedShuffleSplit
-    stratified_split = StratifiedShuffleSplit(n_splits, test_size=test_size, random_state=42)
+    stratified_split = StratifiedShuffleSplit(n_splits, test_size=test_size, random_state=random_state)
 
     # Dividir os dados de forma estratificada
     for train_index, test_index in stratified_split.split(data, data[target_column]):

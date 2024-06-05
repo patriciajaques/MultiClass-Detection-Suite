@@ -2,6 +2,10 @@ from sklearn.feature_selection import RFE, SelectFromModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import Pipeline
+
 
 def create_rfe_selector(n_features_to_select):
     """
@@ -13,7 +17,7 @@ def create_rfe_selector(n_features_to_select):
     Returns:
         RFE: Um seletor RFE configurado.
     """
-    estimator = LogisticRegression()
+    estimator = RandomForestClassifier(n_estimators=100, random_state=42)
     selector = RFE(estimator, n_features_to_select=n_features_to_select)
     return selector
 
@@ -30,7 +34,7 @@ def create_pca_selector(n_components):
     selector = PCA(n_components=n_components)
     return selector
 
-def create_rf_selector():
+def create_rf_selector(X_train, y_train):
     """
     Cria um seletor com base na importância dos recursos de um Random Forest.
 
@@ -38,5 +42,43 @@ def create_rf_selector():
         SelectFromModel: Um seletor configurado.
     """
     estimator = RandomForestClassifier(n_estimators=100, random_state=0)
+    estimator.fit(X_train, y_train)
     selector = SelectFromModel(estimator)
     return selector
+
+def evaluate_feature_selectors(X_train, y_train, n_features_to_select, n_components):
+    selectors = {
+        'RFE': create_rfe_selector(n_features_to_select=n_features_to_select)
+        #'PCA': create_pca_selector(n_components=n_components)
+        #'RandomForest': create_rf_selector(X_train, y_train)
+    }
+    
+    best_score = -np.inf
+    best_selector = None
+    best_selector_name = ''
+    selected_features = None
+
+    
+    for name, selector in selectors.items():
+        pipeline = Pipeline([
+            ('feature_selection', selector),
+            ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
+        ])
+        
+        scores = cross_val_score(pipeline, X_train, y_train, cv=5, scoring='balanced_accuracy')
+        mean_score = scores.mean()
+        
+        print(f'{name} selector mean accuracy: {mean_score:.4f}')
+        
+        if mean_score > best_score:
+            best_score = mean_score
+            best_selector = selector
+            best_selector_name = name
+    
+    # Ajustar o seletor nos dados completos de treinamento para obter as características selecionadas
+    if hasattr(best_selector, 'fit'):
+        best_selector.fit(X_train, y_train)
+    if hasattr(best_selector, 'get_support'):
+        selected_features = X_train.columns[best_selector.get_support()]
+    
+    return best_selector, best_selector_name, selected_features

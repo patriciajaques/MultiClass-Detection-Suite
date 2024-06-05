@@ -6,13 +6,11 @@ from sklearn.pipeline import Pipeline
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
 
 from model_params import get_models, get_param_grids, get_hyperopt_spaces, get_param_distributions
-from preprocessing import create_preprocessor, create_pipeline
 from training_constants import CROSS_VALIDATION, GRID_SEARCH, RANDOM_SEARCH, BAYESIAN_OPTIMIZATION
 
 
-def train_model(X_train, y_train, training_type):
+def train_model(X_train, y_train, training_type, pipeline):
     models = get_models()
-    preprocessor = create_preprocessor(X_train)
 
     # Configurações de treinamento unificadas
     training_configs = {
@@ -44,7 +42,8 @@ def train_model(X_train, y_train, training_type):
     
 
     for model_name, model_config in models.items():
-        model = create_pipeline(preprocessor, model_config) 
+        model_pipeline = pipeline.copy()
+        model_pipeline.steps.append(('classifier', model_config))
         print(f"\nTraining and evaluating {model_name} with {training_type}:")
         
         # Acessar configuração de treinamento
@@ -53,13 +52,13 @@ def train_model(X_train, y_train, training_type):
             model_specific_args = [param_function()[model_name]]  # Chamar a função de parâmetros e acessar a grade de parâmetros para o modelo atual
         else:
             model_specific_args = []
-        best_model, best_result = config["function"](model, *model_specific_args, X_train, y_train, **config["kwargs"])
+        best_model, best_result = config["function"](model_pipeline, *model_specific_args, X_train, y_train, **config["kwargs"])
 
         # Armazenando mais informações sobre a configuração
         trained_models[model_name] = {
             'model': best_model,
             'training_type': training_type,
-            'hyperparameters': model.get_params(),  # Pegando hiperparâmetros do modelo
+            'hyperparameters': model_pipeline.get_params(),  # Pegando hiperparâmetros do modelo
             'best_result': best_result
         }
         print(f"{training_type} Best Result for {model_name}: {best_result}")

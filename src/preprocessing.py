@@ -62,7 +62,7 @@ def load_data (file_path = '../data/new_logs_labels.csv'):
 
     return X, y
 
-def split_train_test_data (X, y):
+def split_train_test_data (X, y, test_size=0.3, random_state=42):
 
     """
     Divide os dados em conjuntos de treino e teste.
@@ -80,7 +80,7 @@ def split_train_test_data (X, y):
     
     # Cria um novo dataframe que contém y concatenado com X
     data = concat_features_and_target(X, y)
-    train_data, test_data = utils.split_data_stratified(data, test_size=0.3, target_column='aluno', n_splits=5)
+    train_data, test_data = utils.split_data_stratified(data, test_size=test_size, target_column='aluno', n_splits=5, random_state=random_state)
     # Separar features e rótulos
     X_train = train_data.drop(columns=['comportamento'])
     y_train = train_data['comportamento']
@@ -121,21 +121,3 @@ def create_preprocessor(X_train):
         ])
 
     return preprocessor
-
-def create_pipeline(preprocessor, model_config, feature_selection=None):
-    """
-    Cria um pipeline que aplica pré-processamento, seleção de recursos (se fornecido) e classificação.
-
-    Returns:
-        Pipeline: Um pipeline configurado.
-    """
-    steps = [('preprocessor', preprocessor)]
-    
-    if feature_selection:
-        steps.append(('feature_selection', feature_selection))
-    
-    steps.append(('classifier', model_config))
-    
-    model = Pipeline(steps)
-
-    return model
