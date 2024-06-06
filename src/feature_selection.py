@@ -1,3 +1,4 @@
+import pandas as pd
 from sklearn.feature_selection import RFE, SelectFromModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.decomposition import PCA
@@ -47,10 +48,12 @@ def create_rf_selector(X_train, y_train):
     return selector
 
 def evaluate_feature_selectors(X_train, y_train, n_features_to_select, n_components):
+    # Define your selectors here (example for RFE)
     selectors = {
         'RFE': create_rfe_selector(n_features_to_select=n_features_to_select)
-        #'PCA': create_pca_selector(n_components=n_components)
-        #'RandomForest': create_rf_selector(X_train, y_train)
+        # Uncomment the following lines if needed
+        # 'PCA': create_pca_selector(n_components=n_components),
+        # 'RandomForest': create_rf_selector(X_train, y_train)
     }
     
     best_score = -np.inf
@@ -58,27 +61,21 @@ def evaluate_feature_selectors(X_train, y_train, n_features_to_select, n_compone
     best_selector_name = ''
     selected_features = None
 
-    
     for name, selector in selectors.items():
         pipeline = Pipeline([
             ('feature_selection', selector),
             ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
         ])
         
+        # Fit the pipeline to ensure all components are initialized
+        pipeline.fit(X_train, y_train)
+        
         scores = cross_val_score(pipeline, X_train, y_train, cv=5, scoring='balanced_accuracy')
         mean_score = scores.mean()
-        
-        print(f'{name} selector mean accuracy: {mean_score:.4f}')
-        
+
         if mean_score > best_score:
             best_score = mean_score
             best_selector = selector
             best_selector_name = name
-    
-    # Ajustar o seletor nos dados completos de treinamento para obter as características selecionadas
-    if hasattr(best_selector, 'fit'):
-        best_selector.fit(X_train, y_train)
-    if hasattr(best_selector, 'get_support'):
-        selected_features = X_train.columns[best_selector.get_support()]
-    
-    return best_selector, best_selector_name, selected_features
+
+    return best_selector, best_selector_name

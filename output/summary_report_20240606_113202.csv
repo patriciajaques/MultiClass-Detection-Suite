@@ -1,0 +1,13 @@
+Metric,precision-train,recall-train,f1-score-train,support-train,precision-test,recall-test,f1-score-test,support-test,Model
+accuracy,,,1.0,,,,0.91,,Random Forest
+macro avg,1.0,1.0,1.0,4391.0,0.89,0.89,0.89,1098.0,Random Forest
+weighted avg,1.0,1.0,1.0,4391.0,0.91,0.91,0.91,1098.0,Random Forest
+balanced_accuracy,,,1.0,,,,0.89,,Random Forest
+accuracy,,,1.0,,,,0.91,,Gradient Boosting
+macro avg,1.0,1.0,1.0,4391.0,0.89,0.87,0.88,1098.0,Gradient Boosting
+weighted avg,1.0,1.0,1.0,4391.0,0.91,0.91,0.9,1098.0,Gradient Boosting
+balanced_accuracy,,,1.0,,,,0.87,,Gradient Boosting
+accuracy,,,1.0,,,,0.9,,XGBoost
+macro avg,1.0,1.0,1.0,4391.0,0.89,0.87,0.88,1098.0,XGBoost
+weighted avg,1.0,1.0,1.0,4391.0,0.9,0.9,0.9,1098.0,XGBoost
+balanced_accuracy,,,1.0,,,,0.87,,XGBoost

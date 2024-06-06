@@ -55,6 +55,8 @@ def load_data (file_path = '../data/new_logs_labels.csv'):
         pd.DataFrame: DataFrame contendo os dados lidos.
     """
     df = pd.read_csv(file_path, delimiter=';')
+    # remove todas as colunas de comportamento cujo valor é "?"
+    df = df[df['comportamento'] != '?']
     X, y = utils.split_features_and_target(df)
     y = y['comportamento']
     X.info()

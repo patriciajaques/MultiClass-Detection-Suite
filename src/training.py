@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn import clone
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.model_selection import cross_val_predict, cross_val_score, GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
@@ -42,8 +43,10 @@ def train_model(X_train, y_train, training_type, pipeline):
     
 
     for model_name, model_config in models.items():
-        model_pipeline = pipeline.copy()
-        model_pipeline.steps.append(('classifier', model_config))
+        #pipeline = clone(pipeline) descomentar caso o treinamento seja realizado em dados diferentes de que o seletor de features e outros objetos do Pipeline
+    
+        # Substitui o classificador no pipeline
+        pipeline.steps[-1] = ('classifier', model_config)
         print(f"\nTraining and evaluating {model_name} with {training_type}:")
         
         # Acessar configuração de treinamento
@@ -52,13 +55,13 @@ def train_model(X_train, y_train, training_type, pipeline):
             model_specific_args = [param_function()[model_name]]  # Chamar a função de parâmetros e acessar a grade de parâmetros para o modelo atual
         else:
             model_specific_args = []
-        best_model, best_result = config["function"](model_pipeline, *model_specific_args, X_train, y_train, **config["kwargs"])
+        best_model, best_result = config["function"](pipeline, *model_specific_args, X_train, y_train, **config["kwargs"])
 
         # Armazenando mais informações sobre a configuração
         trained_models[model_name] = {
             'model': best_model,
             'training_type': training_type,
-            'hyperparameters': model_pipeline.get_params(),  # Pegando hiperparâmetros do modelo
+            'hyperparameters': pipeline.get_params(),  # Pegando hiperparâmetros do modelo
             'best_result': best_result
         }
         print(f"{training_type} Best Result for {model_name}: {best_result}")
