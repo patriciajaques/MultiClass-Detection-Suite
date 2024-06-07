@@ -90,18 +90,26 @@ def execute_random_search(model, param_distributions, X_train, y_train, n_iter=5
     best_model = search.best_estimator_
     return best_model, search.best_score_
 
+# Função de otimização bayesiana
 def execute_bayesian_optimization(model, space, X_train, y_train, max_evals=50):
+    # Função utilitária para conversão de parâmetros
+    def convert_hyperopt_params(params, space):
+        """Converte índices para strings em parâmetros selecionados pelo Hyperopt."""
+        for key, val in params.items():
+            if isinstance(val, int) and key in space and isinstance(space[key], hp.choice):
+                params[key] = space[key].pos_args[val]
+        return params
+
     def objective(params):
         """Função objetivo para otimização bayesiana."""
+        params = convert_hyperopt_params(params, space)
         model.set_params(**params)
         score = cross_val_score(model, X_train, y_train, scoring='balanced_accuracy', cv=5)
         return {'loss': -np.mean(score), 'status': STATUS_OK}
     
     trials = Trials()
     best_params = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
-
-    # Convert the best parameters to a format that can be used with the model
-    best_params = {k: v[0] if isinstance(v, list) else v for k, v in best_params.items()}
+    best_params = convert_hyperopt_params(best_params, space)
     model.set_params(**best_params)
-    model.fit(X_train, y_train) # Train the model with the best parameters
+    model.fit(X_train, y_train)  # Treine o modelo com os melhores parâmetros
     return model, -trials.best_trial['result']['loss']

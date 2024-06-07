@@ -24,7 +24,7 @@ def get_models():
 def get_param_grids():
     return  {
         'Logistic Regression': {
-            'classifier__penalty': ['l1', 'l2', 'elasticnet', None],
+            'classifier__penalty': [ 'l2'],
             'classifier__C': [0.1, 1, 10, 100],
             'classifier__solver': ['lbfgs', 'liblinear', 'saga']
         },
@@ -67,7 +67,7 @@ def get_param_grids():
 def get_param_distributions():
     return {
         'Logistic Regression': {
-            'classifier__penalty': ['l1', 'l2', 'elasticnet', 'None'],
+            'classifier__penalty': ['l2'],
             'classifier__C': uniform(0.1, 100),
             'classifier__solver': ['lbfgs', 'liblinear', 'saga']
         },
@@ -111,7 +111,7 @@ def get_param_distributions():
 def get_hyperopt_spaces():
     return {
         'Logistic Regression': {
-            'classifier__penalty': hp.choice('classifier__penalty', ['l1', 'l2', 'elasticnet', None]),
+            'classifier__penalty': hp.choice('classifier__penalty', ['l2']),
             'classifier__C': hp.loguniform('classifier__C', np.log(0.1), np.log(100)),
             'classifier__solver': hp.choice('classifier__solver', ['lbfgs', 'liblinear', 'saga'])
         },

@@ -1,0 +1,195 @@
+
+Evaluating Logistic Regression with RandomSearch:
+Hiperparâmetros: {'memory': None, 'steps': [('classifier', LogisticRegression(max_iter=5000))], 'verbose': False, 'classifier': LogisticRegression(max_iter=5000), 'classifier__C': 1.0, 'classifier__class_weight': None, 'classifier__dual': False, 'classifier__fit_intercept': True, 'classifier__intercept_scaling': 1, 'classifier__l1_ratio': None, 'classifier__max_iter': 5000, 'classifier__multi_class': 'auto', 'classifier__n_jobs': None, 'classifier__penalty': 'l2', 'classifier__random_state': None, 'classifier__solver': 'lbfgs', 'classifier__tol': 0.0001, 'classifier__verbose': 0, 'classifier__warm_start': False}
+
+Training set report:
+Class 0 - Precision: 0.79, Recall: 0.55, F1-Score: 0.65, Support: 495.0
+Class 1 - Precision: 0.87, Recall: 0.79, F1-Score: 0.83, Support: 721.0
+Class 2 - Precision: 0.86, Recall: 0.93, F1-Score: 0.9, Support: 2553.0
+Class 3 - Precision: 0.81, Recall: 0.85, F1-Score: 0.83, Support: 321.0
+Class 4 - Precision: 0.8, Recall: 0.8, F1-Score: 0.8, Support: 301.0
+Accuracy - F1-Score: 0.85
+Class macro avg - Precision: 0.83, Recall: 0.79, F1-Score: 0.8, Support: 4391.0
+Class weighted avg - Precision: 0.85, Recall: 0.85, F1-Score: 0.85, Support: 4391.0
+Balanced Accuracy: 0.79
+
+Test set report:
+Class 0 - Precision: 0.69, Recall: 0.49, F1-Score: 0.57, Support: 134.0
+Class 1 - Precision: 0.81, Recall: 0.75, F1-Score: 0.78, Support: 186.0
+Class 2 - Precision: 0.83, Recall: 0.88, F1-Score: 0.86, Support: 606.0
+Class 3 - Precision: 0.76, Recall: 0.81, F1-Score: 0.78, Support: 93.0
+Class 4 - Precision: 0.67, Recall: 0.77, F1-Score: 0.72, Support: 79.0
+Accuracy - F1-Score: 0.8
+Class macro avg - Precision: 0.75, Recall: 0.74, F1-Score: 0.74, Support: 1098.0
+Class weighted avg - Precision: 0.79, Recall: 0.8, F1-Score: 0.79, Support: 1098.0
+Balanced Accuracy: 0.74
+
+Evaluating Decision Tree with RandomSearch:
+Hiperparâmetros: {'memory': None, 'steps': [('classifier', DecisionTreeClassifier())], 'verbose': False, 'classifier': DecisionTreeClassifier(), 'classifier__ccp_alpha': 0.0, 'classifier__class_weight': None, 'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__max_features': None, 'classifier__max_leaf_nodes': None, 'classifier__min_impurity_decrease': 0.0, 'classifier__min_samples_leaf': 1, 'classifier__min_samples_split': 2, 'classifier__min_weight_fraction_leaf': 0.0, 'classifier__random_state': None, 'classifier__splitter': 'best'}
+
+Training set report:
+Class 0 - Precision: 0.97, Recall: 1.0, F1-Score: 0.99, Support: 495.0
+Class 1 - Precision: 0.99, Recall: 0.99, F1-Score: 0.99, Support: 721.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 0.99, F1-Score: 1.0, Support: 321.0
+Class 4 - Precision: 1.0, Recall: 0.97, F1-Score: 0.99, Support: 301.0
+Accuracy - F1-Score: 0.99
+Class macro avg - Precision: 0.99, Recall: 0.99, F1-Score: 0.99, Support: 4391.0
+Class weighted avg - Precision: 0.99, Recall: 0.99, F1-Score: 0.99, Support: 4391.0
+Balanced Accuracy: 0.99
+
+Test set report:
+Class 0 - Precision: 0.74, Recall: 0.73, F1-Score: 0.73, Support: 134.0
+Class 1 - Precision: 0.82, Recall: 0.81, F1-Score: 0.81, Support: 186.0
+Class 2 - Precision: 0.89, Recall: 0.89, F1-Score: 0.89, Support: 606.0
+Class 3 - Precision: 0.89, Recall: 0.91, F1-Score: 0.9, Support: 93.0
+Class 4 - Precision: 0.79, Recall: 0.77, F1-Score: 0.78, Support: 79.0
+Accuracy - F1-Score: 0.85
+Class macro avg - Precision: 0.82, Recall: 0.82, F1-Score: 0.82, Support: 1098.0
+Class weighted avg - Precision: 0.85, Recall: 0.85, F1-Score: 0.85, Support: 1098.0
+Balanced Accuracy: 0.82
+
+Evaluating Random Forest with RandomSearch:
+Hiperparâmetros: {'memory': None, 'steps': [('classifier', RandomForestClassifier())], 'verbose': False, 'classifier': RandomForestClassifier(), 'classifier__bootstrap': True, 'classifier__ccp_alpha': 0.0, 'classifier__class_weight': None, 'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__max_features': 'sqrt', 'classifier__max_leaf_nodes': None, 'classifier__max_samples': None, 'classifier__min_impurity_decrease': 0.0, 'classifier__min_samples_leaf': 1, 'classifier__min_samples_split': 2, 'classifier__min_weight_fraction_leaf': 0.0, 'classifier__n_estimators': 100, 'classifier__n_jobs': None, 'classifier__oob_score': False, 'classifier__random_state': None, 'classifier__verbose': 0, 'classifier__warm_start': False}
+
+Training set report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 495.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 721.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 321.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 301.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Balanced Accuracy: 1.0
+
+Test set report:
+Class 0 - Precision: 0.84, Recall: 0.74, F1-Score: 0.79, Support: 134.0
+Class 1 - Precision: 0.92, Recall: 0.85, F1-Score: 0.88, Support: 186.0
+Class 2 - Precision: 0.91, Recall: 0.94, F1-Score: 0.92, Support: 606.0
+Class 3 - Precision: 0.91, Recall: 0.91, F1-Score: 0.91, Support: 93.0
+Class 4 - Precision: 0.78, Recall: 0.94, F1-Score: 0.85, Support: 79.0
+Accuracy - F1-Score: 0.9
+Class macro avg - Precision: 0.87, Recall: 0.87, F1-Score: 0.87, Support: 1098.0
+Class weighted avg - Precision: 0.9, Recall: 0.9, F1-Score: 0.89, Support: 1098.0
+Balanced Accuracy: 0.87
+
+Evaluating Gradient Boosting with RandomSearch:
+Hiperparâmetros: {'memory': None, 'steps': [('classifier', GradientBoostingClassifier())], 'verbose': False, 'classifier': GradientBoostingClassifier(), 'classifier__ccp_alpha': 0.0, 'classifier__criterion': 'friedman_mse', 'classifier__init': None, 'classifier__learning_rate': 0.1, 'classifier__loss': 'log_loss', 'classifier__max_depth': 3, 'classifier__max_features': None, 'classifier__max_leaf_nodes': None, 'classifier__min_impurity_decrease': 0.0, 'classifier__min_samples_leaf': 1, 'classifier__min_samples_split': 2, 'classifier__min_weight_fraction_leaf': 0.0, 'classifier__n_estimators': 100, 'classifier__n_iter_no_change': None, 'classifier__random_state': None, 'classifier__subsample': 1.0, 'classifier__tol': 0.0001, 'classifier__validation_fraction': 0.1, 'classifier__verbose': 0, 'classifier__warm_start': False}
+
+Training set report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 495.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 721.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 321.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 301.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Balanced Accuracy: 1.0
+
+Test set report:
+Class 0 - Precision: 0.85, Recall: 0.78, F1-Score: 0.82, Support: 134.0
+Class 1 - Precision: 0.94, Recall: 0.86, F1-Score: 0.9, Support: 186.0
+Class 2 - Precision: 0.92, Recall: 0.95, F1-Score: 0.93, Support: 606.0
+Class 3 - Precision: 0.92, Recall: 0.92, F1-Score: 0.92, Support: 93.0
+Class 4 - Precision: 0.82, Recall: 0.89, F1-Score: 0.85, Support: 79.0
+Accuracy - F1-Score: 0.91
+Class macro avg - Precision: 0.89, Recall: 0.88, F1-Score: 0.89, Support: 1098.0
+Class weighted avg - Precision: 0.91, Recall: 0.91, F1-Score: 0.91, Support: 1098.0
+Balanced Accuracy: 0.88
+
+Evaluating SVM with RandomSearch:
+Hiperparâmetros: {'memory': None, 'steps': [('classifier', SVC())], 'verbose': False, 'classifier': SVC(), 'classifier__C': 1.0, 'classifier__break_ties': False, 'classifier__cache_size': 200, 'classifier__class_weight': None, 'classifier__coef0': 0.0, 'classifier__decision_function_shape': 'ovr', 'classifier__degree': 3, 'classifier__gamma': 'scale', 'classifier__kernel': 'rbf', 'classifier__max_iter': -1, 'classifier__probability': False, 'classifier__random_state': None, 'classifier__shrinking': True, 'classifier__tol': 0.001, 'classifier__verbose': False}
+
+Training set report:
+Class 0 - Precision: 0.91, Recall: 0.86, F1-Score: 0.89, Support: 495.0
+Class 1 - Precision: 0.96, Recall: 0.97, F1-Score: 0.97, Support: 721.0
+Class 2 - Precision: 0.97, Recall: 0.98, F1-Score: 0.97, Support: 2553.0
+Class 3 - Precision: 0.95, Recall: 0.95, F1-Score: 0.95, Support: 321.0
+Class 4 - Precision: 0.89, Recall: 0.93, F1-Score: 0.91, Support: 301.0
+Accuracy - F1-Score: 0.96
+Class macro avg - Precision: 0.94, Recall: 0.94, F1-Score: 0.94, Support: 4391.0
+Class weighted avg - Precision: 0.96, Recall: 0.96, F1-Score: 0.96, Support: 4391.0
+Balanced Accuracy: 0.94
+
+Test set report:
+Class 0 - Precision: 0.73, Recall: 0.68, F1-Score: 0.7, Support: 134.0
+Class 1 - Precision: 0.88, Recall: 0.85, F1-Score: 0.86, Support: 186.0
+Class 2 - Precision: 0.89, Recall: 0.9, F1-Score: 0.89, Support: 606.0
+Class 3 - Precision: 0.89, Recall: 0.82, F1-Score: 0.85, Support: 93.0
+Class 4 - Precision: 0.68, Recall: 0.81, F1-Score: 0.74, Support: 79.0
+Accuracy - F1-Score: 0.85
+Class macro avg - Precision: 0.81, Recall: 0.81, F1-Score: 0.81, Support: 1098.0
+Class weighted avg - Precision: 0.85, Recall: 0.85, F1-Score: 0.85, Support: 1098.0
+Balanced Accuracy: 0.81
+
+Evaluating KNN with RandomSearch:
+Hiperparâmetros: {'memory': None, 'steps': [('classifier', KNeighborsClassifier())], 'verbose': False, 'classifier': KNeighborsClassifier(), 'classifier__algorithm': 'auto', 'classifier__leaf_size': 30, 'classifier__metric': 'minkowski', 'classifier__metric_params': None, 'classifier__n_jobs': None, 'classifier__n_neighbors': 5, 'classifier__p': 2, 'classifier__weights': 'uniform'}
+
+Training set report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 495.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 721.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 321.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 301.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Balanced Accuracy: 1.0
+
+Test set report:
+Class 0 - Precision: 0.82, Recall: 0.74, F1-Score: 0.78, Support: 134.0
+Class 1 - Precision: 0.9, Recall: 0.83, F1-Score: 0.86, Support: 186.0
+Class 2 - Precision: 0.9, Recall: 0.9, F1-Score: 0.9, Support: 606.0
+Class 3 - Precision: 0.84, Recall: 0.86, F1-Score: 0.85, Support: 93.0
+Class 4 - Precision: 0.66, Recall: 0.82, F1-Score: 0.73, Support: 79.0
+Accuracy - F1-Score: 0.86
+Class macro avg - Precision: 0.82, Recall: 0.83, F1-Score: 0.83, Support: 1098.0
+Class weighted avg - Precision: 0.87, Recall: 0.86, F1-Score: 0.86, Support: 1098.0
+Balanced Accuracy: 0.83
+
+Evaluating XGBoost with RandomSearch:
+Hiperparâmetros: {'memory': None, 'steps': [('classifier', XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=None, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='mlogloss',
+              feature_types=None, gamma=None, grow_policy=None,
+              importance_type=None, interaction_constraints=None,
+              learning_rate=None, max_bin=None, max_cat_threshold=None,
+              max_cat_to_onehot=None, max_delta_step=None, max_depth=None,
+              max_leaves=None, min_child_weight=None, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=None,
+              n_jobs=None, num_parallel_tree=None, random_state=None, ...))], 'verbose': False, 'classifier': XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=None, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='mlogloss',
+              feature_types=None, gamma=None, grow_policy=None,
+              importance_type=None, interaction_constraints=None,
+              learning_rate=None, max_bin=None, max_cat_threshold=None,
+              max_cat_to_onehot=None, max_delta_step=None, max_depth=None,
+              max_leaves=None, min_child_weight=None, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=None,
+              n_jobs=None, num_parallel_tree=None, random_state=None, ...), 'classifier__objective': 'binary:logistic', 'classifier__base_score': None, 'classifier__booster': None, 'classifier__callbacks': None, 'classifier__colsample_bylevel': None, 'classifier__colsample_bynode': None, 'classifier__colsample_bytree': None, 'classifier__device': None, 'classifier__early_stopping_rounds': None, 'classifier__enable_categorical': False, 'classifier__eval_metric': 'mlogloss', 'classifier__feature_types': None, 'classifier__gamma': None, 'classifier__grow_policy': None, 'classifier__importance_type': None, 'classifier__interaction_constraints': None, 'classifier__learning_rate': None, 'classifier__max_bin': None, 'classifier__max_cat_threshold': None, 'classifier__max_cat_to_onehot': None, 'classifier__max_delta_step': None, 'classifier__max_depth': None, 'classifier__max_leaves': None, 'classifier__min_child_weight': None, 'classifier__missing': nan, 'classifier__monotone_constraints': None, 'classifier__multi_strategy': None, 'classifier__n_estimators': None, 'classifier__n_jobs': None, 'classifier__num_parallel_tree': None, 'classifier__random_state': None, 'classifier__reg_alpha': None, 'classifier__reg_lambda': None, 'classifier__sampling_method': None, 'classifier__scale_pos_weight': None, 'classifier__subsample': None, 'classifier__tree_method': None, 'classifier__validate_parameters': None, 'classifier__verbosity': None, 'classifier__use_label_encoder': False}
+
+Training set report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 495.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 721.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 321.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 301.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 4391.0
+Balanced Accuracy: 1.0
+
+Test set report:
+Class 0 - Precision: 0.87, Recall: 0.75, F1-Score: 0.81, Support: 134.0
+Class 1 - Precision: 0.94, Recall: 0.89, F1-Score: 0.92, Support: 186.0
+Class 2 - Precision: 0.92, Recall: 0.95, F1-Score: 0.93, Support: 606.0
+Class 3 - Precision: 0.96, Recall: 0.91, F1-Score: 0.93, Support: 93.0
+Class 4 - Precision: 0.78, Recall: 0.9, F1-Score: 0.84, Support: 79.0
+Accuracy - F1-Score: 0.91
+Class macro avg - Precision: 0.89, Recall: 0.88, F1-Score: 0.88, Support: 1098.0
+Class weighted avg - Precision: 0.91, Recall: 0.91, F1-Score: 0.91, Support: 1098.0
+Balanced Accuracy: 0.88
