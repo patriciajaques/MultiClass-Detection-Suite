@@ -43,8 +43,10 @@ def train_model(X_train, y_train, training_type, pipeline):
     
 
     for model_name, model_config in models.items():
-        #pipeline = clone(pipeline) descomentar caso o treinamento seja realizado em dados diferentes de que o seletor de features e outros objetos do Pipeline
-    
+        # Clona o pipeline para que ele não seja modificado, garantindo isolamento entre os modelos
+        # Cada modelo terá seu próprio pipeline independente, garantindo que as alterações nos hiperparâmetros durante a otimização de um modelo não afetem os outros.
+        pipeline = clone(pipeline) 
+
         # Substitui o classificador no pipeline
         pipeline.steps[-1] = ('classifier', model_config)
         print(f"\nTraining and evaluating {model_name} with {training_type}:")

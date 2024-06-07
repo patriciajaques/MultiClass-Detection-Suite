@@ -1,3 +1,4 @@
+from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
@@ -11,19 +12,19 @@ import numpy as np
 
 def get_models():
     return {
-        # 'Logistic Regression': LogisticRegression(max_iter=5000),
-        #'Decision Tree': DecisionTreeClassifier(),
+        'Logistic Regression': LogisticRegression(max_iter=5000),
+        'Decision Tree': DecisionTreeClassifier(),
         'Random Forest': RandomForestClassifier(),
         'Gradient Boosting': GradientBoostingClassifier(),
-        # 'SVM': SVC(),
-        # 'KNN': KNeighborsClassifier(),
+        'SVM': SVC(),
+        'KNN': KNeighborsClassifier(),
         'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
     }
 
 def get_param_grids():
     return  {
         'Logistic Regression': {
-            'classifier__penalty': ['l1', 'l2', 'elasticnet', 'None'],
+            'classifier__penalty': ['l1', 'l2', 'elasticnet', None],
             'classifier__C': [0.1, 1, 10, 100],
             'classifier__solver': ['lbfgs', 'liblinear', 'saga']
         },
@@ -110,7 +111,7 @@ def get_param_distributions():
 def get_hyperopt_spaces():
     return {
         'Logistic Regression': {
-            'classifier__penalty': hp.choice('classifier__penalty', ['l1', 'l2', 'elasticnet', 'None']),
+            'classifier__penalty': hp.choice('classifier__penalty', ['l1', 'l2', 'elasticnet', None]),
             'classifier__C': hp.loguniform('classifier__C', np.log(0.1), np.log(100)),
             'classifier__solver': hp.choice('classifier__solver', ['lbfgs', 'liblinear', 'saga'])
         },

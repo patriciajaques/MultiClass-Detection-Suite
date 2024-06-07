@@ -48,18 +48,16 @@ def create_rf_selector(X_train, y_train):
     return selector
 
 def evaluate_feature_selectors(X_train, y_train, n_features_to_select, n_components):
-    # Define your selectors here (example for RFE)
     selectors = {
-        'RFE': create_rfe_selector(n_features_to_select=n_features_to_select)
-        # Uncomment the following lines if needed
-        # 'PCA': create_pca_selector(n_components=n_components),
-        # 'RandomForest': create_rf_selector(X_train, y_train)
+        'RFE': create_rfe_selector(n_features_to_select=n_features_to_select),
+        'PCA': create_pca_selector(n_components=n_components),
+        'RandomForest': create_rf_selector(X_train, y_train)
     }
+    print("testando os 3 seletores criados")
     
     best_score = -np.inf
     best_selector = None
     best_selector_name = ''
-    selected_features = None
 
     for name, selector in selectors.items():
         pipeline = Pipeline([
