@@ -1,3 +1,4 @@
 Tarefas:
-1) usar HalvingGridSearchCV no lugar de bayesian optimization, https://scikit-learn.org/stable/auto_examples/model_selection/plot_successive_halving_heatmap.html
-2) apagar codigo relacionado a bayesian optimization,training.py
+[ ] usar HalvingGridSearchCV no lugar de bayesian optimization, https://scikit-learn.org/stable/auto_examples/model_selection/plot_successive_halving_heatmap.html
+[ ] apagar codigo relacionado a bayesian optimization,training.py
+[ ] corrigir erros relacionados ao regressao logistica

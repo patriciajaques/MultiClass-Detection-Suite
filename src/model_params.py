@@ -86,7 +86,7 @@ def get_param_distributions():
             'classifier__n_estimators': randint(10, 200),
             'classifier__learning_rate': uniform(0.01, 0.2),
             'classifier__max_depth': randint(3, 10),
-            'classifier__subsample': uniform(0.5, 1.0)
+            'classifier__subsample': uniform(0.5, 0.5),
         },
         'SVM': {
             'classifier__C': uniform(0.1, 100),
