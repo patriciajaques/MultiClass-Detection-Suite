@@ -25,8 +25,9 @@ def get_param_grids():
     return  {
         'Logistic Regression': {
             'classifier__penalty': [ 'l2'],
-            'classifier__C': [0.1, 1, 10, 100],
-            'classifier__solver': ['lbfgs', 'liblinear', 'saga']
+            'classifier__C': [0.01, 0.1, 1, 10, 100],
+            'classifier__solver': ['lbfgs', 'saga'],
+             'classifier__max_iter': [5000, 10000, 20000]
         },
         'Decision Tree': {
             'classifier__max_depth': [None, 10, 20, 30, 40, 50],
@@ -68,8 +69,9 @@ def get_param_distributions():
     return {
         'Logistic Regression': {
             'classifier__penalty': ['l2'],
-            'classifier__C': uniform(0.1, 100),
-            'classifier__solver': ['lbfgs', 'liblinear', 'saga']
+            'classifier__C': uniform(0.01, 10),
+            'classifier__solver': ['lbfgs', 'saga'],
+            'classifier__max_iter': [5000, 10000, 20000]
         },
         'Decision Tree': {
             'classifier__max_depth': randint(1, 50),
