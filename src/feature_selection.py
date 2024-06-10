@@ -49,11 +49,10 @@ def create_rf_selector(X_train, y_train):
 
 def evaluate_feature_selectors(X_train, y_train, n_features_to_select, n_components):
     selectors = {
-        'RFE': create_rfe_selector(n_features_to_select=n_features_to_select),
-        'PCA': create_pca_selector(n_components=n_components),
-        'RandomForest': create_rf_selector(X_train, y_train)
+        #'RFE': create_rfe_selector(n_features_to_select=n_features_to_select),
+        #'PCA': create_pca_selector(n_components=n_components),
+        'RandomForest': create_rf_selector(X_train, y_train) # estou deixando apenas esse, pois apresentou o melhor resultado
     }
-    print("testando os 3 seletores criados")
     
     best_score = -np.inf
     best_selector = None

@@ -1,16 +1,13 @@
 import numpy as np
 from sklearn import clone
 from sklearn.metrics import balanced_accuracy_score
-from sklearn.model_selection import cross_val_predict, cross_val_score, GridSearchCV, RandomizedSearchCV
-from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_predict, GridSearchCV, RandomizedSearchCV
+from skopt import BayesSearchCV
 
-from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
-
-from model_params import get_models, get_param_grids, get_hyperopt_spaces, get_param_distributions
+from model_params import get_models, get_param_grids, get_param_distributions, get_bayes_search_spaces
 from training_constants import CROSS_VALIDATION, GRID_SEARCH, RANDOM_SEARCH, BAYESIAN_OPTIMIZATION
 
-
-def train_model(X_train, y_train, training_type, pipeline):
+def train_model(X_train, y_train, training_type, pipeline, n_iter=50, cv=5):
     models = get_models()
 
     # Configurações de treinamento unificadas
@@ -23,34 +20,32 @@ def train_model(X_train, y_train, training_type, pipeline):
         GRID_SEARCH: {
             "function": execute_grid_search,
             "param_function": get_param_grids,  # Função que retorna os parâmetros para grid search
-            "kwargs": {"cv": 5}
+            "kwargs": {"cv": cv}
         },
         RANDOM_SEARCH: {
             "function": execute_random_search,
             "param_function": get_param_distributions,  # Função que retorna os parâmetros para random search
-            "kwargs": {"n_iter": 50, "cv": 5}
+            "kwargs": {"n_iter": n_iter, "cv": cv}
         },
         BAYESIAN_OPTIMIZATION: {
             "function": execute_bayesian_optimization,
-            "param_function": get_hyperopt_spaces,  # Função que retorna os parâmetros para bayesian optimization
-            "kwargs": {"max_evals": 50}
+            "param_function": get_bayes_search_spaces,  # Função que retorna os parâmetros para bayesian optimization
+            "kwargs": {"n_iter": n_iter, "cv": cv}
         }
     }
 
     trained_models = {}  # Dicionário para armazenar os resultados de cada modelo
 
     config = training_configs[training_type]
-    
 
     for model_name, model_config in models.items():
-        # Clona o pipeline para que ele não seja modificado, garantindo isolamento entre os modelos
-        # Cada modelo terá seu próprio pipeline independente, garantindo que as alterações nos hiperparâmetros durante a otimização de um modelo não afetem os outros.
-        pipeline = clone(pipeline) 
+        # Clona o pipeline para que ele não seja modificado
+        pipeline = clone(pipeline)
 
         # Substitui o classificador no pipeline
         pipeline.steps[-1] = ('classifier', model_config)
         print(f"\nTraining and evaluating {model_name} with {training_type}:")
-        
+
         # Acessar configuração de treinamento
         param_function = config["param_function"]
         if param_function is not None:  # Se houver uma função de parâmetros
@@ -83,33 +78,23 @@ def execute_grid_search(model, param_grid, X_train, y_train, cv=5):
     best_model = search.best_estimator_
     return best_model, search.best_score_
 
-
 def execute_random_search(model, param_distributions, X_train, y_train, n_iter=50, cv=5):
     search = RandomizedSearchCV(model, param_distributions, n_iter=n_iter, cv=cv, scoring='balanced_accuracy', verbose=1, n_jobs=-1)
     search.fit(X_train, y_train)
     best_model = search.best_estimator_
     return best_model, search.best_score_
 
-# Função de otimização bayesiana
-def execute_bayesian_optimization(model, space, X_train, y_train, max_evals=50):
-    # Função utilitária para conversão de parâmetros
-    def convert_hyperopt_params(params, space):
-        """Converte índices para strings em parâmetros selecionados pelo Hyperopt."""
-        for key, val in params.items():
-            if isinstance(val, int) and key in space and isinstance(space[key], hp.choice):
-                params[key] = space[key].pos_args[val]
-        return params
-
-    def objective(params):
-        """Função objetivo para otimização bayesiana."""
-        params = convert_hyperopt_params(params, space)
-        model.set_params(**params)
-        score = cross_val_score(model, X_train, y_train, scoring='balanced_accuracy', cv=5)
-        return {'loss': -np.mean(score), 'status': STATUS_OK}
-    
-    trials = Trials()
-    best_params = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
-    best_params = convert_hyperopt_params(best_params, space)
-    model.set_params(**best_params)
-    model.fit(X_train, y_train)  # Treine o modelo com os melhores parâmetros
-    return model, -trials.best_trial['result']['loss']
+# Função de otimização bayesiana com BayesSearchCV
+def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=5):
+    search = BayesSearchCV(
+        model,
+        search_spaces=space,
+        n_iter=n_iter,
+        cv=cv,
+        scoring='balanced_accuracy',
+        n_jobs=-1,
+        random_state=42
+    )
+    search.fit(X_train, y_train)
+    best_model = search.best_estimator_
+    return best_model, search.best_score_
