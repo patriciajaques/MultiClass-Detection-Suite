@@ -24,7 +24,7 @@ def get_param_grids():
     return {
         'Logistic Regression': [
             {
-                'classifier__penalty': ['l2', 'none'],
+                'classifier__penalty': ['l2', None],
                 'classifier__C': [0.01, 0.1, 1, 10, 100],
                 'classifier__solver': ['lbfgs', 'saga'],
                 'classifier__max_iter': [5000, 10000, 20000]
@@ -95,7 +95,7 @@ def get_param_distributions():
     return {
         'Logistic Regression': [
             {
-                'classifier__penalty': ['l2', 'none'],
+                'classifier__penalty': ['l2', None],
                 'classifier__C': uniform(0.01, 10),
                 'classifier__solver': ['lbfgs', 'saga'],
                 'classifier__max_iter': [5000, 10000, 20000]
@@ -166,7 +166,7 @@ def get_bayes_search_spaces():
     return {
         'Logistic Regression': [
             {
-                'classifier__penalty': Categorical(['l2', 'none']),
+                'classifier__penalty': Categorical(['l2', None]),
                 'classifier__C': Real(0.1, 100, prior='log-uniform'),
                 'classifier__solver': Categorical(['lbfgs', 'saga']),
                 'classifier__max_iter': Integer(5000, 20000)

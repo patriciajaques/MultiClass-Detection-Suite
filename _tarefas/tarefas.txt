@@ -1,4 +1,4 @@
 Tarefas:
-[ ] usar BayesSearchCV no lugar de bayesian hyperopt como  BAYESIAN_OPTIMIZATION, https://scikit-learn.org/stable/auto_examples/model_selection/plot_successive_halving_heatmap.html
+[x] usar BayesSearchCV no lugar de bayesian hyperopt como  BAYESIAN_OPTIMIZATION, https://scikit-learn.org/stable/auto_examples/model_selection/plot_successive_halving_heatmap.html
 [x] apagar codigo relacionado a bayesian optimization,training.py
 [ ] corrigir erros relacionados ao regressao logistica

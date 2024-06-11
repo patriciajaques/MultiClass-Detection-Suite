@@ -96,16 +96,6 @@ def create_preprocessor(X_train):
     numeric_features = X_train.select_dtypes(include=['int64', 'float64']).columns
     categorical_features = X_train.select_dtypes(include=['object', 'category']).columns
 
-    """
-    Cria um ColumnTransformer que aplica StandardScaler às colunas numéricas e OneHotEncoder às colunas categóricas.
-
-    Args:
-    numeric_features (list): Lista de nomes de colunas numéricas.
-    categorical_features (list): Lista de nomes de colunas categóricas.
-
-    Returns:
-    ColumnTransformer: Um ColumnTransformer configurado.
-    """
     # Criar pré-processadores para colunas numéricas e categóricas
     numeric_transformer = Pipeline(steps=[
         ('scaler', StandardScaler())
