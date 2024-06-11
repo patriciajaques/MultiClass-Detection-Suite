@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
@@ -98,7 +98,7 @@ def create_preprocessor(X_train):
 
     # Criar pré-processadores para colunas numéricas e categóricas
     numeric_transformer = Pipeline(steps=[
-        ('scaler', StandardScaler())
+        ('scaler', MinMaxScaler())
     ])
 
     categorical_transformer = Pipeline(steps=[
