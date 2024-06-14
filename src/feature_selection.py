@@ -1,129 +1,92 @@
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import RFE, SelectFromModel
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.pipeline import Pipeline
-from typing import Dict, Tuple, Any
 
-from feature_selection_params import get_param_grid
+# Define a map for selector methods
+SELECTOR_MAP = {
+    'rfe': RFE,
+    'pca': PCA,
+    'rf': SelectFromModel
+}
 
-def create_rfe_selector(n_features_to_select: int) -> RFE:
-    estimator = RandomForestClassifier(n_estimators=100, random_state=42)
-    return RFE(estimator, n_features_to_select=n_features_to_select)
+# Helper function to create selectors from SELECTOR_MAP
+def create_selectors_from_map(X_train, y_train, selector_map, **kwargs):
+    selectors = {}
+    for name in selector_map:
+        selectors[name] = create_selector(name, X_train, y_train, **kwargs)
+    return selectors
 
-def create_pca_selector(n_components: int) -> PCA:
-    return PCA(n_components=n_components)
+# Factory function to create selectors
+def create_selector(method, X_train=None, y_train=None, **kwargs):
+    if method not in SELECTOR_MAP:
+        raise ValueError(f"Unknown method: {method}")
+    
+    if method == 'rfe':
+        estimator = RandomForestClassifier(n_estimators=100, random_state=42)
+        return RFE(estimator, n_features_to_select=kwargs.get('n_features_to_select', 10))
+    elif method == 'pca':
+        return PCA(n_components=kwargs.get('n_components', 5))
+    elif method == 'rf':
+        estimator = RandomForestClassifier(n_estimators=100, random_state=0)
+        estimator.fit(X_train, y_train)
+        return SelectFromModel(estimator)
 
-def create_rf_selector(X_train: np.ndarray, y_train: np.ndarray) -> SelectFromModel:
-    estimator = RandomForestClassifier(n_estimators=100, random_state=0)
-    estimator.fit(X_train, y_train)
-    return SelectFromModel(estimator)
-
-def create_pipeline(selector: BaseEstimator, classifier_params: Dict[str, Any] = {}) -> Pipeline:
+# Function to create pipeline
+def create_pipeline(selector, classifier_params={}):
     return Pipeline([
         ('feature_selection', selector),
         ('classifier', RandomForestClassifier(**classifier_params))
     ])
 
-def evaluate_selectors(X_train: np.ndarray, y_train: np.ndarray, selectors: Dict[str, BaseEstimator], classifier_params: Dict[str, Any] = {'n_estimators': 100, 'random_state': 42}) -> Tuple[BaseEstimator, str, float]:
-    best_score = -np.inf
-    best_selector = None
-    best_selector_name = ''
+# Function to get parameter grid
+def get_param_grid(selector):
+    param_grid_map = {
+        RFE: {'feature_selection__n_features_to_select': [10, 20, 30, 40, 50]},
+        PCA: {'feature_selection__n_components': [5, 10, 15, 20]}
+    }
+    return param_grid_map.get(type(selector), {})
 
-    for name, selector in selectors.items():
-        pipeline = create_pipeline(selector, classifier_params)
-        scores = cross_val_score(pipeline, X_train, y_train, cv=5, scoring='balanced_accuracy')
-        mean_score = scores.mean()
-
-        if mean_score > best_score:
-            best_score = mean_score
-            best_selector = selector
-            best_selector_name = name
-
-    return best_selector, best_selector_name, best_score
-
-def evaluate_feature_selector_with_search(X_train: np.ndarray, y_train: np.ndarray, selector: BaseEstimator, classifier_params: Dict[str, Any] = {'n_estimators': 100, 'random_state': 42}) -> Tuple[Pipeline, Dict[str, Any], float]:
+# Function to evaluate selector with grid search
+def evaluate_feature_selector_with_search(X_train, y_train, selector, classifier_params={'n_estimators': 100, 'random_state': 42}):
     pipeline = create_pipeline(selector, classifier_params)
-    
-    # Obtenha os parâmetros válidos para o seletor específico
-    if isinstance(selector, RFE):
-        param_grid = {
-            'feature_selection__n_features_to_select': [10, 20, 30, 40, 50]  # Ajuste conforme necessário
-        }
-    elif isinstance(selector, PCA):
-        param_grid = {
-            'feature_selection__n_components': [5, 10, 15, 20]  # Ajuste conforme necessário
-        }
-    else:
-        param_grid = {}  # Outros seletores, se necessário
-
+    param_grid = get_param_grid(selector)
     search = GridSearchCV(pipeline, param_grid, cv=5, scoring='balanced_accuracy', n_jobs=-1)
     search.fit(X_train, y_train)
+    return search.best_estimator_, search.best_params_, search.best_score_
 
-    best_params = search.best_params_
-    best_score = search.best_score_
-    best_pipeline = search.best_estimator_
-
-    best_selector = best_pipeline.named_steps['feature_selection']
-    
-    return best_selector, best_params, best_score
-
-def evaluate_multiple_selectors_with_search(X_train: np.ndarray, y_train: np.ndarray, selectors: Dict[str, BaseEstimator], classifier_params: Dict[str, Any] = {'n_estimators': 100, 'random_state': 42}) -> Tuple[Pipeline, Dict[str, Any], float]:
+# Modified function to evaluate multiple selectors with grid search
+def evaluate_feature_selectors_with_search(X_train, y_train, selectors, classifier_params={'n_estimators': 100, 'random_state': 42}):
     best_score = -np.inf
     best_selector = None
     best_selector_name = ''
-    best_params = None
-    
-    # Avaliar e otimizar múltiplos seletores
+    best_params = {}
+
     for name, selector in selectors.items():
-        print(f"Evaluating selector: {name}")
-        selector, params, score = evaluate_feature_selector_with_search(X_train, y_train, selector, classifier_params)
+        best_estimator, best_selector_params, mean_score = evaluate_feature_selector_with_search(X_train, y_train, selector, classifier_params)
         
-        if score > best_score:
-            best_score = score
-            best_selector = selector
+        if mean_score > best_score:
+            best_score = mean_score
+            best_selector = best_estimator
             best_selector_name = name
-            best_params = params
+            best_params = best_selector_params
 
-    print(f"Best selector: {best_selector_name} with params: {best_params}")
-    return best_selector, best_params, best_score
+    return best_selector, best_selector_name, best_params, best_score
 
+# Example usage
+if __name__ == "__main__":
+    # Dummy data for example
+    X_train = np.random.rand(100, 10)
+    y_train = np.random.randint(0, 2, 100)
 
-def get_feature_selectors(X_train, y_train):
-    # Definir seletores
-    return {
-        'RFE': create_rfe_selector(n_features_to_select=10),
-        'PCA': create_pca_selector(n_components=5),
-        'RF': create_rf_selector(X_train, y_train)
+    selectors = {
+        'pca': create_selector('pca'),
+        'rfe': create_selector('rfe'),
+        'rf': create_selector('rf', X_train, y_train)
     }
 
-class CustomSelector(BaseEstimator, TransformerMixin):
-    def __init__(self, method: str = 'rf', n_features: int = None, n_components: int = None):
-        self.method = method
-        self.n_features = n_features
-        self.n_components = n_components
-        self.selector = None
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> 'CustomSelector':
-        if self.method == 'rfe':
-            self.selector = create_rfe_selector(self.n_features)
-        elif self.method == 'pca':
-            self.selector = create_pca_selector(self.n_components)
-        elif self.method == 'rf':
-            self.selector = create_rf_selector(X, y)
-        self.selector.fit(X, y)
-        return self
-
-    def transform(self, X: np.ndarray) -> np.ndarray:
-        return self.selector.transform(X)
-
-    def get_params(self, deep: bool = False) -> Dict[str, Any]:
-        return {"method": self.method, "n_features": self.n_features, "n_components": self.n_components}
-
-    def set_params(self, **params) -> 'CustomSelector':
-        for key, value in params.items():
-            setattr(self, key, value)
-        return self
-    
+    best_selector, best_name, best_params, best_score = evaluate_feature_selectors_with_search(X_train, y_train, selectors)
+    print(f"Best selector: {best_name} with params: {best_params} and score: {best_score}")
