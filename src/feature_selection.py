@@ -43,34 +43,43 @@ def create_pipeline(selector, classifier_params={}):
     ])
 
 # Function to get parameter grid
-def get_param_grid(selector):
+def get_param_grid(selector, n_features):
     param_grid_map = {
-        RFE: {'feature_selection__n_features_to_select': [10, 20, 30, 40, 50]},
-        PCA: {'feature_selection__n_components': [5, 10, 15, 20]}
+        RFE: {
+            'feature_selection__n_features_to_select': [
+                n for n in [10, 20, 30, 40, 50] if n <= n_features
+            ]
+        },
+        PCA: {
+            'feature_selection__n_components': [
+                n for n in [5, 10, 15, 20] if n <= n_features
+            ]
+        }
     }
     return param_grid_map.get(type(selector), {})
 
-# Function to evaluate selector with grid search
-def evaluate_feature_selector_with_search(X_train, y_train, selector, classifier_params={'n_estimators': 100, 'random_state': 42}):
+# Function to evaluate a selector with grid search
+def evaluate_a_feature_selector_with_search(X_train, y_train, selector, cv=10, classifier_params={'n_estimators': 100, 'random_state': 42}):
+    n_features = X_train.shape[1]  # Número de features no dataset
     pipeline = create_pipeline(selector, classifier_params)
-    param_grid = get_param_grid(selector)
-    search = GridSearchCV(pipeline, param_grid, cv=5, scoring='balanced_accuracy', n_jobs=-1)
+    param_grid = get_param_grid(selector, n_features)  # Passar n_features
+    search = GridSearchCV(pipeline, param_grid, cv=cv, scoring='balanced_accuracy', n_jobs=-1)
     search.fit(X_train, y_train)
     return search.best_estimator_, search.best_params_, search.best_score_
 
-# Modified function to evaluate multiple selectors with grid search
-def evaluate_feature_selectors_with_search(X_train, y_train, selectors, classifier_params={'n_estimators': 100, 'random_state': 42}):
+# Function to evaluate multiple selectors with grid search
+def evaluate_multiple_feature_selectors_with_search(X_train, y_train, selectors, cv=10, classifier_params={'n_estimators': 100, 'random_state': 42}):
     best_score = -np.inf
     best_selector = None
     best_selector_name = ''
     best_params = {}
 
     for name, selector in selectors.items():
-        best_estimator, best_selector_params, mean_score = evaluate_feature_selector_with_search(X_train, y_train, selector, classifier_params)
+        best_estimator, best_selector_params, mean_score = evaluate_a_feature_selector_with_search(X_train, y_train, selector, cv=cv, classifier_params=classifier_params)
         
         if mean_score > best_score:
             best_score = mean_score
-            best_selector = best_estimator
+            best_selector = best_estimator.named_steps['feature_selection']  # Extracting only the selector
             best_selector_name = name
             best_params = best_selector_params
 
@@ -79,8 +88,14 @@ def evaluate_feature_selectors_with_search(X_train, y_train, selectors, classifi
 # Example usage
 if __name__ == "__main__":
     # Dummy data for example
-    X_train = np.random.rand(100, 10)
-    y_train = np.random.randint(0, 2, 100)
+    # Configuração dos parâmetros para geração de dados
+    n_samples = 500   # Número de instâncias
+    n_features = 20   # Número de features
+    n_classes = 5      # Número de classes para classificação
+
+    # Geração de dados sintéticos
+    X_train = np.random.rand(n_samples, n_features)
+    y_train = np.random.randint(0, n_classes, n_samples)
 
     selectors = {
         'pca': create_selector('pca'),
@@ -88,5 +103,5 @@ if __name__ == "__main__":
         'rf': create_selector('rf', X_train, y_train)
     }
 
-    best_selector, best_name, best_params, best_score = evaluate_feature_selectors_with_search(X_train, y_train, selectors)
+    best_selector, best_name, best_params, best_score = evaluate_multiple_feature_selectors_with_search(X_train, y_train, selectors)
     print(f"Best selector: {best_name} with params: {best_params} and score: {best_score}")

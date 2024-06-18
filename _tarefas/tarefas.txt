@@ -2,3 +2,7 @@ Tarefas:
 [x] usar BayesSearchCV no lugar de bayesian hyperopt como  BAYESIAN_OPTIMIZATION, https://scikit-learn.org/stable/auto_examples/model_selection/plot_successive_halving_heatmap.html
 [x] apagar codigo relacionado a bayesian optimization,training.py
 [x ] corrigir erros relacionados ao regressao logistica
+[] incluir comentario sobre infos do teste
+[] incluir codigo dump do melhor modelo
+[] avisar guris que gerei nova versao com mais parametros cross-validacao com k=10
+[] tecnicas de oversampling
