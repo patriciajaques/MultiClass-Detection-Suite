@@ -8,16 +8,20 @@ import xgboost as xgb
 from scipy.stats import randint, uniform
 from skopt.space import Real, Integer, Categorical
 
+from training_constants import CROSS_VALIDATION, GRID_SEARCH, RANDOM_SEARCH, BAYESIAN_OPTIMIZATION
+
 
 def get_models():
+    from training import execute_cv, execute_grid_search, execute_random_search, execute_bayesian_optimization
+
     return {
-        'Logistic Regression': LogisticRegression(max_iter=5000),
+        #'Logistic Regression': LogisticRegression(max_iter=5000),
         'Decision Tree': DecisionTreeClassifier(),
-        'Random Forest': RandomForestClassifier(),
-        'Gradient Boosting': GradientBoostingClassifier(),
-        'SVM': SVC(),
-        'KNN': KNeighborsClassifier(),
-        'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
+        #'Random Forest': RandomForestClassifier(),
+        # 'Gradient Boosting': GradientBoostingClassifier(),
+        # 'SVM': SVC(),
+        # 'KNN': KNeighborsClassifier(),
+        # 'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
     }
 
 def get_param_grids():
@@ -236,53 +240,39 @@ def get_bayes_search_spaces():
             'classifier__reg_lambda': Real(0.0, 1.0, prior='uniform')
         }
     }
+
+def get_training_configs(n_iter=50, cv=5):
+    from training import execute_cv, execute_grid_search, execute_random_search, execute_bayesian_optimization
+
+    """
+    Retorna as configurações de treinamento para diferentes métodos de otimização.
+
+    Args:
+        n_iter: Número de iterações para otimização (se aplicável).
+        cv: Número de folds para validação cruzada.
+
+    Returns:
+        dict: Configurações de treinamento.
+    """
     return {
-        'Logistic Regression': {
-            'classifier__penalty': Categorical(['l1', 'l2']),
-            'classifier__C': Real(0.01, 10, prior='log-uniform'),
-            'classifier__solver': Categorical(['liblinear', 'saga', 'lbfgs']),
-            # 'liblinear' não suporta 'l1', então precisamos filtrar
-            'classifier__solver': Categorical(['liblinear']) if 'l1' in penalty else Categorical(['lbfgs', 'saga']),
-            'classifier__max_iter': Integer(1000, 10000)
+        CROSS_VALIDATION: {
+            "function": execute_cv,
+            "param_function": None,  # Não há função de parâmetros para cross validation
+            "kwargs": {}
         },
-        'Decision Tree': {
-            'classifier__max_depth': Categorical([None, 3, 5, 10, 20, 30]),
-            'classifier__min_samples_split': Integer(2, 20),
-            'classifier__min_samples_leaf': Integer(1, 10)
+        GRID_SEARCH: {
+            "function": execute_grid_search,
+            "param_function": get_param_grids,  # Função que retorna os parâmetros para grid search
+            "kwargs": {"cv": cv}
         },
-        'Random Forest': {
-            'classifier__n_estimators': Integer(50, 300),
-            'classifier__max_depth': Integer(3, 30),
-            'classifier__min_samples_split': Integer(2, 20),
-            'classifier__min_samples_leaf': Integer(1, 10),
-            'classifier__max_features': Categorical(['sqrt', 'log2', None])
+        RANDOM_SEARCH: {
+            "function": execute_random_search,
+            "param_function": get_param_distributions,  # Função que retorna os parâmetros para random search
+            "kwargs": {"n_iter": n_iter, "cv": cv}
         },
-        'Gradient Boosting': {
-            'classifier__n_estimators': Integer(50, 300),
-            'classifier__learning_rate': Real(0.01, 0.2, prior='uniform'),
-            'classifier__max_depth': Integer(3, 10),
-            'classifier__subsample': Real(0.5, 1.0, prior='uniform'),
-            'classifier__min_samples_split': Integer(2, 20),
-            'classifier__min_samples_leaf': Integer(1, 10)
-        },
-        'SVM': {
-            'classifier__C': Real(0.01, 10, prior='log-uniform'),
-            'classifier__kernel': Categorical(['linear', 'poly', 'rbf', 'sigmoid']),
-            # 'gamma' é relevante apenas para kernels 'rbf', 'poly' e 'sigmoid'
-            'classifier__gamma': Categorical(['scale', 'auto']) if 'rbf' in kernel or 'poly' in kernel or 'sigmoid' in kernel else None
-        },
-        'KNN': {
-            'classifier__n_neighbors': Integer(3, 20),
-            'classifier__weights': Categorical(['uniform', 'distance']),
-            'classifier__metric': Categorical(['euclidean', 'manhattan', 'minkowski'])
-        },
-        'XGBoost': {
-            'classifier__n_estimators': Integer(50, 300),
-            'classifier__learning_rate': Real(0.01, 0.2, prior='uniform'),
-            'classifier__max_depth': Integer(3, 10),
-            'classifier__subsample': Real(0.7, 1.0, prior='uniform'),
-            'classifier__colsample_bytree': Real(0.7, 1.0, prior='uniform'),
-            'classifier__reg_alpha': Real(0.0, 1.0, prior='uniform'),
-            'classifier__reg_lambda': Real(0.0, 1.0, prior='uniform')
+        BAYESIAN_OPTIMIZATION: {
+            "function": execute_bayesian_optimization,
+            "param_function": get_bayes_search_spaces,  # Função que retorna os parâmetros para bayesian optimization
+            "kwargs": {"n_iter": n_iter, "cv": cv}
         }
-    }
+    }  

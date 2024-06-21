@@ -20,6 +20,14 @@ def create_selectors_from_map(X_train, y_train, selector_map, **kwargs):
         selectors[name] = create_selector(name, X_train, y_train, **kwargs)
     return selectors
 
+def create_selectors(X_train, y_train):
+    selectors = {
+        'rfe': create_selector('rfe'),
+        'pca': create_selector('pca'),
+        'rf': create_selector('rf', X_train, y_train)
+    }
+    return selectors
+
 # Factory function to create selectors
 def create_selector(method, X_train=None, y_train=None, **kwargs):
     if method not in SELECTOR_MAP:
@@ -41,6 +49,20 @@ def create_pipeline(selector, classifier_params={}):
         ('feature_selection', selector),
         ('classifier', RandomForestClassifier(**classifier_params))
     ])
+
+# Função para obter os espaços de busca para diferentes otimizações
+def get_search_spaces():
+    return {
+        'rfe': {
+            'feature_selection__n_features_to_select': [1, 5, 10, 20, 30, 40, 50]
+        },
+        'pca': {
+            'feature_selection__n_components': [1, 5, 10, 20, 30, 40, 50]
+        },
+        'rf': {
+            'feature_selection__threshold': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        }
+    }
 
 # Function to get parameter grid
 def get_param_grid(selector, n_features):
@@ -105,3 +127,27 @@ if __name__ == "__main__":
 
     best_selector, best_name, best_params, best_score = evaluate_multiple_feature_selectors_with_search(X_train, y_train, selectors)
     print(f"Best selector: {best_name} with params: {best_params} and score: {best_score}")
+
+def extract_selected_features(pipeline, feature_names):
+    """
+    Extrai as características selecionadas pelo seletor de características no pipeline.
+    
+    Args:
+        pipeline: Pipeline treinado.
+        feature_names: Lista de nomes das características originais.
+
+    Returns:
+        List: Lista de características selecionadas.
+    """
+    selector = pipeline.named_steps['feature_selection']
+    
+    if hasattr(selector, 'get_support'):
+        mask = selector.get_support()
+        selected_features = np.array(feature_names)[mask]
+    elif hasattr(selector, 'transform'):
+        # Para métodos como PCA que não suportam diretamente 'get_support'
+        selected_features = selector.transform(np.arange(len(feature_names)).reshape(1, -1)).flatten()
+    else:
+        raise ValueError("O seletor não tem métodos para extrair características.")
+    
+    return selected_features
