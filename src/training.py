@@ -11,7 +11,7 @@ import feature_selection as fs  # Importa o módulo de seleção de característ
 CROSS_VALIDATION = 'Cross-Validation'
 BAYESIAN_OPTIMIZATION = 'Bayesian Optimization'
 
-def train_model(X_train, y_train, training_type, n_iter=50, cv=5, scoring='balanced_accuracy'):
+def train_model (X_train, y_train, training_type, n_iter=50, cv=5, scoring='balanced_accuracy'):
     selectors = fs.create_selectors(X_train, y_train)  # Criar seletores
 
     models = get_models()
@@ -30,11 +30,13 @@ def train_model(X_train, y_train, training_type, n_iter=50, cv=5, scoring='balan
                 best_model, best_result = execute_cv(model_config, X_train, y_train, cv=cv)
             else: # Bayesian Optimization
                 search_space = get_bayes_search_spaces()[model_name]
-                
+                print(f"Running Bayesian optimization for {model_name} with selector {selector_name}")
+                print(f"Search space: {search_space}")
                 # Adicionar parâmetros para o seletor ao espaço de busca
                 search_space.update(fs.get_search_spaces().get(selector_name, {}))
 
                 best_model, best_result = execute_bayesian_optimization(pipeline, search_space, X_train, y_train, scoring=scoring, n_iter=n_iter)
+                print(f"Bayesian optimization results: {best_result}")
 
             # Armazenando mais informações sobre a configuração
             trained_models[f"{model_name}_{selector_name}"] = {
@@ -69,9 +71,16 @@ def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=
         cv=cv,
         scoring=scoring,  
         n_jobs=-1,
-        random_state=42
+        random_state=42, 
+        verbose=1, # Para obter informações sobre o progresso
+        callback=on_iteration
     )
     search.fit(X_train, y_train)
     best_model = search.best_estimator_
     return best_model, search.best_score_
 
+def on_iteration(result):
+    """
+    Callback para impressão de hiperparâmetros testados durante a otimização bayesiana.
+    """
+    print(f"Iteration {result.iteration}: tested parameters: {result.params}, score: {result.mean_test_score}")
