@@ -1,21 +1,21 @@
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import balanced_accuracy_score
-from sklearn.model_selection import cross_val_predict, GridSearchCV, RandomizedSearchCV
+from sklearn.model_selection import cross_val_predict
 from skopt import BayesSearchCV
 
-from model_params import get_models, get_training_configs
-from training_constants import CROSS_VALIDATION, GRID_SEARCH, RANDOM_SEARCH, BAYESIAN_OPTIMIZATION
+from model_params import get_models, get_bayes_search_spaces
 import feature_selection as fs  # Importa o módulo de seleção de características
+
+# constants
+CROSS_VALIDATION = 'Cross-Validation'
+BAYESIAN_OPTIMIZATION = 'Bayesian Optimization'
 
 def train_model(X_train, y_train, training_type, n_iter=50, cv=5, scoring='balanced_accuracy'):
     selectors = fs.create_selectors(X_train, y_train)  # Criar seletores
 
     models = get_models()
     trained_models = {}  # Dicionário para armazenar os resultados de cada modelo
-
-    training_configs = get_training_configs(n_iter, cv)  # Obter as configurações de treinamento
-    config = training_configs[training_type]
 
     for model_name, model_config in models.items():
         for selector_name, selector in selectors.items():
@@ -25,23 +25,16 @@ def train_model(X_train, y_train, training_type, n_iter=50, cv=5, scoring='balan
             
             print(f"\nTraining and evaluating {model_name} with {training_type} and {selector_name}:")
 
-            # Acessar configuração de treinamento
-            param_function = config["param_function"]
-            if param_function is not None:  # Se houver uma função de parâmetros
-                model_specific_args = [param_function()[model_name]]  # Chamar a função de parâmetros e acessar a grade de parâmetros para o modelo atual
-            else:
-                model_specific_args = []
-
-            # Adicionar parâmetros para o seletor ao espaço de busca
-            search_space = fs.get_search_spaces().get(selector_name, {})
-            model_specific_args[0].update(search_space)
-
             if training_type == CROSS_VALIDATION:
                 # Tratamento específico para validação cruzada
-                best_model, best_result = config["function"](pipeline, X_train, y_train, **config["kwargs"])
-            else:
-                # Configurar o espaço de busca para todos os outros métodos
-                best_model, best_result = config["function"](pipeline, model_specific_args[0], X_train, y_train, **config["kwargs"], scoring=scoring)
+                best_model, best_result = execute_cv(model_config, X_train, y_train, cv=cv)
+            else: # Bayesian Optimization
+                search_space = get_bayes_search_spaces()[model_name]
+                
+                # Adicionar parâmetros para o seletor ao espaço de busca
+                search_space.update(fs.get_search_spaces().get(selector_name, {}))
+
+                best_model, best_result = execute_bayesian_optimization(pipeline, search_space, X_train, y_train, scoring=scoring, n_iter=n_iter)
 
             # Armazenando mais informações sobre a configuração
             trained_models[f"{model_name}_{selector_name}"] = {
@@ -67,20 +60,6 @@ def execute_cv(model, X_train, y_train, cv=5):
     model.fit(X_train, y_train)
     return model, balanced_accuracy_score(y_train, y_pred_cv), y_pred_cv
 
-def execute_grid_search(model, param_grid, X_train, y_train, cv=5):
-    print(f"Grid search for {model['classifier']}")
-    print(f"Param grid: {param_grid}")
-    search = GridSearchCV(model, param_grid, cv=cv, scoring='balanced_accuracy', verbose=1, n_jobs=-1)
-    search.fit(X_train, y_train)
-    best_model = search.best_estimator_
-    return best_model, search.best_score_
-
-def execute_random_search(model, param_distributions, X_train, y_train, n_iter=50, cv=5):
-    search = RandomizedSearchCV(model, param_distributions, n_iter=n_iter, cv=cv, scoring='balanced_accuracy', verbose=1, n_jobs=-1)
-    search.fit(X_train, y_train)
-    best_model = search.best_estimator_
-    return best_model, search.best_score_
-
 # Função de otimização bayesiana com BayesSearchCV
 def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=5, scoring='balanced_accuracy'):
     search = BayesSearchCV(
@@ -88,7 +67,7 @@ def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=
         search_spaces=space,
         n_iter=n_iter,
         cv=cv,
-        scoring=scoring,  # Ajustar aqui a métrica de avaliação
+        scoring=scoring,  
         n_jobs=-1,
         random_state=42
     )

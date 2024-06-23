@@ -1,22 +1,23 @@
 import os
 import pandas as pd
+import numpy as np
 from datetime import datetime
 from sklearn.metrics import classification_report, balanced_accuracy_score, confusion_matrix
 import joblib
 from feature_selection import extract_selected_features
 
-def generate_reports(trained_models, X_train, y_train, X_test, y_test, feature_names=None, cv=5):
+def generate_reports(trained_models, X_train, y_train, X_test, y_test, feature_names=None):
     """
-    Gera relatórios de avaliação para todos os modelos nos conjuntos de treino e teste.
+    Gera relatórios de avaliação para todos os modelos nos conjuntos de treino e teste, utilizando os resultados da
+    validação cruzada realizada pelo BayesSearchCV.
 
     Args:
-        trained_models: Dicionário de modelos treinados.
+        trained_models: Dicionário de modelos treinados com BayesSearchCV.
         X_train: Conjunto de características de treino.
         y_train: Conjunto de rótulos de treino.
         X_test: Conjunto de características de teste.
         y_test: Conjunto de rótulos de teste.
         feature_names: Lista de nomes das características (opcional).
-        cv: Número de folds para validação cruzada.
 
     Returns:
         reports: Dicionário com os relatórios de avaliação.
@@ -25,96 +26,31 @@ def generate_reports(trained_models, X_train, y_train, X_test, y_test, feature_n
     for model_name, model_info in trained_models.items():
         model = model_info['model']
 
-        # Avaliar o modelo com validação cruzada no conjunto de treinamento
-        cv_report, cv_conf_matrix = cross_val_scores(model, X_train, y_train, cv=cv)
+        # Acessar os resultados da validação cruzada do BayesSearchCV
+        cv_scores = model.cv_results_['mean_test_score']
+        cv_report = {'mean_score': np.mean(cv_scores), 'std_score': np.std(cv_scores)}
 
         # Avaliar o modelo no conjunto de treinamento usando predict
-        train_report, train_conf_matrix, train_selected_features = evaluate_predict(model, X_train, y_train, feature_names)
+        train_report, train_conf_matrix, train_selected_features = evaluate_model(model, X_train, y_train, feature_names)
 
         # Avaliar o modelo no conjunto de teste
         test_report, test_conf_matrix, test_selected_features = evaluate_model(model, X_test, y_test, feature_names)
         
         reports[model_name] = {
             'cv_report': cv_report,
-            'cv_conf_matrix': cv_conf_matrix,
             'train_report': train_report,
             'train_conf_matrix': train_conf_matrix,
             'test_report': test_report,
             'test_conf_matrix': test_conf_matrix,
             'training_type': model_info['training_type'],
-            'hyperparameters': model_info['hyperparameters'],
+            'hyperparameters': model.best_params_,
             'selected_features': test_selected_features
         }
     return reports
 
-from training import execute_cv  # Certifique-se de importar execute_cv corretamente
-
-def cross_val_scores(model, X, y, cv=5):
-    """
-    Realiza a validação cruzada usando execute_cv e retorna o relatório de classificação e a matriz de confusão.
-
-    Args:
-        model: Modelo treinado.
-        X: Conjunto de características.
-        y: Conjunto de rótulos.
-        cv: Número de folds para validação cruzada.
-
-    Returns:
-        report_df: DataFrame contendo o relatório de classificação.
-        conf_matrix_df: DataFrame contendo a matriz de confusão.
-    """
-    # Executar a validação cruzada e obter o balanced accuracy
-    model, balanced_acc, y_pred_cv = execute_cv(model, X, y, cv=cv)
-
-    # Criar o relatório de classificação
-    report = classification_report(y, y_pred_cv, output_dict=True)
-    report['balanced_accuracy'] = {'precision': None, 'recall': None, 'f1-score': balanced_acc, 'support': None}
-    report_df = pd.DataFrame(report).transpose().round(2)
-    
-    # Criar a matriz de confusão
-    conf_matrix = confusion_matrix(y, y_pred_cv)
-    conf_matrix_df = pd.DataFrame(conf_matrix, 
-                                  index=[f'Actual {cls}' for cls in sorted(set(y))], 
-                                  columns=[f'Predicted {cls}' for cls in sorted(set(y))])
-
-    return report_df, conf_matrix_df
-
 def evaluate_model(model, X, y, feature_names=None):
     """
     Avalia um modelo e retorna as previsões, as métricas de avaliação e as características selecionadas.
-
-    Args:
-        model: Modelo treinado.
-        X: Conjunto de características.
-        y: Conjunto de rótulos.
-        feature_names: Lista de nomes das características (opcional).
-
-    Returns:
-        report_df: DataFrame contendo o relatório de classificação.
-        conf_matrix_df: DataFrame contendo a matriz de confusão.
-        selected_features: Lista de características selecionadas (se aplicável).
-    """
-    y_pred = model.predict(X)
-    report = classification_report(y, y_pred, output_dict=True)
-    bal_acc = balanced_accuracy_score(y, y_pred)
-    report['balanced_accuracy'] = {'precision': None, 'recall': None, 'f1-score': bal_acc, 'support': None}
-    report_df = pd.DataFrame(report).transpose().round(2)
-    
-    conf_matrix = confusion_matrix(y, y_pred)
-    conf_matrix_df = pd.DataFrame(conf_matrix, 
-                                  index=[f'Actual {cls}' for cls in sorted(set(y))], 
-                                  columns=[f'Predicted {cls}' for cls in sorted(set(y))])
-
-    if feature_names is not None:
-        selected_features = extract_selected_features(model, feature_names)
-    else:
-        selected_features = None
-    
-    return report_df, conf_matrix_df, selected_features
-
-def evaluate_predict(model, X, y, feature_names=None):
-    """
-    Avalia o modelo usando predict e retorna as previsões, as métricas de avaliação e as características selecionadas.
 
     Args:
         model: Modelo treinado.

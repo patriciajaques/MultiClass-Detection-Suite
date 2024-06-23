@@ -1,49 +1,27 @@
 import numpy as np
-from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import RFE, SelectFromModel
-from sklearn.model_selection import cross_val_score, GridSearchCV
-from sklearn.pipeline import Pipeline
-
-# Define a map for selector methods
-SELECTOR_MAP = {
-    'rfe': RFE,
-    'pca': PCA,
-    'rf': SelectFromModel
-}
-
-# Helper function to create selectors from SELECTOR_MAP
-def create_selectors_from_map(X_train, y_train, selector_map, **kwargs):
-    selectors = {}
-    for name in selector_map:
-        selectors[name] = create_selector(name, X_train, y_train, **kwargs)
-    return selectors
 
 def create_selectors(X_train, y_train):
     selectors = {
-        'rfe': create_selector('rfe'),
-        'pca': create_selector('pca'),
-        'rf': create_selector('rf', X_train, y_train)
+        'rfe': create_selector('rfe', n_features_to_select=10),
+        'pca': create_selector('pca', n_components=5),
+        'rf': create_selector('rf', X_train=X_train, y_train=y_train)
     }
     return selectors
 
-# Factory function to create selectors
-def create_selector(method, X_train=None, y_train=None, **kwargs):
-    if method not in SELECTOR_MAP:
-        raise ValueError(f"Unknown method: {method}")
-    
+def create_selector(method, X_train=None, y_train=None, n_features_to_select=10, n_components=5):
     if method == 'rfe':
         estimator = RandomForestClassifier(n_estimators=100, random_state=42)
-        return RFE(estimator, n_features_to_select=kwargs.get('n_features_to_select', 10))
+        return RFE(estimator, n_features_to_select=n_features_to_select)
     elif method == 'pca':
-        return PCA(n_components=kwargs.get('n_components', 5))
+        return PCA(n_components=n_components)
     elif method == 'rf':
         estimator = RandomForestClassifier(n_estimators=100, random_state=0)
         estimator.fit(X_train, y_train)
         return SelectFromModel(estimator)
 
-# Função para obter os espaços de busca para diferentes otimizações
 def get_search_spaces():
     return {
         'rfe': {
