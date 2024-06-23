@@ -70,17 +70,20 @@ def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=
         n_iter=n_iter,
         cv=cv,
         scoring=scoring,  
-        n_jobs=-1,
-        random_state=42, 
-        verbose=1, # Para obter informações sobre o progresso
-        callback=on_iteration
+        n_jobs=2,
+        random_state=42,
+        verbose=3
     )
-    search.fit(X_train, y_train)
+
+    search.fit(X_train, y_train, callback=log_results)
     best_model = search.best_estimator_
     return best_model, search.best_score_
 
-def on_iteration(result):
+def log_results(result):
     """
-    Callback para impressão de hiperparâmetros testados durante a otimização bayesiana.
+    Registra os parâmetros testados e a pontuação para cada iteração.
     """
-    print(f"Iteration {result.iteration}: tested parameters: {result.params}, score: {result.mean_test_score}")
+    import sys
+    if len(result.x_iters) > 0:  # Verificar se há iterações para logar
+        print(f"Iteration {len(result.x_iters)}: tested parameters: {result.x_iters[-1]}, score: {result.func_vals[-1]}")
+        sys.stdout.flush()
