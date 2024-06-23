@@ -41,7 +41,7 @@ def train_model(X_train, y_train, training_type, n_iter=50, cv=5, scoring='balan
                 best_model, best_result = config["function"](pipeline, X_train, y_train, **config["kwargs"])
             else:
                 # Configurar o espaço de busca para todos os outros métodos
-                best_model, best_result = config["function"](pipeline, model_specific_args[0], X_train, y_train, **config["kwargs"])
+                best_model, best_result = config["function"](pipeline, model_specific_args[0], X_train, y_train, **config["kwargs"], scoring=scoring)
 
             # Armazenando mais informações sobre a configuração
             trained_models[f"{model_name}_{selector_name}"] = {
