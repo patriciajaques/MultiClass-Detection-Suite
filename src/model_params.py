@@ -7,8 +7,6 @@ import xgboost as xgb
 
 from skopt.space import Real, Integer, Categorical
 
-import training
-
 
 def get_models():
     return {
