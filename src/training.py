@@ -1,8 +1,20 @@
-import numpy as np
+import logging
+from datetime import datetime
+from skopt import BayesSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.model_selection import cross_val_predict
-from skopt import BayesSearchCV
+
+# Gerar um nome de arquivo com data e hora
+log_filename = datetime.now().strftime('bayesian_optimization_%Y%m%d_%H%M.log')
+
+# Configuração do logging
+logging.basicConfig(
+    filename=log_filename,
+    filemode='w',
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 from model_params import get_models, get_bayes_search_spaces
 import feature_selection as fs  # Importa o módulo de seleção de características
@@ -11,7 +23,7 @@ import feature_selection as fs  # Importa o módulo de seleção de característ
 CROSS_VALIDATION = 'Cross-Validation'
 BAYESIAN_OPTIMIZATION = 'Bayesian Optimization'
 
-def train_model (X_train, y_train, training_type, n_iter=50, cv=5, scoring='balanced_accuracy'):
+def train_model(X_train, y_train, training_type, n_iter=50, cv=5, scoring='balanced_accuracy'):
     selectors = fs.create_selectors(X_train, y_train)  # Criar seletores
 
     models = get_models()
@@ -23,20 +35,21 @@ def train_model (X_train, y_train, training_type, n_iter=50, cv=5, scoring='bala
             # Criar pipeline
             pipeline = create_pipeline(selector, model_config)
             
-            print(f"\nTraining and evaluating {model_name} with {training_type} and {selector_name}:")
+            logging.info(f"Training and evaluating {model_name} with {training_type} and {selector_name}:")
+            print(f"Training and evaluating {model_name} with {training_type} and {selector_name}:")
 
             if training_type == CROSS_VALIDATION:
                 # Tratamento específico para validação cruzada
                 best_model, best_result = execute_cv(model_config, X_train, y_train, cv=cv)
             else: # Bayesian Optimization
                 search_space = get_bayes_search_spaces()[model_name]
-                print(f"Running Bayesian optimization for {model_name} with selector {selector_name}")
-                print(f"Search space: {search_space}")
+                logging.info(f"Running Bayesian optimization for {model_name} with selector {selector_name}")
+                logging.info(f"Search space: {search_space}")
                 # Adicionar parâmetros para o seletor ao espaço de busca
                 search_space.update(fs.get_search_spaces().get(selector_name, {}))
 
-                best_model, best_result = execute_bayesian_optimization(pipeline, search_space, X_train, y_train, scoring=scoring, n_iter=n_iter)
-                print(f"Bayesian optimization results: {best_result}")
+                best_model, best_result = execute_bayesian_optimization(pipeline, search_space, X_train, y_train, n_iter=n_iter, cv=cv, scoring=scoring)
+                logging.info(f"Bayesian optimization results: {best_result}")
 
             # Armazenando mais informações sobre a configuração
             trained_models[f"{model_name}_{selector_name}"] = {
@@ -45,6 +58,7 @@ def train_model (X_train, y_train, training_type, n_iter=50, cv=5, scoring='bala
                 'hyperparameters': best_model.get_params(),  # Pegando hiperparâmetros do modelo
                 'best_result': best_result
             }
+            logging.info(f"{training_type} Best Result for {model_name} with {selector_name}: {best_result}")
             print(f"{training_type} Best Result for {model_name} with {selector_name}: {best_result}")
     
     return trained_models  # Retorna um dicionário com os modelos treinados
@@ -56,6 +70,7 @@ def create_pipeline(selector, model_config):
         ('classifier', model_config)
     ])
     return pipeline
+
 
 def execute_cv(model, X_train, y_train, cv=5):
     y_pred_cv = cross_val_predict(model, X_train, y_train, cv=cv)
@@ -82,8 +97,9 @@ def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=
 def log_results(result):
     """
     Registra os parâmetros testados e a pontuação para cada iteração.
+    Inverte a pontuação se ela for negativa, apenas para exibição.
     """
-    import sys
     if len(result.x_iters) > 0:  # Verificar se há iterações para logar
-        print(f"Iteration {len(result.x_iters)}: tested parameters: {result.x_iters[-1]}, score: {result.func_vals[-1]}")
-        sys.stdout.flush()
+        # Inverter o sinal da pontuação para exibição se ela for negativa
+        score = -result.func_vals[-1] if result.func_vals[-1] < 0 else result.func_vals[-1]
+        logging.info(f"Iteration {len(result.x_iters)}: tested parameters: {result.x_iters[-1]}, score: {score}")
