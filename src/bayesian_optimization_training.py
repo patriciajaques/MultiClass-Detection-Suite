@@ -23,8 +23,18 @@ class BayesianOptimizationTraining(ModelTraining):
         search_space = get_bayes_search_spaces()[model_name]
         logging.info(f"Running Bayesian optimization for {model_name} with selector {selector_name}")
         logging.info(f"Search space: {search_space}")
+
         # Adicionar parâmetros para o seletor ao espaço de busca
-        search_space.update(FeatureSelection.get_search_spaces().get(selector_name, {}))
+        selector_search_space = FeatureSelection.get_search_spaces().get(selector_name, {})
+        
+        if isinstance(search_space, list):
+            # Caso search_space seja uma lista, iterar e adicionar os parâmetros do seletor a cada subespaço
+            for subspace in search_space:
+                subspace.update(selector_search_space)
+        else:
+            # Caso search_space seja um dicionário, simplesmente atualizar
+            search_space.update(selector_search_space)
+        
         # Best model será um objeto do tipo Pipeline
         best_model, best_result, opt = self.execute_bayesian_optimization(pipeline, search_space, X_train, y_train, n_iter=n_iter, cv=cv, scoring=scoring)
         # Extraindo as predições de validação cruzada diretamente de cv_results_
