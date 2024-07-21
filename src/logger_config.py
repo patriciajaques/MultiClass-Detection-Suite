@@ -25,6 +25,16 @@ class LoggerConfig:
         logging.basicConfig(filename=log_file_path, level=logging.INFO, filemode='w',
                             format='%(asctime)s:%(levelname)s:%(message)s')
 
+    @staticmethod
+    def log_results(result):
+        """
+        Registra os parâmetros testados e a pontuação para cada iteração.
+        Inverte a pontuação se ela for negativa, apenas para exibição.
+        """
+        if len(result.x_iters) > 0:  # Verificar se há iterações para logar
+            # Inverter o sinal da pontuação para exibição se ela for negativa
+            score = -result.func_vals[-1] if result.func_vals[-1] < 0 else result.func_vals[-1]
+            logging.info(f"Iteration {len(result.x_iters)}: tested parameters: {result.x_iters[-1]}, score: {score}")
 
 def main():
     # Exemplo de uso
