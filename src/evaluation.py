@@ -27,8 +27,7 @@ def generate_reports(trained_models, X_train, y_train, X_test, y_test, feature_n
         model = model_info['model']
 
         # Acessar os resultados da validação cruzada do BayesSearchCV
-        cv_scores = model.cv_results_['mean_test_score']
-        cv_report = {'mean_score': np.mean(cv_scores), 'std_score': np.std(cv_scores)}
+        cv_score = model_info['cv_results']
 
         # Avaliar o modelo no conjunto de treinamento usando predict
         train_report, train_conf_matrix, train_selected_features = evaluate_model(model, X_train, y_train, feature_names)
@@ -37,13 +36,13 @@ def generate_reports(trained_models, X_train, y_train, X_test, y_test, feature_n
         test_report, test_conf_matrix, test_selected_features = evaluate_model(model, X_test, y_test, feature_names)
         
         reports[model_name] = {
-            'cv_report': cv_report,
+            'cv_report': cv_score,
             'train_report': train_report,
             'train_conf_matrix': train_conf_matrix,
             'test_report': test_report,
             'test_conf_matrix': test_conf_matrix,
             'training_type': model_info['training_type'],
-            'hyperparameters': model.best_params_,
+            'hyperparameters': model_info['hyperparameters'],
             'selected_features': test_selected_features
         }
     return reports

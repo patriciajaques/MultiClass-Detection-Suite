@@ -1,23 +1,17 @@
-import logging
-from datetime import datetime
+
+import numpy as np
+from sklearn.metrics import confusion_matrix
 from skopt import BayesSearchCV
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import balanced_accuracy_score
-from sklearn.model_selection import cross_val_predict
-
-# Gerar um nome de arquivo com data e hora
-log_filename = datetime.now().strftime('bayesian_optimization_%Y%m%d_%H%M.log')
-
-# Configuração do logging
-logging.basicConfig(
-    filename=log_filename,
-    filemode='w',
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+from sklearn.model_selection import cross_val_predict, cross_validate
+import logging
 
 from model_params import get_models, get_bayes_search_spaces
 import feature_selection as fs  # Importa o módulo de seleção de características
+from logger_config import LoggerConfig
+
+# Configuração do logger
+LoggerConfig.configure_log_file('bayesian_optimization', '.log')
 
 # constants
 CROSS_VALIDATION = 'Cross-Validation'
@@ -40,23 +34,24 @@ def train_model(X_train, y_train, training_type, n_iter=50, cv=5, scoring='balan
 
             if training_type == CROSS_VALIDATION:
                 # Tratamento específico para validação cruzada
-                best_model, best_result = execute_cv(model_config, X_train, y_train, cv=cv)
+                best_model, best_result, y_pred_cv, cv_results = execute_cv(model_config, X_train, y_train, cv=cv)
             else: # Bayesian Optimization
                 search_space = get_bayes_search_spaces()[model_name]
                 logging.info(f"Running Bayesian optimization for {model_name} with selector {selector_name}")
                 logging.info(f"Search space: {search_space}")
                 # Adicionar parâmetros para o seletor ao espaço de busca
                 search_space.update(fs.get_search_spaces().get(selector_name, {}))
-
-                best_model, best_result = execute_bayesian_optimization(pipeline, search_space, X_train, y_train, n_iter=n_iter, cv=cv, scoring=scoring)
-                logging.info(f"Bayesian optimization results: {best_result}")
+                # Best model será um objeto do tipo Pipeline
+                best_model, best_result, opt = execute_bayesian_optimization(pipeline, search_space, X_train, y_train, n_iter=n_iter, cv=cv, scoring=scoring)
+                # Extraindo as predições de validação cruzada diretamente de cv_results_
+                logging.info(f"Bayesian optimization results: Melhor resultado: {best_result}, Resultado médio da validação cruzada: {cv_results['mean_test_score'][opt.best_index_]}")
 
             # Armazenando mais informações sobre a configuração
             trained_models[f"{model_name}_{selector_name}"] = {
                 'model': best_model,
                 'training_type': training_type,
                 'hyperparameters': best_model.get_params(),  # Pegando hiperparâmetros do modelo
-                'best_result': best_result
+                'cv_result': best_result
             }
             logging.info(f"{training_type} Best Result for {model_name} with {selector_name}: {best_result}")
             print(f"{training_type} Best Result for {model_name} with {selector_name}: {best_result}")
@@ -71,11 +66,18 @@ def create_pipeline(selector, model_config):
     ])
     return pipeline
 
-
 def execute_cv(model, X_train, y_train, cv=5):
-    y_pred_cv = cross_val_predict(model, X_train, y_train, cv=cv)
+    # Usando cross_validate para obter as pontuações de cada fold
+    cv_results = cross_validate(model, X_train, y_train, cv=cv, return_estimator=True, scoring='balanced_accuracy')
+    
+    # Ajustando o modelo ao conjunto de treinamento completo
     model.fit(X_train, y_train)
-    return model, balanced_accuracy_score(y_train, y_pred_cv), y_pred_cv
+    
+    # Calculando as predições usando cross_val_predict para consistência com o código original
+    y_pred_cv = cross_val_predict(model, X_train, y_train, cv=cv)
+    
+    # Retornando o modelo treinado, a média das pontuações de acurácia balanceada, as predições e os resultados da validação cruzada
+    return model, np.mean(cv_results['test_score']), y_pred_cv, cv_results
 
 # Função de otimização bayesiana com BayesSearchCV
 def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=5, scoring='balanced_accuracy'):
@@ -84,15 +86,17 @@ def execute_bayesian_optimization(model, space, X_train, y_train, n_iter=50, cv=
         search_spaces=space,
         n_iter=n_iter,
         cv=cv,
-        scoring=scoring,  
+        scoring=scoring,
         n_jobs=2,
         random_state=42,
-        verbose=3
+        verbose=3,
+        return_train_score=True
     )
 
     search.fit(X_train, y_train, callback=log_results)
     best_model = search.best_estimator_
-    return best_model, search.best_score_
+
+    return best_model, search.best_score_, search
 
 def log_results(result):
     """
