@@ -1,8 +1,11 @@
-from datetime import datetime
 import os
 import joblib
+from base_manager import BaseManager
 
-class ModelManager:
+class ModelManager(BaseManager):
+    """
+    Classe responsável por operações com modelos treinados.
+    """
 
     @staticmethod
     def dump_model(model, filename, directory=None):
@@ -12,11 +15,8 @@ class ModelManager:
         Returns:
             file_path: Caminho completo do arquivo salvo.
         """
-        if directory:
-            os.makedirs(directory, exist_ok=True)
-            file_path = os.path.join(directory, filename)
-        else:
-            file_path = filename
+        directory = ModelManager._create_directory_if_not_exists(directory)
+        file_path = os.path.join(directory, filename)
         
         joblib.dump(model, file_path)
         return file_path
@@ -29,10 +29,7 @@ class ModelManager:
         Returns:
             model: Modelo carregado.
         """
-        if directory:
-            file_path = os.path.join(directory, filename)
-        else:
-            file_path = filename
+        file_path = os.path.join(directory, filename) if directory else filename
         
         model = joblib.load(file_path)
         return model
@@ -46,11 +43,10 @@ class ModelManager:
             saved_models: Lista de caminhos completos dos arquivos salvos.
         """
         saved_models = []
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
         for model_name, model_info in trained_models.items():
             model = model_info['model']
-            filename = f"{prefix}_{model_name}_{timestamp}.pkl"
+            filename = ModelManager._generate_filename_with_timestamp(f"{prefix}_{model_name}.pkl")
             file_path = ModelManager.dump_model(model, filename, directory)
             saved_models.append(file_path)
             print(f"Modelo '{model_name}' salvo em: {file_path}")

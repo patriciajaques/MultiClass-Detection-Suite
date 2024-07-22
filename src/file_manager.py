@@ -1,19 +1,10 @@
 import os
-from datetime import datetime
+from base_manager import BaseManager
 
-class FileManager:
+class FileManager(BaseManager):
     """
     Classe responsável por operações de arquivos, como salvar textos e CSVs.
     """
-
-    @staticmethod
-    def _generate_filename_with_timestamp(filename="report.txt"):
-        """
-        Gera um nome de arquivo com timestamp.
-        """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        name, ext = os.path.splitext(filename)
-        return f"{name}_{timestamp}{ext}"
 
     @staticmethod
     def save_text_file_with_timestamp(content, filename, directory=None):
@@ -31,7 +22,6 @@ class FileManager:
         filename_with_timestamp = FileManager._generate_filename_with_timestamp(filename)
         return FileManager.save_csv_file(dataframe, filename_with_timestamp, directory)
 
-
     @staticmethod
     def save_text_file(content, filename, directory=None):
         """
@@ -40,11 +30,8 @@ class FileManager:
         Returns:
             file_path: Caminho completo do arquivo salvo.
         """
-        if directory:
-            os.makedirs(directory, exist_ok=True)
-            file_path = os.path.join(directory, filename)
-        else:
-            file_path = filename
+        directory = FileManager._create_directory_if_not_exists(directory)
+        file_path = os.path.join(directory, filename)
 
         with open(file_path, 'w') as file:
             file.write(content)
@@ -59,11 +46,8 @@ class FileManager:
         Returns:
             file_path: Caminho completo do arquivo salvo.
         """
-        if directory:
-            os.makedirs(directory, exist_ok=True)
-            file_path = os.path.join(directory, filename)
-        else:
-            file_path = filename
+        directory = FileManager._create_directory_if_not_exists(directory)
+        file_path = os.path.join(directory, filename)
         
         dataframe.to_csv(file_path, index=False)
         return file_path

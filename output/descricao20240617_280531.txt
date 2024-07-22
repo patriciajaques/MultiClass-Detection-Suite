@@ -1,3 +1,0 @@
-Eu setei o valor de k da cross validacao do BayesSearchCV de k=5 para k=10
-Estendi algumas faixas de valores de Hiperparâmetros que na execução anterior estavam selecionando valores extremos. 
-O algoritmo continua ainda overfitting no cnojunto de teste. 
