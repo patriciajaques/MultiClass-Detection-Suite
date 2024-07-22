@@ -10,11 +10,11 @@ from skopt.space import Real, Integer, Categorical
 
 def get_models():
     return {
-        'Logistic Regression': LogisticRegression(max_iter=5000),
-        'Decision Tree': DecisionTreeClassifier(),
-        'Random Forest': RandomForestClassifier(),
-        'Gradient Boosting': GradientBoostingClassifier(),
-        'SVM': SVC(),
+        # 'Logistic Regression': LogisticRegression(max_iter=5000),
+        # 'Decision Tree': DecisionTreeClassifier(),
+        # 'Random Forest': RandomForestClassifier(),
+        # 'Gradient Boosting': GradientBoostingClassifier(),
+        'SVM': SVC(probability=True),
         'KNN': KNeighborsClassifier(),
         'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
     }

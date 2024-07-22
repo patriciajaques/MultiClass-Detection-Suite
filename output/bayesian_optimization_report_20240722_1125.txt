@@ -1,0 +1,304 @@
+
+Evaluating SVM_rfe with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('feature_selection', RFE(estimator=RandomForestClassifier(random_state=42), n_features_to_select=50)), ('classifier', SVC(C=0.7099668574083867, kernel='linear', probability=True))], 'verbose': False, 'feature_selection': RFE(estimator=RandomForestClassifier(random_state=42), n_features_to_select=50), 'classifier': SVC(C=0.7099668574083867, kernel='linear', probability=True), 'feature_selection__estimator__bootstrap': True, 'feature_selection__estimator__ccp_alpha': 0.0, 'feature_selection__estimator__class_weight': None, 'feature_selection__estimator__criterion': 'gini', 'feature_selection__estimator__max_depth': None, 'feature_selection__estimator__max_features': 'sqrt', 'feature_selection__estimator__max_leaf_nodes': None, 'feature_selection__estimator__max_samples': None, 'feature_selection__estimator__min_impurity_decrease': 0.0, 'feature_selection__estimator__min_samples_leaf': 1, 'feature_selection__estimator__min_samples_split': 2, 'feature_selection__estimator__min_weight_fraction_leaf': 0.0, 'feature_selection__estimator__n_estimators': 100, 'feature_selection__estimator__n_jobs': None, 'feature_selection__estimator__oob_score': False, 'feature_selection__estimator__random_state': 42, 'feature_selection__estimator__verbose': 0, 'feature_selection__estimator__warm_start': False, 'feature_selection__estimator': RandomForestClassifier(random_state=42), 'feature_selection__importance_getter': 'auto', 'feature_selection__n_features_to_select': 50, 'feature_selection__step': 1, 'feature_selection__verbose': 0, 'classifier__C': 0.7099668574083867, 'classifier__break_ties': False, 'classifier__cache_size': 200, 'classifier__class_weight': None, 'classifier__coef0': 0.0, 'classifier__decision_function_shape': 'ovr', 'classifier__degree': 3, 'classifier__gamma': 'scale', 'classifier__kernel': 'linear', 'classifier__max_iter': -1, 'classifier__probability': True, 'classifier__random_state': None, 'classifier__shrinking': True, 'classifier__tol': 0.001, 'classifier__verbose': False}
+
+Selected Features: id_log, num_log, log_type, idle_time_acumulado, num_passos_equacao, efetividade_passos_eq, tempo_equacao, tempo_passo, tempo_medio_passo_diario, num_passos_diario, efetividade_passos_eq_diario, tempo_medio_eq_diario_turma, tempo_medio_passo_diario_turma, media_num_passos_diario_turma, media_num_equacoes_resolvidas_diario_turma, media_efetividade_passos_eq_turma, tempo_medio_eq_total, num_passos_total, num_passos_corretos_total, efetividade_passos_eq_total, media_num_passos_total_turma, media_num_passos_corretos_total_turma, media_num_passos_errados_total_turma, media_num_equacoes_resolvidas_total_turma, media_efetividade_passos_eq_total_turma, eq_OI_acerto_total, eq_AD_acerto_medio_diario_turma, eq_OI_acerto_medio_diario_turma, eq_SB_acerto_medio_diario_turma, eq_SP_acerto_medio_diario_turma, eq_AD_acerto_medio_total_turma, eq_MT_acerto_medio_total_turma, eq_OI_acerto_medio_total_turma, eq_SB_acerto_medio_total_turma, eq_SP_acerto_medio_total_turma, eq_DV_erro_medio_diario_turma, eq_MT_erro_medio_diario_turma, eq_OI_erro_medio_diario_turma, eq_OI_erro_medio_total_turma, eq_AD_fator_total, eq_OI_fator_total, eq_AD_fator_medio_diario_turma, eq_MT_fator_medio_diario_turma, eq_OI_fator_medio_diario_turma, eq_SB_fator_medio_diario_turma, eq_SP_fator_medio_diario_turma, eq_AD_fator_medio_total_turma, eq_MT_fator_medio_total_turma, eq_OI_fator_medio_total_turma, eq_SB_fator_medio_total_turma
+
+Train set report:
+Class 0 - Precision: 0.65, Recall: 0.69, F1-Score: 0.67, Support: 2553.0
+Class 1 - Precision: 0.73, Recall: 0.79, F1-Score: 0.76, Support: 2553.0
+Class 2 - Precision: 0.55, Recall: 0.42, F1-Score: 0.47, Support: 2553.0
+Class 3 - Precision: 0.81, Recall: 0.84, F1-Score: 0.82, Support: 2553.0
+Class 4 - Precision: 0.77, Recall: 0.82, F1-Score: 0.8, Support: 2553.0
+Accuracy - F1-Score: 0.71
+Class macro avg - Precision: 0.7, Recall: 0.71, F1-Score: 0.7, Support: 12765.0
+Class weighted avg - Precision: 0.7, Recall: 0.71, F1-Score: 0.7, Support: 12765.0
+Balanced Accuracy: 0.71
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         1755          210          281          183          124
+Actual 1          160         2011          262           27           93
+Actual 2          484          429         1060          234          346
+Actual 3          188           15          153         2152           45
+Actual 4          122           93          169           77         2092
+
+Test set report:
+Class 0 - Precision: 0.35, Recall: 0.57, F1-Score: 0.43, Support: 134.0
+Class 1 - Precision: 0.53, Recall: 0.79, F1-Score: 0.63, Support: 186.0
+Class 2 - Precision: 0.81, Recall: 0.41, F1-Score: 0.54, Support: 606.0
+Class 3 - Precision: 0.51, Recall: 0.78, F1-Score: 0.62, Support: 93.0
+Class 4 - Precision: 0.37, Recall: 0.72, F1-Score: 0.49, Support: 79.0
+Accuracy - F1-Score: 0.55
+Class macro avg - Precision: 0.51, Recall: 0.65, F1-Score: 0.54, Support: 1098.0
+Class weighted avg - Precision: 0.65, Recall: 0.55, F1-Score: 0.55, Support: 1098.0
+Balanced Accuracy: 0.65
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0           76           16           21           13            8
+Actual 1            8          147           25            2            4
+Actual 2          121          110          247           44           84
+Actual 3            8            2            7           73            3
+Actual 4            5            3            4           10           57
+
+Evaluating SVM_pca with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('feature_selection', PCA(n_components=20)), ('classifier', SVC(C=4.409966119272881, gamma=0.07596724798029429, kernel='poly',
+    probability=True))], 'verbose': False, 'feature_selection': PCA(n_components=20), 'classifier': SVC(C=4.409966119272881, gamma=0.07596724798029429, kernel='poly',
+    probability=True), 'feature_selection__copy': True, 'feature_selection__iterated_power': 'auto', 'feature_selection__n_components': 20, 'feature_selection__n_oversamples': 10, 'feature_selection__power_iteration_normalizer': 'auto', 'feature_selection__random_state': None, 'feature_selection__svd_solver': 'auto', 'feature_selection__tol': 0.0, 'feature_selection__whiten': False, 'classifier__C': 4.409966119272881, 'classifier__break_ties': False, 'classifier__cache_size': 200, 'classifier__class_weight': None, 'classifier__coef0': 0.0, 'classifier__decision_function_shape': 'ovr', 'classifier__degree': 3, 'classifier__gamma': 0.07596724798029429, 'classifier__kernel': 'poly', 'classifier__max_iter': -1, 'classifier__probability': True, 'classifier__random_state': None, 'classifier__shrinking': True, 'classifier__tol': 0.001, 'classifier__verbose': False}
+
+Selected Features: 1636.3716128547844, -189.43803832488945, -107.03425251881829, 569.7813259063456, 226.3920482306451, 127.07997271263551, 254.371780534987, 167.75667029226983, 56.41271348981717, 7.3960235991294745, -310.9959501912291, -65.81712184078476, 331.6190434001091, 281.8852045789766, -130.06046217185116, 447.9532558202772, 65.84636438994694, -134.85730470875754, 134.54889738055877, 141.40469283508187
+
+Train set report:
+Class 0 - Precision: 0.74, Recall: 0.8, F1-Score: 0.77, Support: 2553.0
+Class 1 - Precision: 0.79, Recall: 0.78, F1-Score: 0.79, Support: 2553.0
+Class 2 - Precision: 0.8, Recall: 0.58, F1-Score: 0.67, Support: 2553.0
+Class 3 - Precision: 0.86, Recall: 0.95, F1-Score: 0.9, Support: 2553.0
+Class 4 - Precision: 0.84, Recall: 0.93, F1-Score: 0.88, Support: 2553.0
+Accuracy - F1-Score: 0.81
+Class macro avg - Precision: 0.81, Recall: 0.81, F1-Score: 0.8, Support: 12765.0
+Class weighted avg - Precision: 0.81, Recall: 0.81, F1-Score: 0.8, Support: 12765.0
+Balanced Accuracy: 0.81
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         2037          163          124          126          103
+Actual 1          222         1994          196           53           88
+Actual 2          327          323         1487          178          238
+Actual 3           69            5           30         2416           33
+Actual 4           85           33           27           35         2373
+
+Test set report:
+Class 0 - Precision: 0.42, Recall: 0.57, F1-Score: 0.48, Support: 134.0
+Class 1 - Precision: 0.6, Recall: 0.71, F1-Score: 0.65, Support: 186.0
+Class 2 - Precision: 0.85, Recall: 0.56, F1-Score: 0.67, Support: 606.0
+Class 3 - Precision: 0.57, Recall: 0.86, F1-Score: 0.68, Support: 93.0
+Class 4 - Precision: 0.41, Recall: 0.81, F1-Score: 0.54, Support: 79.0
+Accuracy - F1-Score: 0.63
+Class macro avg - Precision: 0.57, Recall: 0.7, F1-Score: 0.61, Support: 1098.0
+Class weighted avg - Precision: 0.7, Recall: 0.63, F1-Score: 0.64, Support: 1098.0
+Balanced Accuracy: 0.7
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0           77           12           21           12           12
+Actual 1           11          132           32            4            7
+Actual 2           84           75          337           40           70
+Actual 3            8            1            1           80            3
+Actual 4            5            1            4            5           64
+
+Evaluating KNN_rfe with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('feature_selection', RFE(estimator=RandomForestClassifier(random_state=42), n_features_to_select=10)), ('classifier', KNeighborsClassifier(metric='manhattan', n_neighbors=15, weights='distance'))], 'verbose': False, 'feature_selection': RFE(estimator=RandomForestClassifier(random_state=42), n_features_to_select=10), 'classifier': KNeighborsClassifier(metric='manhattan', n_neighbors=15, weights='distance'), 'feature_selection__estimator__bootstrap': True, 'feature_selection__estimator__ccp_alpha': 0.0, 'feature_selection__estimator__class_weight': None, 'feature_selection__estimator__criterion': 'gini', 'feature_selection__estimator__max_depth': None, 'feature_selection__estimator__max_features': 'sqrt', 'feature_selection__estimator__max_leaf_nodes': None, 'feature_selection__estimator__max_samples': None, 'feature_selection__estimator__min_impurity_decrease': 0.0, 'feature_selection__estimator__min_samples_leaf': 1, 'feature_selection__estimator__min_samples_split': 2, 'feature_selection__estimator__min_weight_fraction_leaf': 0.0, 'feature_selection__estimator__n_estimators': 100, 'feature_selection__estimator__n_jobs': None, 'feature_selection__estimator__oob_score': False, 'feature_selection__estimator__random_state': 42, 'feature_selection__estimator__verbose': 0, 'feature_selection__estimator__warm_start': False, 'feature_selection__estimator': RandomForestClassifier(random_state=42), 'feature_selection__importance_getter': 'auto', 'feature_selection__n_features_to_select': 10, 'feature_selection__step': 1, 'feature_selection__verbose': 0, 'classifier__algorithm': 'auto', 'classifier__leaf_size': 30, 'classifier__metric': 'manhattan', 'classifier__metric_params': None, 'classifier__n_jobs': None, 'classifier__n_neighbors': 15, 'classifier__p': 2, 'classifier__weights': 'distance'}
+
+Selected Features: id_log, idle_time_acumulado, tempo_equacao, media_efetividade_passos_eq_turma, media_num_passos_total_turma, eq_OI_acerto_total, eq_OI_acerto_medio_total_turma, eq_OI_fator_total, eq_AD_fator_medio_diario_turma, eq_SP_fator_medio_diario_turma
+
+Train set report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Balanced Accuracy: 1.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         2550            3            0            0            0
+Actual 1           12         2541            0            0            0
+Actual 2            0            0         2553            0            0
+Actual 3            0            0            0         2553            0
+Actual 4            0            0            0            0         2553
+
+Test set report:
+Class 0 - Precision: 0.67, Recall: 0.79, F1-Score: 0.72, Support: 134.0
+Class 1 - Precision: 0.74, Recall: 0.84, F1-Score: 0.79, Support: 186.0
+Class 2 - Precision: 0.92, Recall: 0.74, F1-Score: 0.82, Support: 606.0
+Class 3 - Precision: 0.72, Recall: 0.9, F1-Score: 0.8, Support: 93.0
+Class 4 - Precision: 0.61, Recall: 0.95, F1-Score: 0.75, Support: 79.0
+Accuracy - F1-Score: 0.79
+Class macro avg - Precision: 0.73, Recall: 0.84, F1-Score: 0.78, Support: 1098.0
+Class weighted avg - Precision: 0.82, Recall: 0.79, F1-Score: 0.8, Support: 1098.0
+Balanced Accuracy: 0.84
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0          106            5           16            3            4
+Actual 1            7          156           21            2            0
+Actual 2           40           48          449           27           42
+Actual 3            4            0            4           84            1
+Actual 4            2            1            0            1           75
+
+Evaluating KNN_pca with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('feature_selection', PCA(n_components=10)), ('classifier', KNeighborsClassifier(metric='manhattan', n_neighbors=15, weights='distance'))], 'verbose': False, 'feature_selection': PCA(n_components=10), 'classifier': KNeighborsClassifier(metric='manhattan', n_neighbors=15, weights='distance'), 'feature_selection__copy': True, 'feature_selection__iterated_power': 'auto', 'feature_selection__n_components': 10, 'feature_selection__n_oversamples': 10, 'feature_selection__power_iteration_normalizer': 'auto', 'feature_selection__random_state': None, 'feature_selection__svd_solver': 'auto', 'feature_selection__tol': 0.0, 'feature_selection__whiten': False, 'classifier__algorithm': 'auto', 'classifier__leaf_size': 30, 'classifier__metric': 'manhattan', 'classifier__metric_params': None, 'classifier__n_jobs': None, 'classifier__n_neighbors': 15, 'classifier__p': 2, 'classifier__weights': 'distance'}
+
+Selected Features: 1636.3716128552637, -189.43804674461316, -107.03422180694308, 569.7820363688072, 226.39020757869355, 127.08112933401662, 254.37389082802892, 167.7363342315049, 56.437957402397316, 7.473411075563031
+
+Train set report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Balanced Accuracy: 1.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         2550            3            0            0            0
+Actual 1           12         2541            0            0            0
+Actual 2            0            0         2553            0            0
+Actual 3            0            0            0         2553            0
+Actual 4            0            0            0            0         2553
+
+Test set report:
+Class 0 - Precision: 0.61, Recall: 0.7, F1-Score: 0.66, Support: 134.0
+Class 1 - Precision: 0.69, Recall: 0.73, F1-Score: 0.7, Support: 186.0
+Class 2 - Precision: 0.9, Recall: 0.73, F1-Score: 0.81, Support: 606.0
+Class 3 - Precision: 0.71, Recall: 0.88, F1-Score: 0.78, Support: 93.0
+Class 4 - Precision: 0.49, Recall: 0.85, F1-Score: 0.62, Support: 79.0
+Accuracy - F1-Score: 0.75
+Class macro avg - Precision: 0.68, Recall: 0.78, F1-Score: 0.71, Support: 1098.0
+Class weighted avg - Precision: 0.78, Recall: 0.75, F1-Score: 0.76, Support: 1098.0
+Balanced Accuracy: 0.78
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0           94            8           18            5            9
+Actual 1           10          135           28            6            7
+Actual 2           39           52          444           18           53
+Actual 3            8            0            3           82            0
+Actual 4            2            2            3            5           67
+
+Evaluating XGBoost_rfe with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('feature_selection', RFE(estimator=RandomForestClassifier(random_state=42), n_features_to_select=40)), ('classifier', XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.8230311876559941, device=None,
+              early_stopping_rounds=None, enable_categorical=False,
+              eval_metric='mlogloss', feature_types=None, gamma=None,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.14826789120369177,
+              max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=10, max_leaves=None,
+              min_child_weight=None, missing=nan, monotone_constraints=None,
+              multi_strategy=None, n_estimators=129, n_jobs=None,
+              num_parallel_tree=None, objective='multi:softprob', ...))], 'verbose': False, 'feature_selection': RFE(estimator=RandomForestClassifier(random_state=42), n_features_to_select=40), 'classifier': XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.8230311876559941, device=None,
+              early_stopping_rounds=None, enable_categorical=False,
+              eval_metric='mlogloss', feature_types=None, gamma=None,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.14826789120369177,
+              max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=10, max_leaves=None,
+              min_child_weight=None, missing=nan, monotone_constraints=None,
+              multi_strategy=None, n_estimators=129, n_jobs=None,
+              num_parallel_tree=None, objective='multi:softprob', ...), 'feature_selection__estimator__bootstrap': True, 'feature_selection__estimator__ccp_alpha': 0.0, 'feature_selection__estimator__class_weight': None, 'feature_selection__estimator__criterion': 'gini', 'feature_selection__estimator__max_depth': None, 'feature_selection__estimator__max_features': 'sqrt', 'feature_selection__estimator__max_leaf_nodes': None, 'feature_selection__estimator__max_samples': None, 'feature_selection__estimator__min_impurity_decrease': 0.0, 'feature_selection__estimator__min_samples_leaf': 1, 'feature_selection__estimator__min_samples_split': 2, 'feature_selection__estimator__min_weight_fraction_leaf': 0.0, 'feature_selection__estimator__n_estimators': 100, 'feature_selection__estimator__n_jobs': None, 'feature_selection__estimator__oob_score': False, 'feature_selection__estimator__random_state': 42, 'feature_selection__estimator__verbose': 0, 'feature_selection__estimator__warm_start': False, 'feature_selection__estimator': RandomForestClassifier(random_state=42), 'feature_selection__importance_getter': 'auto', 'feature_selection__n_features_to_select': 40, 'feature_selection__step': 1, 'feature_selection__verbose': 0, 'classifier__objective': 'multi:softprob', 'classifier__base_score': None, 'classifier__booster': None, 'classifier__callbacks': None, 'classifier__colsample_bylevel': None, 'classifier__colsample_bynode': None, 'classifier__colsample_bytree': 0.8230311876559941, 'classifier__device': None, 'classifier__early_stopping_rounds': None, 'classifier__enable_categorical': False, 'classifier__eval_metric': 'mlogloss', 'classifier__feature_types': None, 'classifier__gamma': None, 'classifier__grow_policy': None, 'classifier__importance_type': None, 'classifier__interaction_constraints': None, 'classifier__learning_rate': 0.14826789120369177, 'classifier__max_bin': None, 'classifier__max_cat_threshold': None, 'classifier__max_cat_to_onehot': None, 'classifier__max_delta_step': None, 'classifier__max_depth': 10, 'classifier__max_leaves': None, 'classifier__min_child_weight': None, 'classifier__missing': nan, 'classifier__monotone_constraints': None, 'classifier__multi_strategy': None, 'classifier__n_estimators': 129, 'classifier__n_jobs': None, 'classifier__num_parallel_tree': None, 'classifier__random_state': None, 'classifier__reg_alpha': 0.6701479482689346, 'classifier__reg_lambda': 0.4141186324855385, 'classifier__sampling_method': None, 'classifier__scale_pos_weight': None, 'classifier__subsample': 0.8052794004697432, 'classifier__tree_method': None, 'classifier__validate_parameters': None, 'classifier__verbosity': None, 'classifier__use_label_encoder': False}
+
+Selected Features: id_log, num_log, log_type, idle_time_acumulado, num_passos_equacao, efetividade_passos_eq, tempo_equacao, tempo_passo, tempo_medio_passo_diario, num_passos_diario, tempo_medio_passo_diario_turma, media_num_passos_diario_turma, media_num_equacoes_resolvidas_diario_turma, media_efetividade_passos_eq_turma, tempo_medio_eq_total, num_passos_total, num_passos_corretos_total, efetividade_passos_eq_total, media_num_passos_total_turma, media_num_passos_corretos_total_turma, media_num_passos_errados_total_turma, media_efetividade_passos_eq_total_turma, eq_OI_acerto_total, eq_AD_acerto_medio_diario_turma, eq_SP_acerto_medio_diario_turma, eq_MT_acerto_medio_total_turma, eq_OI_acerto_medio_total_turma, eq_SB_acerto_medio_total_turma, eq_SP_acerto_medio_total_turma, eq_DV_erro_medio_diario_turma, eq_OI_erro_medio_total_turma, eq_OI_fator_total, eq_AD_fator_medio_diario_turma, eq_MT_fator_medio_diario_turma, eq_OI_fator_medio_diario_turma, eq_SB_fator_medio_diario_turma, eq_SP_fator_medio_diario_turma, eq_AD_fator_medio_total_turma, eq_MT_fator_medio_total_turma, eq_OI_fator_medio_total_turma
+
+Train set report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Balanced Accuracy: 1.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         2547            6            0            0            0
+Actual 1           10         2543            0            0            0
+Actual 2            0            0         2553            0            0
+Actual 3            0            0            0         2553            0
+Actual 4            0            0            0            0         2553
+
+Test set report:
+Class 0 - Precision: 0.88, Recall: 0.79, F1-Score: 0.83, Support: 134.0
+Class 1 - Precision: 0.91, Recall: 0.88, F1-Score: 0.9, Support: 186.0
+Class 2 - Precision: 0.92, Recall: 0.93, F1-Score: 0.92, Support: 606.0
+Class 3 - Precision: 0.94, Recall: 0.89, F1-Score: 0.92, Support: 93.0
+Class 4 - Precision: 0.74, Recall: 0.91, F1-Score: 0.82, Support: 79.0
+Accuracy - F1-Score: 0.9
+Class macro avg - Precision: 0.88, Recall: 0.88, F1-Score: 0.88, Support: 1098.0
+Class weighted avg - Precision: 0.9, Recall: 0.9, F1-Score: 0.9, Support: 1098.0
+Balanced Accuracy: 0.88
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0          106            5           18            2            3
+Actual 1            3          164           19            0            0
+Actual 2            9           11          562            3           21
+Actual 3            2            0            7           83            1
+Actual 4            1            0            6            0           72
+
+Evaluating XGBoost_pca with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('feature_selection', PCA(n_components=40)), ('classifier', XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.8230311876559941, device=None,
+              early_stopping_rounds=None, enable_categorical=False,
+              eval_metric='mlogloss', feature_types=None, gamma=None,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.14826789120369177,
+              max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=10, max_leaves=None,
+              min_child_weight=None, missing=nan, monotone_constraints=None,
+              multi_strategy=None, n_estimators=129, n_jobs=None,
+              num_parallel_tree=None, objective='multi:softprob', ...))], 'verbose': False, 'feature_selection': PCA(n_components=40), 'classifier': XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.8230311876559941, device=None,
+              early_stopping_rounds=None, enable_categorical=False,
+              eval_metric='mlogloss', feature_types=None, gamma=None,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.14826789120369177,
+              max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=10, max_leaves=None,
+              min_child_weight=None, missing=nan, monotone_constraints=None,
+              multi_strategy=None, n_estimators=129, n_jobs=None,
+              num_parallel_tree=None, objective='multi:softprob', ...), 'feature_selection__copy': True, 'feature_selection__iterated_power': 'auto', 'feature_selection__n_components': 40, 'feature_selection__n_oversamples': 10, 'feature_selection__power_iteration_normalizer': 'auto', 'feature_selection__random_state': None, 'feature_selection__svd_solver': 'auto', 'feature_selection__tol': 0.0, 'feature_selection__whiten': False, 'classifier__objective': 'multi:softprob', 'classifier__base_score': None, 'classifier__booster': None, 'classifier__callbacks': None, 'classifier__colsample_bylevel': None, 'classifier__colsample_bynode': None, 'classifier__colsample_bytree': 0.8230311876559941, 'classifier__device': None, 'classifier__early_stopping_rounds': None, 'classifier__enable_categorical': False, 'classifier__eval_metric': 'mlogloss', 'classifier__feature_types': None, 'classifier__gamma': None, 'classifier__grow_policy': None, 'classifier__importance_type': None, 'classifier__interaction_constraints': None, 'classifier__learning_rate': 0.14826789120369177, 'classifier__max_bin': None, 'classifier__max_cat_threshold': None, 'classifier__max_cat_to_onehot': None, 'classifier__max_delta_step': None, 'classifier__max_depth': 10, 'classifier__max_leaves': None, 'classifier__min_child_weight': None, 'classifier__missing': nan, 'classifier__monotone_constraints': None, 'classifier__multi_strategy': None, 'classifier__n_estimators': 129, 'classifier__n_jobs': None, 'classifier__num_parallel_tree': None, 'classifier__random_state': None, 'classifier__reg_alpha': 0.6701479482689346, 'classifier__reg_lambda': 0.4141186324855385, 'classifier__sampling_method': None, 'classifier__scale_pos_weight': None, 'classifier__subsample': 0.8052794004697432, 'classifier__tree_method': None, 'classifier__validate_parameters': None, 'classifier__verbosity': None, 'classifier__use_label_encoder': False}
+
+Selected Features: 1636.3716128543567, -189.43803846155572, -107.03424993025484, 569.7813298295217, 226.39203623598445, 127.07998793935847, 254.37192994200333, 167.75655757936772, 56.41337870290816, 7.395695548173927, -310.9982774361394, -65.81963581249853, 331.6304447250758, 281.8876176517297, -130.04378871047413, 447.88131093057183, 65.93904548908445, -134.49653709656207, 134.8100788279499, 140.6275924138519, -188.28628973126862, -29.18739133523868, -250.90761776542698, -57.444945436074505, -12.720085892577274, 216.25245595244394, -136.69816959817678, -179.65041992257503, 380.12632864546777, 63.45079501462034, 42.73206544417609, 219.49291152602441, 259.3791625108757, -29.098297655760366, -104.7169300000436, -79.63496876746211, -149.55341680405476, -56.187504396508984, -22.41286034630705, 27.38199921056716
+
+Train set report:
+Class 0 - Precision: 0.99, Recall: 1.0, F1-Score: 0.99, Support: 2553.0
+Class 1 - Precision: 1.0, Recall: 0.99, F1-Score: 1.0, Support: 2553.0
+Class 2 - Precision: 1.0, Recall: 0.99, F1-Score: 1.0, Support: 2553.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2553.0
+Accuracy - F1-Score: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12765.0
+Balanced Accuracy: 1.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         2547            3            2            0            1
+Actual 1           18         2533            2            0            0
+Actual 2            6            1         2538            5            3
+Actual 3            2            0            2         2549            0
+Actual 4            0            0            2            0         2551
+
+Test set report:
+Class 0 - Precision: 0.73, Recall: 0.71, F1-Score: 0.72, Support: 134.0
+Class 1 - Precision: 0.85, Recall: 0.76, F1-Score: 0.8, Support: 186.0
+Class 2 - Precision: 0.88, Recall: 0.89, F1-Score: 0.88, Support: 606.0
+Class 3 - Precision: 0.83, Recall: 0.88, F1-Score: 0.85, Support: 93.0
+Class 4 - Precision: 0.72, Recall: 0.8, F1-Score: 0.75, Support: 79.0
+Accuracy - F1-Score: 0.84
+Class macro avg - Precision: 0.8, Recall: 0.81, F1-Score: 0.8, Support: 1098.0
+Class weighted avg - Precision: 0.84, Recall: 0.84, F1-Score: 0.84, Support: 1098.0
+Balanced Accuracy: 0.81
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0           95            7           25            4            3
+Actual 1            6          142           35            3            0
+Actual 2           21           18          539            6           22
+Actual 3            5            0            6           82            0
+Actual 4            3            0            9            4           63
