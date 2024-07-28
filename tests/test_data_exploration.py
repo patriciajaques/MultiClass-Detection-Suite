@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import pytest
-from src.data_exploration import vis_corr_cat
+from data_exploration import vis_corr_cat
 
 def test_vis_corr_cat():
     # Create sample data

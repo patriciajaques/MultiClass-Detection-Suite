@@ -7,7 +7,6 @@ from IPython.core.debugger import set_trace
 
 import utils
 import pandas as pd
-from data_exploration import concat_features_and_target 
 
 def get_data_by_type(data, data_type='categorical', num_classes=5):
     """
@@ -33,7 +32,6 @@ def get_data_by_type(data, data_type='categorical', num_classes=5):
     
     return selected_data
 
-from sklearn.preprocessing import LabelEncoder
 
 def encode_single_column(data):
     """
@@ -83,6 +81,8 @@ def load_data(file_path='../data/new_logs_labels.csv'):
     return X, y['comportamento']
 
 def split_train_test_data(X, y, test_size=0.3, random_state=42):
+    from data_exploration import concat_features_and_target 
+
     """
     Divide os dados em conjuntos de treino e teste.
     """
