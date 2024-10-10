@@ -1,5 +1,0 @@
-Metric,precision-train,recall-train,f1-score-train,support-train,precision-test,recall-test,f1-score-test,support-test,Model
-accuracy,,,1.0,,,,0.86,,Decision Tree
-macro avg,1.0,1.0,1.0,4391.0,0.82,0.83,0.83,1098.0,Decision Tree
-weighted avg,1.0,1.0,1.0,4391.0,0.86,0.86,0.86,1098.0,Decision Tree
-balanced_accuracy,,,1.0,,,,0.83,,Decision Tree

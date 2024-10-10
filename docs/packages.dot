@@ -1,0 +1,35 @@
+digraph "packages" {
+rankdir=BT
+charset="utf-8"
+"src" [color="black", label=<src>, shape="box", style="solid"];
+"src.base_data_processor" [color="black", label=<src.base_data_processor>, shape="box", style="solid"];
+"src.base_manager" [color="black", label=<src.base_manager>, shape="box", style="solid"];
+"src.bayesian_optimization_training" [color="black", label=<src.bayesian_optimization_training>, shape="box", style="solid"];
+"src.behaviors_data_processor" [color="black", label=<src.behaviors_data_processor>, shape="box", style="solid"];
+"src.data_exploration" [color="black", label=<src.data_exploration>, shape="box", style="solid"];
+"src.evaluation" [color="black", label=<src.evaluation>, shape="box", style="solid"];
+"src.feature_selection" [color="black", label=<src.feature_selection>, shape="box", style="solid"];
+"src.file_manager" [color="black", label=<src.file_manager>, shape="box", style="solid"];
+"src.logger_config" [color="black", label=<src.logger_config>, shape="box", style="solid"];
+"src.model_manager" [color="black", label=<src.model_manager>, shape="box", style="solid"];
+"src.model_params" [color="black", label=<src.model_params>, shape="box", style="solid"];
+"src.model_training" [color="black", label=<src.model_training>, shape="box", style="solid"];
+"src.preprocessing" [color="black", label=<src.preprocessing>, shape="box", style="solid"];
+"src.report_formatter" [color="black", label=<src.report_formatter>, shape="box", style="solid"];
+"src.utils" [color="black", label=<src.utils>, shape="box", style="solid"];
+"src.bayesian_optimization_training" -> "src.feature_selection" [arrowhead="open", arrowtail="none"];
+"src.bayesian_optimization_training" -> "src.logger_config" [arrowhead="open", arrowtail="none"];
+"src.bayesian_optimization_training" -> "src.model_params" [arrowhead="open", arrowtail="none"];
+"src.bayesian_optimization_training" -> "src.model_training" [arrowhead="open", arrowtail="none"];
+"src.behaviors_data_processor" -> "src.base_data_processor" [arrowhead="open", arrowtail="none"];
+"src.behaviors_data_processor" -> "src.data_exploration" [arrowhead="open", arrowtail="none"];
+"src.behaviors_data_processor" -> "src.utils" [arrowhead="open", arrowtail="none"];
+"src.data_exploration" -> "src.preprocessing" [arrowhead="open", arrowtail="none"];
+"src.evaluation" -> "src.feature_selection" [arrowhead="open", arrowtail="none"];
+"src.file_manager" -> "src.base_manager" [arrowhead="open", arrowtail="none"];
+"src.model_manager" -> "src.base_manager" [arrowhead="open", arrowtail="none"];
+"src.model_training" -> "src.feature_selection" [arrowhead="open", arrowtail="none"];
+"src.model_training" -> "src.model_params" [arrowhead="open", arrowtail="none"];
+"src.preprocessing" -> "src.data_exploration" [arrowhead="open", arrowtail="none"];
+"src.preprocessing" -> "src.utils" [arrowhead="open", arrowtail="none"];
+}

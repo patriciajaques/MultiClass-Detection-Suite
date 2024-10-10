@@ -1,0 +1,56 @@
+Help on module preprocessing:
+
+NAME
+    preprocessing
+
+FUNCTIONS
+    apply_encoders_to_test_data(X_test, label_encoders)
+        Aplica os LabelEncoders salvos de X_train em X_test.
+        
+        Parâmetros:
+        - X_test: DataFrame contendo os dados de teste.
+        - label_encoders: Dicionário contendo os LabelEncoders para cada coluna categórica.
+        
+        Retorna:
+        - X_test_encoded: DataFrame com as colunas categóricas codificadas usando os LabelEncoders de X_train.
+    
+    apply_smote(X_train, y_train)
+        Aplica SMOTE para realizar oversampling nos dados de treinamento.
+    
+    create_preprocessor(X_train)
+        Cria um pré-processador para colunas numéricas e categóricas.
+    
+    encode_categorical_columns(X, num_classes=5)
+        Aplica LabelEncoder às variáveis categóricas de X e reutiliza encode_single_column.
+        
+        Args:
+            X (pd.DataFrame): DataFrame de entrada.
+            num_classes (int): Número de classes para considerar uma coluna categórica.
+        
+        Returns:
+            pd.DataFrame: DataFrame com as colunas categóricas codificadas.
+            dict: Dicionário de LabelEncoders usados para codificação.
+    
+    encode_single_column(data)
+        Aplica LabelEncoder a uma coluna ou série pandas.
+    
+    get_data_by_type(data, data_type='categorical', num_classes=5)
+        Seleciona colunas do DataFrame baseado no tipo de dado e número de classes.
+        
+        Args:
+            data (pd.DataFrame): DataFrame de entrada.
+            data_type (str): Tipo de dado para seleção ('categorical' ou 'numerical').
+            num_classes (int): Número de classes para considerar uma coluna categórica.
+        
+        Returns:
+            pd.DataFrame: DataFrame com as colunas selecionadas.
+    
+    load_data(file_path='../data/new_logs_labels.csv')
+        Lê, limpa e retorna os dados de um arquivo CSV.
+    
+    split_train_test_data(X, y, test_size=0.3, random_state=42)
+
+FILE
+    /Users/patricia/Documents/code/python-code/behavior-detection/src/preprocessing.py
+
+

@@ -12,7 +12,8 @@ class ModelTraining(ABC):
     def __init__(self):
         self.trained_models = {}  # Inicializa o dicionário para armazenar os resultados de cada modelo
 
-    def train_model(self, X_train, y_train, n_iter=50, cv=5, scoring='balanced_accuracy'):
+    def train_model(self, X_train, y_train, n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1):
+
         selectors = fs.create_selectors(X_train, y_train)  # Criar seletores
 
         models = get_models()
@@ -23,7 +24,7 @@ class ModelTraining(ABC):
                 # Criar pipeline
                 pipeline = self.create_pipeline(selector, model_config)
                 
-                self.optimize_model(pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring)
+                self.optimize_model(pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs)
         return self.trained_models
         
     @abstractmethod

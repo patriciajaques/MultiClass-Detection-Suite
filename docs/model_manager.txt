@@ -1,0 +1,50 @@
+Help on module model_manager:
+
+NAME
+    model_manager
+
+CLASSES
+    base_manager.BaseManager(builtins.object)
+        ModelManager
+    
+    class ModelManager(base_manager.BaseManager)
+     |  Classe responsável por operações com modelos treinados.
+     |  
+     |  Method resolution order:
+     |      ModelManager
+     |      base_manager.BaseManager
+     |      builtins.object
+     |  
+     |  Static methods defined here:
+     |  
+     |  dump_all_models(trained_models, directory, prefix='model')
+     |      Salva todos os modelos treinados em arquivos individuais com data e hora.
+     |      
+     |      Returns:
+     |          saved_models: Lista de caminhos completos dos arquivos salvos.
+     |  
+     |  dump_model(model, filename, directory=None)
+     |      Salva o modelo treinado em um arquivo.
+     |      
+     |      Returns:
+     |          file_path: Caminho completo do arquivo salvo.
+     |  
+     |  load_model(filename, directory=None)
+     |      Carrega um modelo salvo a partir de um arquivo.
+     |      
+     |      Returns:
+     |          model: Modelo carregado.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from base_manager.BaseManager:
+     |  
+     |  __dict__
+     |      dictionary for instance variables
+     |  
+     |  __weakref__
+     |      list of weak references to the object
+
+FILE
+    /Users/patricia/Documents/code/python-code/behavior-detection/src/model_manager.py
+
+

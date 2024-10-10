@@ -1,0 +1,34 @@
+Help on module logger_config:
+
+NAME
+    logger_config
+
+CLASSES
+    builtins.object
+        LoggerConfig
+    
+    class LoggerConfig(builtins.object)
+     |  Static methods defined here:
+     |  
+     |  configure_log_file(file_main_name='bayesian_optimization', log_term='.log')
+     |  
+     |  log_results(result)
+     |      Registra os parâmetros testados e a pontuação para cada iteração.
+     |      Inverte a pontuação se ela for negativa, apenas para exibição.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables
+     |  
+     |  __weakref__
+     |      list of weak references to the object
+
+FUNCTIONS
+    main()
+
+FILE
+    /Users/patricia/Documents/code/python-code/behavior-detection/src/logger_config.py
+
+

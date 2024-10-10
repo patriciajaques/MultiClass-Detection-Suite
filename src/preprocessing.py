@@ -40,15 +40,24 @@ def encode_single_column(data):
     le = LabelEncoder()
     return le.fit_transform(data), le
 
-def encode_categorical_columns(X):
+def encode_categorical_columns(X, num_classes=5):
     """
     Aplica LabelEncoder às variáveis categóricas de X e reutiliza encode_single_column.
+    
+    Args:
+        X (pd.DataFrame): DataFrame de entrada.
+        num_classes (int): Número de classes para considerar uma coluna categórica.
+    
+    Returns:
+        pd.DataFrame: DataFrame com as colunas categóricas codificadas.
+        dict: Dicionário de LabelEncoders usados para codificação.
     """
+    # Identificar colunas categóricas usando get_data_by_type
+    categorical_data = get_data_by_type(X, data_type='categorical', num_classes=num_classes)
     X_encoded = X.copy()
     label_encoders = {}
-    categorical_columns = X_encoded.select_dtypes(include=['object', 'category']).columns
     
-    for col in categorical_columns:
+    for col in categorical_data.columns:
         X_encoded[col], le = encode_single_column(X_encoded[col])
         label_encoders[col] = le
     

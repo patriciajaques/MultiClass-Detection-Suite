@@ -1,0 +1,62 @@
+Help on module report_formatter:
+
+NAME
+    report_formatter
+
+CLASSES
+    builtins.object
+        ReportFormatter
+    
+    class ReportFormatter(builtins.object)
+     |  Static methods defined here:
+     |  
+     |  format_report(report_df)
+     |      Formata o relatório de classificação como uma string.
+     |      
+     |      Args:
+     |          report_df: DataFrame contendo o relatório de classificação.
+     |      
+     |      Returns:
+     |          output: String formatada do relatório de classificação.
+     |  
+     |  generate_avg_metrics_report_dataframe(avg_metrics_reports)
+     |      Gera um DataFrame resumido de métricas médias.
+     |      
+     |      Args:
+     |          avg_metrics_reports: Dicionário com os relatórios de métricas médias.
+     |      
+     |      Returns:
+     |          summary_df: DataFrame contendo o relatório resumido de métricas médias.
+     |  
+     |  generate_class_report_dataframe(class_metrics_reports)
+     |      Gera um DataFrame detalhado de classificação por classe.
+     |      
+     |      Args:
+     |          class_metrics_reports: Dicionário com os relatórios de avaliação por classe.
+     |      
+     |      Returns:
+     |          detailed_df: DataFrame contendo o relatório detalhado de classificação por classe.
+     |  
+     |  generate_text_report_from_dict(class_metrics_reports, avg_metrics_reports)
+     |      Gera texto para relatórios detalhados de avaliação, incluindo matrizes de confusão.
+     |      
+     |      Args:
+     |          class_metrics_reports: Dicionário com os relatórios de avaliação por classe.
+     |          avg_metrics_reports: Dicionário com os relatórios de métricas médias.
+     |      
+     |      Returns:
+     |          report_output: String com o conteúdo dos relatórios.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables
+     |  
+     |  __weakref__
+     |      list of weak references to the object
+
+FILE
+    /Users/patricia/Documents/code/python-code/behavior-detection/src/report_formatter.py
+
+

@@ -1,0 +1,65 @@
+Help on module evaluation:
+
+NAME
+    evaluation
+
+CLASSES
+    builtins.object
+        Evaluation
+    
+    class Evaluation(builtins.object)
+     |  Static methods defined here:
+     |  
+     |  calculate_auc_pr(y_true, y_prob)
+     |      # Calcula a AUC-PR macro iterando sobre cada classe, tratando-a como positiva e as demais como negativas, e calculando a média das AUC-PRs.
+     |      Args:
+     |          y_true (array-like): Classes verdadeiras.
+     |          y_prob (array-like): Probabilidades previstas pelo modelo.
+     |      
+     |      Returns:
+     |          float: AUC-PR média (macro) para todas as classes.
+     |  
+     |  evaluate_all_models(trained_models, X_train, y_train, X_test, y_test, feature_names=None)
+     |      Gera relatórios de avaliação para todos os modelos nos conjuntos de treino e teste, utilizando os resultados da
+     |      validação cruzada realizada pelo BayesSearchCV.
+     |      
+     |      Args:
+     |          trained_models: Dicionário de modelos treinados com BayesSearchCV.
+     |          X_train: Conjunto de características de treino.
+     |          y_train: Conjunto de rótulos de treino.
+     |          X_test: Conjunto de características de teste.
+     |          y_test: Conjunto de rótulos de teste.
+     |          feature_names: Lista de nomes das características (opcional).
+     |      
+     |      Returns:
+     |          class_metrics_results: Dicionário com os relatórios de avaliação por classe.
+     |          avg_metrics_results: Dicionário com os relatórios de métricas médias.
+     |  
+     |  evaluate_model(model, X, y, feature_names=None)
+     |      Avalia um modelo e retorna as previsões, as métricas de avaliação e as características selecionadas.
+     |      
+     |      Args:
+     |          model: Modelo treinado.
+     |          X: Conjunto de características.
+     |          y: Conjunto de rótulos.
+     |          feature_names: Lista de nomes das características (opcional).
+     |      
+     |      Returns:
+     |          class_metrics_df: DataFrame contendo o relatório de classificação por classe.
+     |          conf_matrix_df: DataFrame contendo a matriz de confusão.
+     |          selected_features: Lista de características selecionadas (se aplicável).
+     |          avg_metrics_df: DataFrame contendo as métricas médias.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables
+     |  
+     |  __weakref__
+     |      list of weak references to the object
+
+FILE
+    /Users/patricia/Documents/code/python-code/behavior-detection/src/evaluation.py
+
+

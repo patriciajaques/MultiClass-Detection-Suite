@@ -151,8 +151,8 @@ print(f"y_train shape: {y_train_over.shape}")
 
 
 from bayesian_optimization_training import BayesianOptimizationTraining
-cv = 2 #10
-n_iter = 2 #100
+cv = 10
+n_iter = 100
 
 # Escolher a métrica de avaliação
 scoring_metric = 'roc_auc_ovr'  # Pode ser 'f1_macro', 'balanced_accuracy', 'roc_auc_ovr', etc.

@@ -14,7 +14,7 @@ class BayesianOptimizationTraining(ModelTraining):
         super().__init__() 
         LoggerConfig.configure_log_file('bayesian_optimization', '.log')
 
-    def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring):
+    def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1):
 
         logging.info(f"Training and evaluating {model_name} with BayesianOptimization and {selector_name}:")
         print(f"Training and evaluating {model_name} with BayesianOptimization and {selector_name}:")
@@ -36,7 +36,7 @@ class BayesianOptimizationTraining(ModelTraining):
             search_space.update(selector_search_space)
         
         # Best model será um objeto do tipo Pipeline
-        best_model, best_result, opt = self.execute_bayesian_optimization(pipeline, search_space, X_train, y_train, n_iter=n_iter, cv=cv, scoring=scoring)
+        best_model, best_result, opt = self.execute_bayesian_optimization(pipeline, search_space, X_train, y_train, n_iter=n_iter, cv=cv, scoring=scoring, n_jobs=n_jobs)
         # Extraindo as predições de validação cruzada diretamente de cv_results_
         logging.info(f"Bayesian optimization results: Melhor resultado: {best_result}, Resultado médio da validação cruzada: {opt.cv_results_['mean_test_score'][opt.best_index_]}")
 
@@ -51,16 +51,15 @@ class BayesianOptimizationTraining(ModelTraining):
         print(f"BayesianOptimization Best Result for {model_name} with {selector_name}: {best_result}")
 
 
-    def execute_bayesian_optimization(self, pipeline, space, X_train, y_train, n_iter=50, cv=5, scoring='balanced_accuracy'):
+    def execute_bayesian_optimization(self, pipeline, space, X_train, y_train, n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1):
         search = BayesSearchCV(
             pipeline,
             search_spaces=space,
             n_iter=n_iter,
             cv=cv,
             scoring=scoring,
-            n_jobs=2,
+            n_jobs=n_jobs,
             random_state=42,
-            #return_train_score=True,
             verbose=3
         )
 
