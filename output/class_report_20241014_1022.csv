@@ -1,0 +1,6 @@
+Metric,precision-train,recall-train,f1-score-train,support-train,precision-test,recall-test,f1-score-test,support-test,Model
+0,0.96,0.98,0.97,2544.0,0.95,0.95,0.95,615.0,Decision Tree_pca
+1,0.97,0.97,0.97,2441.0,0.95,0.96,0.95,718.0,Decision Tree_pca
+2,0.97,0.96,0.97,2569.0,0.94,0.93,0.93,590.0,Decision Tree_pca
+3,0.98,0.99,0.98,2553.0,0.97,0.97,0.97,606.0,Decision Tree_pca
+4,0.99,0.98,0.99,2529.0,0.99,0.98,0.99,630.0,Decision Tree_pca

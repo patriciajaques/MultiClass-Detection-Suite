@@ -6,8 +6,8 @@ import pytest
 from io import StringIO
 
 # Módulo a ser testado
-import utils
-from base_data_processor import BaseDataProcessor
+import behavior.utils as utils
+from data_processor import BaseDataProcessor
 
 @pytest.fixture
 def processor():

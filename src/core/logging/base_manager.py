@@ -22,5 +22,5 @@ class BaseManager:
         """
         if directory:
             os.makedirs(directory, exist_ok=True)
-            return directory
+            return directory or ""
         return ""

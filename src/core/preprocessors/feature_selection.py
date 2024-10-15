@@ -9,9 +9,9 @@ class FeatureSelection:
     def create_selectors(X_train, y_train):
         n_features = X_train.shape[1]
         selectors = {
-            'rfe': FeatureSelection.create_selector('rfe', X_train=X_train, y_train=y_train, n_features_to_select=min(10, n_features)),
+            # 'rfe': FeatureSelection.create_selector('rfe', X_train=X_train, y_train=y_train, n_features_to_select=min(10, n_features)),
             'pca': FeatureSelection.create_selector('pca', X_train=X_train, n_components=min(5, n_features)),
-            #'rf': create_selector('rf', X_train=X_train, y_train=y_train)
+            # 'rf': create_selector('rf', X_train=X_train, y_train=y_train)
         }
         return selectors
 
