@@ -12,4 +12,4 @@ class PCAFeatureSelector(BaseFeatureSelector):
         return selector
 
     def get_search_space(self):
-        return {'feature_selection__n_components': [1, 5, 10, 20, 30, 40, 50]}
+        return {'feature_selection__n_components': [1, 5, 10, 20, 30, 40, 50, 75, 100, 125, 150, 175, 200]}

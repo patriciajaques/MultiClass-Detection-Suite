@@ -1,12 +1,10 @@
-import os
 import joblib
-from core.logging.file_manager import FileManager
+from core.logging.file_utils import FileUtils
 
-class ModelManager(FileManager):
-    @classmethod
-    def save_model(cls, model, filename, directory=None):
-        directory = cls._create_directory_if_not_exists(directory)
-        file_path = os.path.join(directory, filename)
+class ModelManager:
+    @staticmethod
+    def save_model(model, filename, directory=None):
+        file_path = FileUtils.save_file_with_timestamp(model, filename, directory)
         joblib.dump(model, file_path)
         return file_path
 
@@ -19,7 +17,7 @@ class ModelManager(FileManager):
     def save_all_models(cls, trained_models, directory, prefix='model'):
         saved_models = []
         for model_name, model_info in trained_models.items():
-            filename = cls._generate_filename_with_timestamp(f"{prefix}_{model_name}.pkl")
+            filename = f"{prefix}_{model_name}.pkl"
             file_path = cls.save_model(model_info['model'], filename, directory)
             saved_models.append(file_path)
             print(f"Model '{model_name}' saved at: {file_path}")

@@ -24,39 +24,38 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         print(f"Training and evaluating {model_name} with Optuna Bayesian Optimization and {selector_name}")
 
         def objective(trial):
-            # Sugerir hiperparâmetros específicos do modelo
-            model_hyperparams = OptunaModelParams.suggest_hyperparameters(trial, model_name)
-            
-            # Sugerir hiperparâmetros para o seletor de features
-            selector_hyperparams = {}
-            for param, values in selector_search_space.items():
-                if isinstance(values[0], int):
-                    selector_hyperparams[param] = trial.suggest_int(param, min(values), max(values))
-                elif isinstance(values[0], float):
-                    selector_hyperparams[param] = trial.suggest_float(param, min(values), max(values))
-                else:
-                    selector_hyperparams[param] = trial.suggest_categorical(param, values)
-            
-            # Combinar os hiperparâmetros do modelo e do seletor
-            hyperparams = {**model_hyperparams, **selector_hyperparams}
-            
-            pipeline.set_params(**hyperparams)
-    
-            
-            # Avaliar o modelo usando validação cruzada
-            score = cross_val_score(
-                estimator=pipeline,
-                X=X_train,
-                y=y_train,
-                scoring=scoring,
-                cv=cv,
-                n_jobs=n_jobs
-            ).mean()
-            
-            # Registrar os hiperparâmetros e a pontuação da tentativa
-            self.logger.debug(f"Trial {trial.number}: Hyperparameters: {hyperparams}, Score: {score}")
-            return score
-
+            try:
+                model_hyperparams = OptunaModelParams.suggest_hyperparameters(trial, model_name)
+                
+                # Sugerir hiperparâmetros para o seletor de features
+                selector_hyperparams = {}
+                for param, values in selector_search_space.items():
+                    if isinstance(values[0], int):
+                        selector_hyperparams[param] = trial.suggest_int(param, min(values), max(values))
+                    elif isinstance(values[0], float):
+                        selector_hyperparams[param] = trial.suggest_float(param, min(values), max(values))
+                    else:
+                        selector_hyperparams[param] = trial.suggest_categorical(param, values)
+                
+                # Combinar os hiperparâmetros do modelo e do seletor
+                hyperparams = {**model_hyperparams, **selector_hyperparams}
+                
+                pipeline.set_params(**hyperparams)
+                
+                score = cross_val_score(
+                    estimator=pipeline,
+                    X=X_train,
+                    y=y_train,
+                    scoring=scoring,
+                    cv=cv,
+                    n_jobs=n_jobs
+                ).mean()
+                
+                return score
+            except Exception as e:
+                self.logger.warning(f"Trial failed with error: {str(e)}")
+                return float('-inf')  # Retorna um valor muito baixo para indicar que o trial falhou
+        
         # Criar um estudo do Optuna
         study = optuna.create_study(direction='maximize', sampler=TPESampler())
         
