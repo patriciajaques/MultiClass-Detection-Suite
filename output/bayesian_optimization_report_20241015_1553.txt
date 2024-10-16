@@ -1,0 +1,51 @@
+
+Evaluating Decision Tree_pca with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('feature_selection', PCA(n_components=50)), ('classifier', DecisionTreeClassifier(min_samples_leaf=5, min_samples_split=20))], 'verbose': False, 'feature_selection': PCA(n_components=50), 'classifier': DecisionTreeClassifier(min_samples_leaf=5, min_samples_split=20), 'feature_selection__copy': True, 'feature_selection__iterated_power': 'auto', 'feature_selection__n_components': 50, 'feature_selection__n_oversamples': 10, 'feature_selection__power_iteration_normalizer': 'auto', 'feature_selection__random_state': None, 'feature_selection__svd_solver': 'auto', 'feature_selection__tol': 0.0, 'feature_selection__whiten': False, 'classifier__ccp_alpha': 0.0, 'classifier__class_weight': None, 'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__max_features': None, 'classifier__max_leaf_nodes': None, 'classifier__min_impurity_decrease': 0.0, 'classifier__min_samples_leaf': 5, 'classifier__min_samples_split': 20, 'classifier__min_weight_fraction_leaf': 0.0, 'classifier__random_state': None, 'classifier__splitter': 'best'}
+
+Selected Features: 1201.1252806350938, -213.23269825237432, 498.87439529476, 54.469252266459755, -14.737643693887835, 218.94972320320855, 171.97322506109202, 107.34363955705375, -54.500074669509445, -161.64715500111052, -79.02841739847548, -170.71007138375123, -30.932013130644716, 71.74462243217724, 74.93032322420027, 190.69013155625672, 168.56802178753668, 383.74520512168647, -126.30587858305661, -22.956165024207635, 167.65904620224487, 24.014737488211434, 330.4196855796465, 96.69457674672962, 20.549092211188537, -223.33195220014133, -38.14037343094865, 141.13429481668803, -222.33800470535894, -132.98279480579453, -2.6873748767639487, 143.3172751441229, -111.29678613438615, 75.37785657649441, -20.67124787123481, -25.592803277859257, 27.867968087571054, -51.7026845429303, 173.99936428505833, 117.09692217631562, -76.6260730067732, 168.98139784543523, 220.28970447833458, 134.41438495312224, -390.0976914796165, 106.77566082937071, -62.57366379975181, -68.2992883920272, 124.89735663188085, 120.14632941006674
+
+Train set class report:
+Class 0 - Precision: 0.92, Recall: 0.93, F1-Score: 0.93, Support: 2519.0
+Class 1 - Precision: 0.93, Recall: 0.94, F1-Score: 0.93, Support: 2519.0
+Class 2 - Precision: 0.89, Recall: 0.89, F1-Score: 0.89, Support: 2519.0
+Class 3 - Precision: 0.96, Recall: 0.95, F1-Score: 0.96, Support: 2519.0
+Class 4 - Precision: 0.98, Recall: 0.98, F1-Score: 0.98, Support: 2519.0
+
+Train set average metrics:
+Balanced_accuracy: 0.94
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.92, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 0.99, Support: nan
+Accuracy: 0.94
+Class macro avg - Precision: 0.94, Recall: 0.94, F1-Score: 0.94, Support: 12595.0
+Class weighted avg - Precision: 0.94, Recall: 0.94, F1-Score: 0.94, Support: 12595.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         2351           55           89           21            3
+Actual 1           39         2363           99           16            2
+Actual 2          113           96         2230           44           36
+Actual 3           27           34           59         2398            1
+Actual 4           13            5           17           13         2471
+
+Test set class report:
+Class 0 - Precision: 0.01, Recall: 0.01, F1-Score: 0.01, Support: 129.0
+Class 1 - Precision: 0.3, Recall: 0.53, F1-Score: 0.38, Support: 176.0
+Class 2 - Precision: 0.54, Recall: 0.47, F1-Score: 0.5, Support: 640.0
+Class 3 - Precision: 0.0, Recall: 0.0, F1-Score: 0.0, Support: 34.0
+Class 4 - Precision: 0.09, Recall: 0.04, F1-Score: 0.05, Support: 131.0
+
+Test set average metrics:
+Balanced_accuracy: 0.21
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.0, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 0.22, Support: nan
+Accuracy: 0.36
+Class macro avg - Precision: 0.19, Recall: 0.21, F1-Score: 0.19, Support: 1110.0
+Class weighted avg - Precision: 0.37, Recall: 0.36, F1-Score: 0.36, Support: 1110.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0            1           11           91            2           24
+Actual 1            9           93           67            4            3
+Actual 2          128          177          303           13           19
+Actual 3            2            8           18            0            6
+Actual 4           24           19           83            0            5

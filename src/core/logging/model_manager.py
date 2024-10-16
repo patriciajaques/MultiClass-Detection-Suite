@@ -1,8 +1,8 @@
 import os
 import joblib
-from core.logging.base_manager import BaseManager
+from core.logging.file_manager import FileManager
 
-class ModelManager(BaseManager):
+class ModelManager(FileManager):
     @classmethod
     def save_model(cls, model, filename, directory=None):
         directory = cls._create_directory_if_not_exists(directory)

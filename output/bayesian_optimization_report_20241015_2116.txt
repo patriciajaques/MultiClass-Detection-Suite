@@ -1,0 +1,51 @@
+
+Evaluating Decision Tree_pca with Optuna Bayesian Optimization:
+Hyperparameters: {'classifier__max_depth': 10, 'classifier__min_samples_split': 13, 'classifier__min_samples_leaf': 2}
+
+Selected Features: PC1, PC2, PC3, PC4, PC5
+
+Train set class report:
+Class 0 - Precision: 0.78, Recall: 0.8, F1-Score: 0.79, Support: 244.0
+Class 1 - Precision: 0.77, Recall: 0.8, F1-Score: 0.79, Support: 244.0
+Class 2 - Precision: 0.77, Recall: 0.61, F1-Score: 0.68, Support: 244.0
+Class 3 - Precision: 0.8, Recall: 0.98, F1-Score: 0.88, Support: 244.0
+Class 4 - Precision: 0.91, Recall: 0.86, F1-Score: 0.89, Support: 244.0
+
+Train set average metrics:
+Balanced_accuracy: 0.81
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.76, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 0.88, Support: nan
+Accuracy: 0.81
+Class macro avg - Precision: 0.81, Recall: 0.81, F1-Score: 0.81, Support: 1220.0
+Class weighted avg - Precision: 0.81, Recall: 0.81, F1-Score: 0.81, Support: 1220.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0          195           10           21           14            4
+Actual 1           22          195           11           14            2
+Actual 2           26           37          149           19           13
+Actual 3            1            1            3          238            1
+Actual 4            5            9            9           11          210
+
+Test set class report:
+Class 0 - Precision: 0.06, Recall: 0.07, F1-Score: 0.06, Support: 14.0
+Class 1 - Precision: 0.12, Recall: 0.71, F1-Score: 0.2, Support: 7.0
+Class 2 - Precision: 0.0, Recall: 0.0, F1-Score: 0.0, Support: 31.0
+Class 3 - Precision: 0.0, Recall: 0.0, F1-Score: 0.0, Support: 16.0
+Class 4 - Precision: 0.18, Recall: 0.27, F1-Score: 0.21, Support: 11.0
+
+Test set average metrics:
+Balanced_accuracy: 0.21
+Class kappa - Precision: nan, Recall: nan, F1-Score: -0.01, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 0.24, Support: nan
+Accuracy: 0.11
+Class macro avg - Precision: 0.07, Recall: 0.21, F1-Score: 0.1, Support: 79.0
+Class weighted avg - Precision: 0.05, Recall: 0.11, F1-Score: 0.06, Support: 79.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0            1            6            0            0            7
+Actual 1            1            5            0            0            1
+Actual 2            9           17            0            3            2
+Actual 3            3            9            0            0            4
+Actual 4            3            5            0            0            3

@@ -1,7 +1,8 @@
+# bayesian_optimization_training.py
+
 from skopt import BayesSearchCV
 from core.training.model_training import ModelTraining
-from core.training.model_params import get_bayes_search_spaces
-from core.preprocessors.feature_selection import FeatureSelection
+from core.training.model_params import BayesModelParams
 from core.logging.logger_config import LoggerConfig
 import logging
 
@@ -10,29 +11,39 @@ class BayesianOptimizationTraining(ModelTraining):
         super().__init__()
         LoggerConfig.configure_log_file('bayesian_optimization', '.log')
 
-    def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1):
-        logging.info(f"Training and evaluating {model_name} with BayesianOptimization and {selector_name}")
-        print(f"Training and evaluating {model_name} with BayesianOptimization and {selector_name}")
+    def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+        logging.info(f"Training and evaluating {model_name} with Bayesian Optimization and {selector_name}")
+        print(f"Training and evaluating {model_name} with Bayesian Optimization and {selector_name}")
 
-        search_space = self._prepare_search_space(model_name, selector_name)
-        best_model, best_result, opt = self._execute_bayesian_optimization(pipeline, search_space, X_train, y_train, n_iter, cv, scoring, n_jobs)
+        # Obter o espaço de busca específico do modelo
+        search_space_model = BayesModelParams.get_bayes_search_spaces().get(model_name, {})
+        # Obter o espaço de busca específico do seletor (já passado como parâmetro)
+        search_space_selector = selector_search_space
 
-        logging.info(f"Bayesian optimization results: Best result: {best_result}, Average cross-validation result: {opt.cv_results_['mean_test_score'][opt.best_index_]}")
-
-        self._store_model_results(model_name, selector_name, best_model, best_result)
-
-    def _prepare_search_space(self, model_name, selector_name):
-        search_space = get_bayes_search_spaces()[model_name]
-        selector_search_space = FeatureSelection.get_search_spaces().get(selector_name, {})
-
-        if isinstance(search_space, list):
-            for subspace in search_space:
-                subspace.update(selector_search_space)
+        # Combinar os espaços de busca do modelo e do seletor
+        if isinstance(search_space_model, list):
+            for subspace in search_space_model:
+                subspace.update(search_space_selector)
         else:
-            search_space.update(selector_search_space)
+            search_space_model.update(search_space_selector)
 
-        logging.info(f"Search space for {model_name} with selector {selector_name}: {search_space}")
-        return search_space
+        logging.info(f"Search space for {model_name} with selector {selector_name}: {search_space_model}")
+
+        best_model, best_result, opt = self._execute_bayesian_optimization(
+            pipeline,
+            search_space_model,
+            X_train,
+            y_train,
+            n_iter,
+            cv,
+            scoring,
+            n_jobs
+        )
+
+        logging.info(f"Bayesian optimization results: Best result: {best_result}, "
+                     f"Average cross-validation result: {opt.cv_results_['mean_test_score'][opt.best_index_]}")
+        
+        self._store_model_results(model_name, selector_name, best_model, best_result)
 
     def _execute_bayesian_optimization(self, pipeline, space, X_train, y_train, n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1):
         search = BayesSearchCV(
@@ -56,5 +67,5 @@ class BayesianOptimizationTraining(ModelTraining):
             'hyperparameters': best_model.get_params(),
             'cv_result': best_result
         }
-        logging.info(f"BayesianOptimization Best Result for {model_name} with {selector_name}: {best_result}")
-        print(f"BayesianOptimization Best Result for {model_name} with {selector_name}: {best_result}")
+        logging.info(f"Bayesian Optimization Best Result for {model_name} with {selector_name}: {best_result}")
+        print(f"Bayesian Optimization Best Result for {model_name} with {selector_name}: {best_result}")

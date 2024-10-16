@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
+
 from sklearn.metrics import (
     average_precision_score,
     classification_report,
@@ -7,7 +9,6 @@ from sklearn.metrics import (
     cohen_kappa_score,
     confusion_matrix
 )
-from core.preprocessors.feature_selection import FeatureSelection
 
 class Evaluation:
     @staticmethod
@@ -91,7 +92,7 @@ class Evaluation:
     @staticmethod
     def _extract_selected_features(model, feature_names):
         if feature_names is not None:
-            return FeatureSelection.extract_selected_features(model, feature_names)
+            return FeatureSelectionFactory.extract_selected_features(model, feature_names)
         return None
 
     @staticmethod
