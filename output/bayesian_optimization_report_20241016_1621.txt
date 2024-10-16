@@ -1,0 +1,51 @@
+
+Evaluating Decision Tree_pca with Optuna Bayesian Optimization:
+Hyperparameters: {'classifier__max_depth': 30, 'classifier__min_samples_split': 7, 'classifier__min_samples_leaf': 5, 'feature_selection__n_components': 17}
+
+Selected Features: PC1, PC2, PC3, PC4, PC5, PC6, PC7, PC8, PC9, PC10, PC11, PC12, PC13, PC14, PC15, PC16, PC17
+
+Train set class report:
+Class 0 - Precision: 0.88, Recall: 0.9, F1-Score: 0.89, Support: 244.0
+Class 1 - Precision: 0.92, Recall: 0.9, F1-Score: 0.91, Support: 244.0
+Class 2 - Precision: 0.82, Recall: 0.84, F1-Score: 0.83, Support: 244.0
+Class 3 - Precision: 0.98, Recall: 0.94, F1-Score: 0.96, Support: 244.0
+Class 4 - Precision: 0.93, Recall: 0.94, F1-Score: 0.93, Support: 244.0
+
+Train set average metrics:
+Balanced_accuracy: 0.9
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.88, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 0.97, Support: nan
+Accuracy: 0.9
+Class macro avg - Precision: 0.91, Recall: 0.9, F1-Score: 0.9, Support: 1220.0
+Class weighted avg - Precision: 0.91, Recall: 0.9, F1-Score: 0.9, Support: 1220.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0          220            3           17            0            4
+Actual 1            7          220           12            1            4
+Actual 2           14           14          204            3            9
+Actual 3            7            1            5          230            1
+Actual 4            2            0           12            1          229
+
+Test set class report:
+Class 0 - Precision: 0.0, Recall: 0.0, F1-Score: 0.0, Support: 14.0
+Class 1 - Precision: 0.09, Recall: 0.29, F1-Score: 0.14, Support: 7.0
+Class 2 - Precision: 0.69, Recall: 0.29, F1-Score: 0.41, Support: 31.0
+Class 3 - Precision: 1.0, Recall: 0.06, F1-Score: 0.12, Support: 16.0
+Class 4 - Precision: 0.16, Recall: 0.45, F1-Score: 0.23, Support: 11.0
+
+Test set average metrics:
+Balanced_accuracy: 0.22
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.05, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 0.25, Support: nan
+Accuracy: 0.22
+Class macro avg - Precision: 0.39, Recall: 0.22, F1-Score: 0.18, Support: 79.0
+Class weighted avg - Precision: 0.5, Recall: 0.22, F1-Score: 0.23, Support: 79.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0            0            0            2            0           12
+Actual 1            0            2            2            0            3
+Actual 2            4           11            9            0            7
+Actual 3            2            8            0            1            5
+Actual 4            5            1            0            0            5

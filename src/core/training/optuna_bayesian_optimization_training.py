@@ -23,11 +23,25 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         self.logger.info(f"Training and evaluating {model_name} with Optuna Bayesian Optimization and {selector_name}")
         print(f"Training and evaluating {model_name} with Optuna Bayesian Optimization and {selector_name}")
 
-        # Definir a função objetivo para o Optuna
         def objective(trial):
             # Sugerir hiperparâmetros específicos do modelo
-            hyperparams = OptunaModelParams.suggest_hyperparameters(trial, model_name)
+            model_hyperparams = OptunaModelParams.suggest_hyperparameters(trial, model_name)
+            
+            # Sugerir hiperparâmetros para o seletor de features
+            selector_hyperparams = {}
+            for param, values in selector_search_space.items():
+                if isinstance(values[0], int):
+                    selector_hyperparams[param] = trial.suggest_int(param, min(values), max(values))
+                elif isinstance(values[0], float):
+                    selector_hyperparams[param] = trial.suggest_float(param, min(values), max(values))
+                else:
+                    selector_hyperparams[param] = trial.suggest_categorical(param, values)
+            
+            # Combinar os hiperparâmetros do modelo e do seletor
+            hyperparams = {**model_hyperparams, **selector_hyperparams}
+            
             pipeline.set_params(**hyperparams)
+    
             
             # Avaliar o modelo usando validação cruzada
             score = cross_val_score(
