@@ -7,7 +7,7 @@ import xgboost as xgb
 
 from skopt.space import Real, Integer, Categorical
 
-class BayesModelParams:
+class SkoptModelParams:
     @staticmethod
     def get_models():
         return {
@@ -22,13 +22,13 @@ class BayesModelParams:
     @staticmethod
     def get_bayes_search_spaces():
         return {
-            'Logistic Regression': BayesModelParams._get_logistic_regression_space(),
-            'Decision Tree': BayesModelParams._get_decision_tree_space(),
-            'Random Forest': BayesModelParams._get_random_forest_space(),
-            'Gradient Boosting': BayesModelParams._get_gradient_boosting_space(),
-            'SVM': BayesModelParams._get_svm_space(),
-            'KNN': BayesModelParams._get_knn_space(),
-            'XGBoost': BayesModelParams._get_xgboost_space()
+            'Logistic Regression': SkoptModelParams._get_logistic_regression_space(),
+            'Decision Tree': SkoptModelParams._get_decision_tree_space(),
+            'Random Forest': SkoptModelParams._get_random_forest_space(),
+            'Gradient Boosting': SkoptModelParams._get_gradient_boosting_space(),
+            'SVM': SkoptModelParams._get_svm_space(),
+            'KNN': SkoptModelParams._get_knn_space(),
+            'XGBoost': SkoptModelParams._get_xgboost_space()
         }
 
     @staticmethod

@@ -2,11 +2,11 @@
 
 from skopt import BayesSearchCV
 from core.training.model_training import ModelTraining
-from core.training.model_params import BayesModelParams
+from core.training.skopt_model_params import SkoptModelParams
 from core.logging.logger_config import LoggerConfig
 import logging
 
-class BayesianOptimizationTraining(ModelTraining):
+class SkoptBayesianOptimizationTraining(ModelTraining):
     def __init__(self):
         super().__init__()
         LoggerConfig.configure_log_file('bayesian_optimization', '.log')
@@ -16,7 +16,7 @@ class BayesianOptimizationTraining(ModelTraining):
         print(f"Training and evaluating {model_name} with Bayesian Optimization and {selector_name}")
 
         # Obter o espaço de busca específico do modelo
-        search_space_model = BayesModelParams.get_bayes_search_spaces().get(model_name, {})
+        search_space_model = SkoptModelParams.get_bayes_search_spaces().get(model_name, {})
         # Obter o espaço de busca específico do seletor (já passado como parâmetro)
         search_space_selector = selector_search_space
 

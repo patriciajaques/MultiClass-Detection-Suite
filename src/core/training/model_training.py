@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from sklearn.pipeline import Pipeline
-from core.training.model_params import BayesModelParams
+from core.training.skopt_model_params import SkoptModelParams
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
 from typing import List, Optional, Dict, Any
 
@@ -25,7 +25,7 @@ class ModelTraining(ABC):
         """
         Treina modelos com diferentes seletores de características.
         """
-        models = BayesModelParams.get_models()
+        models = SkoptModelParams.get_models()
         available_selector_names = FeatureSelectionFactory.get_available_selectors()
 
         # Filtrar modelos
