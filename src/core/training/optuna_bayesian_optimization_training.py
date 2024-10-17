@@ -30,10 +30,12 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
                 # Sugerir hiperparâmetros para o seletor de features
                 selector_hyperparams = {}
                 for param, values in selector_search_space.items():
-                    if isinstance(values[0], int):
+                    if isinstance(values, list) and isinstance(values[0], int):
                         selector_hyperparams[param] = trial.suggest_int(param, min(values), max(values))
-                    elif isinstance(values[0], float):
+                    elif isinstance(values, list) and isinstance(values[0], float):
                         selector_hyperparams[param] = trial.suggest_float(param, min(values), max(values))
+                    elif isinstance(values, list) and isinstance(values[0], str):
+                        selector_hyperparams[param] = trial.suggest_categorical(param, values)
                     else:
                         selector_hyperparams[param] = trial.suggest_categorical(param, values)
                 

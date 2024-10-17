@@ -1,22 +1,7 @@
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-import xgboost as xgb
+from src.core.training.model_params import ModelParams
 
-class OptunaModelParams:
-    @staticmethod
-    def get_models():
-        return {
-            'Logistic Regression': LogisticRegression(max_iter=5000),
-            'Decision Tree': DecisionTreeClassifier(),
-            'Random Forest': RandomForestClassifier(),
-            'Gradient Boosting': GradientBoostingClassifier(),
-            'SVM': SVC(probability=True),
-            'KNN': KNeighborsClassifier(),
-            'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
-        }
+class OptunaModelParams(ModelParams):
+
 
     @staticmethod
     def suggest_hyperparameters(trial, model_name):
@@ -31,6 +16,8 @@ class OptunaModelParams:
             'SVM': OptunaModelParams._suggest_svm,
             'KNN': OptunaModelParams._suggest_knn,
             'XGBoost': OptunaModelParams._suggest_xgboost
+            # 'Naive Bayes': OptunaModelParams._suggest_naive_bayes(trial),
+            # 'MLP': OptunaModelParams._suggest_mlp(trial)
         }
         
         if model_name not in model_methods:

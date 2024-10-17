@@ -5,43 +5,58 @@ from sklearn.feature_selection import SelectFromModel
 
 from core.feature_selection.base_feature_selector import BaseFeatureSelector
 
-# Configuração do logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class RandomForestFeatureSelector(BaseFeatureSelector):
-    def __init__(self, X_train, y_train):
+    def __init__(self, X_train, y_train, max_features=None):
+        self.max_features = max_features
         super().__init__(X_train, y_train)
 
     def _create_selector(self):
-        estimator = RandomForestClassifier(n_estimators=100, random_state=0)
+        n_features = self.X_train.shape[1]
+        estimator = RandomForestClassifier(n_estimators=100, random_state=42)
         estimator.fit(self.X_train, self.y_train)
-        selector = SelectFromModel(estimator)
-        selector.fit(self.X_train, self.y_train)
-
-        initial_features = selector.get_support().sum()
-        logger.info(f"Inicialmente selecionadas {initial_features} características.")
-
-        if initial_features == 0:
-            for percentile in [75, 50, 25, 10, 5]:  # Adicionamos percentis mais baixos
-                threshold = np.percentile(selector.estimator_.feature_importances_, percentile)
-                selector.threshold_ = threshold
-                selected_features = selector.get_support().sum()
-                logger.info(f"Ajuste do limiar para o percentil {percentile}, novas características selecionadas: {selected_features}")
-                if selected_features > 0:
-                    break
-
-            # Se ainda não tiver selecionado nenhuma característica, selecione pelo menos uma
-            if selector.get_support().sum() == 0:
-                max_importance = selector.estimator_.feature_importances_.max()
-                selector.threshold_ = max_importance * 0.9
-                logger.info("Forçando a seleção de pelo menos uma característica")
-
-        final_features = selector.get_support().sum()
-        logger.info(f"Finalmente selecionadas {final_features} características.")
-
+        
+        # Se max_features não for especificado, use metade das features
+        if self.max_features is None or self.max_features == 'auto':
+            self.max_features = max(1, n_features // 2)
+        elif isinstance(self.max_features, float):
+            self.max_features = max(1, int(self.max_features * n_features))
+        
+        selector = SelectFromModel(estimator, max_features=self.max_features)
+        
+        selected_features = selector.get_support().sum()
+        logger.info(f"Selected {selected_features} features")
+        
         return selector
 
-
     def get_search_space(self):
-        return {'feature_selection__threshold': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]}
+        n_features = self.X_train.shape[1]
+        max_features_range = list(range(1, n_features + 1))
+        return {
+            'feature_selection__max_features': max_features_range,
+            'feature_selection__threshold': ['mean', 'median', '0.5*mean', '1.5*mean']
+        }
+
+    def set_params(self, **params):
+        if 'max_features' in params:
+            self.max_features = int(params['max_features'])
+            self.selector.max_features = self.max_features
+        
+        if 'threshold' in params:
+            if isinstance(params['threshold'], str):
+                estimator = self.selector.estimator
+                feature_importances = estimator.feature_importances_
+                if params['threshold'] == 'mean':
+                    threshold = np.mean(feature_importances)
+                elif params['threshold'] == 'median':
+                    threshold = np.median(feature_importances)
+                elif params['threshold'] == '0.5*mean':
+                    threshold = 0.5 * np.mean(feature_importances)
+                elif params['threshold'] == '1.5*mean':
+                    threshold = 1.5 * np.mean(feature_importances)
+                self.selector.threshold = threshold
+            else:
+                self.selector.threshold = params['threshold']
+        return self

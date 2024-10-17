@@ -6,18 +6,9 @@ from sklearn.neighbors import KNeighborsClassifier
 import xgboost as xgb
 
 from skopt.space import Real, Integer, Categorical
+from src.core.training.model_params import ModelParams
 
-class SkoptModelParams:
-    @staticmethod
-    def get_models():
-        return {
-            'Logistic Regression': LogisticRegression(max_iter=5000),
-            'Decision Tree': DecisionTreeClassifier(),
-            'Random Forest': RandomForestClassifier(),
-            'Gradient Boosting': GradientBoostingClassifier(),
-            'SVM': SVC(probability=True),
-            'KNN': KNeighborsClassifier(),
-            'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')}
+class SkoptModelParams(ModelParams):
 
     @staticmethod
     def get_bayes_search_spaces():

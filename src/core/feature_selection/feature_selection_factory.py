@@ -3,6 +3,7 @@ import numpy as np
 from core.feature_selection.pca_feature_selector import PCAFeatureSelector
 from core.feature_selection.random_forest_feature_selector import RandomForestFeatureSelector
 from core.feature_selection.rfe_feature_selector import RFEFeatureSelector
+from core.feature_selection.mi_feature_selector import MutualInformationFeatureSelector
 
 class FeatureSelectionFactory:
     @staticmethod
@@ -13,6 +14,8 @@ class FeatureSelectionFactory:
             selector = PCAFeatureSelector(X_train, **kwargs)
         elif method == 'rf':
             selector = RandomForestFeatureSelector(X_train, y_train)
+        elif method == 'mi':
+            selector = MutualInformationFeatureSelector(X_train, y_train, **kwargs)
         else:
             raise ValueError(f"Método desconhecido: {method}")
         return selector
@@ -22,7 +25,7 @@ class FeatureSelectionFactory:
         """
         Retorna uma lista dos métodos de seleção de características disponíveis.
         """
-        return ['rfe', 'pca', 'rf']
+        return ['rfe', 'pca', 'rf', 'mi']
 
     @staticmethod
     def extract_selected_features(pipeline, feature_names):

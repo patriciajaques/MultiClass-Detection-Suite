@@ -259,7 +259,7 @@ class_metrics_results, avg_metrics_results = Evaluation.evaluate_all_models(trai
 
 # %%
 from core.logging.report_formatter import ReportFormatter
-from core.logging.file_utils import FileManager
+from core.logging.file_utils import FileUtils
 
 directory = "../output/"
 
@@ -267,7 +267,7 @@ directory = "../output/"
 text_report = ReportFormatter.generate_text_report(class_metrics_results, avg_metrics_results)
 
 # Imprimir ou salvar o relatório
-FileManager.save_file_with_timestamp(text_report, "bayesian_optimization_report.txt", directory)
+FileUtils.save_file_with_timestamp(text_report, "bayesian_optimization_report.txt", directory)
 
 # Gerar DataFrame detalhado dos relatórios por classe
 class_report_df = ReportFormatter.generate_class_report_dataframe(class_metrics_results)
@@ -276,8 +276,8 @@ class_report_df = ReportFormatter.generate_class_report_dataframe(class_metrics_
 avg_metrics_report_df = ReportFormatter.generate_avg_metrics_report_dataframe(avg_metrics_results)
 
 # Salvar os DataFrames como arquivos CSV, se necessário
-FileManager.save_csv_file_with_timestamp(class_report_df, "class_report.csv", directory)
-FileManager.save_csv_file_with_timestamp(avg_metrics_report_df, "avg_metrics_report.csv", directory)
+FileUtils.save_csv_file_with_timestamp(class_report_df, "class_report.csv", directory)
+FileUtils.save_csv_file_with_timestamp(avg_metrics_report_df, "avg_metrics_report.csv", directory)
 
 
 # %% [markdown]
