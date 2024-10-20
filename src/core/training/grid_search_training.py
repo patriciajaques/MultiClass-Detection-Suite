@@ -1,3 +1,4 @@
+import pandas as pd
 from sklearn.model_selection import GridSearchCV
 from core.logging.logger_config import LoggerConfig
 from core.training.model_training import ModelTraining
@@ -7,14 +8,7 @@ import logging
 
 class GridSearchTraining(ModelTraining):
     def __init__(self):
-        super().__init__()
-        # Configurar um logger nomeado para GridSearchCV
-        LoggerConfig.configure_log_file(
-            file_main_name='grid_search_training',
-            log_extension=".log",
-            logger_name='grid_search_training'
-        )
-        self.logger = logging.getLogger('grid_search_training')
+        super().__init__(logger_name='grid_search_training')
 
     def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
         self.logger.info(f"Training and evaluating {model_name} with GridSearchCV and {selector_name}")
@@ -43,8 +37,8 @@ class GridSearchTraining(ModelTraining):
         grid_search.fit(X_train, y_train)
         self.logger.info("GridSearchCV fitting process completed")
 
-        self.logger.info(f"Best parameters: {grid_search.best_params_}")
-        self.logger.info(f"Best cross-validation score: {grid_search.best_score_}")
+        # Passar os argumentos necessários para log_search_results
+        self.log_search_results(self.logger, grid_search, model_name, selector_name)
 
         # Store the results
         self.trained_models[f"{model_name}_{selector_name}"] = {
@@ -54,3 +48,19 @@ class GridSearchTraining(ModelTraining):
             'cv_result': grid_search.best_score_
         }
         self.logger.info(f"Model {model_name}_{selector_name} stored successfully")
+
+    # def _log_grid_search_results(self, grid_search, model_name, selector_name):
+    #     """Log the results of the GridSearchCV process."""
+    #     self.logger.info(f"Best parameters: {grid_search.best_params_}")
+    #     self.logger.info(f"Best cross-validation score: {grid_search.best_score_}")
+
+    #     # Log all hyperparameter combinations and their cross-validation results
+    #     self.logger.info("All hyperparameter combinations and their cross-validation results:")
+    #     cv_results = grid_search.cv_results_
+    #     nan_count = 0
+    #     for mean_score, params in zip(cv_results['mean_test_score'], cv_results['params']):
+    #         if pd.isna(mean_score):
+    #             nan_count += 1
+    #         self.logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
+
+    #     self.logger.info(f"Number of tests that resulted in NaN for {model_name}: {nan_count}")

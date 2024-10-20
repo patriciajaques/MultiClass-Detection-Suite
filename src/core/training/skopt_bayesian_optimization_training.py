@@ -8,8 +8,7 @@ import logging
 
 class SkoptBayesianOptimizationTraining(ModelTraining):
     def __init__(self):
-        super().__init__()
-        LoggerConfig.configure_log_file('bayesian_optimization', '.log')
+        super().__init__(logger_name='skopt_training')
 
     def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
         logging.info(f"Training and evaluating {model_name} with Bayesian Optimization and {selector_name}")
@@ -39,6 +38,9 @@ class SkoptBayesianOptimizationTraining(ModelTraining):
             scoring,
             n_jobs
         )
+
+        # Log the results using ModelTraining's method
+        self.log_search_results(self.logger, opt, model_name, selector_name)
 
         logging.info(f"Bayesian optimization results: Best result: {best_result}, "
                      f"Average cross-validation result: {opt.cv_results_['mean_test_score'][opt.best_index_]}")

@@ -1,0 +1,11 @@
+Metric,precision-train,recall-train,f1-score-train,support-train,precision-test,recall-test,f1-score-test,support-test,Model
+0,1.0,0.97,0.99,145.0,0.94,0.97,0.96,33.0,Random Forest_pca
+1,0.95,0.99,0.97,154.0,0.93,0.89,0.91,28.0,Random Forest_pca
+2,0.98,0.9,0.93,144.0,0.91,0.91,0.91,33.0,Random Forest_pca
+3,0.92,0.89,0.9,149.0,0.87,0.76,0.81,34.0,Random Forest_pca
+4,0.96,0.96,0.96,135.0,0.98,0.96,0.97,46.0,Random Forest_pca
+5,0.92,0.98,0.95,135.0,0.89,0.85,0.87,47.0,Random Forest_pca
+6,0.99,0.99,0.99,146.0,1.0,0.97,0.99,35.0,Random Forest_pca
+7,0.9,0.94,0.92,145.0,0.73,0.79,0.76,34.0,Random Forest_pca
+8,0.86,0.88,0.87,144.0,0.74,0.83,0.78,30.0,Random Forest_pca
+9,0.9,0.86,0.88,140.0,0.73,0.75,0.74,40.0,Random Forest_pca

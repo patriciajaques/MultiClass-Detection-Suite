@@ -1,14 +1,24 @@
-# model_training.py
-
 from abc import ABC, abstractmethod
 from sklearn.pipeline import Pipeline
+
+from typing import List, Optional, Dict, Any
+import logging
+import pandas as pd
+
+from core.logging.logger_config import LoggerConfig
 from core.training.model_params import ModelParams
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
-from typing import List, Optional, Dict, Any
 
 
 class ModelTraining(ABC):
-    def __init__(self):
+    def __init__(self, logger_name):
+        # Configurar um logger nomeado
+        LoggerConfig.configure_log_file(
+            file_main_name=logger_name,
+            log_extension=".log",
+            logger_name=logger_name
+        )
+        self.logger = logging.getLogger(logger_name)
         self.trained_models: Dict[str, Any] = {}
 
     def train_model(
@@ -136,3 +146,22 @@ class ModelTraining(ABC):
                 raise ValueError(f"Seletores não encontrados: {missing_selectors}")
             return selector_names
         return available_selector_names
+    
+    @staticmethod
+    def log_search_results(logger, search, model_name, selector_name):
+        """Log the results of the search process (GridSearchCV, RandomizedSearchCV, or any search with cv_results_)."""
+        if hasattr(search, 'best_params_'):
+            logger.info(f"Best parameters: {search.best_params_}")
+        if hasattr(search, 'best_score_'):
+            logger.info(f"Best cross-validation score: {search.best_score_}")
+
+        # Log all hyperparameter combinations and their cross-validation results
+        logger.info("All hyperparameter combinations and their cross-validation results:")
+        if hasattr(search, 'cv_results_'):
+            cv_results = search.cv_results_
+            nan_count = 0
+            for mean_score, params in zip(cv_results['mean_test_score'], cv_results['params']):
+                if pd.isna(mean_score):
+                    nan_count += 1
+                logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
+            logger.info(f"Number of tests that resulted in NaN for {model_name}: {nan_count}")

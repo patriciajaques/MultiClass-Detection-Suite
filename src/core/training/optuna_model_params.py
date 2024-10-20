@@ -1,4 +1,4 @@
-from src.core.training.model_params import ModelParams
+from core.training.model_params import ModelParams
 
 class OptunaModelParams(ModelParams):
 

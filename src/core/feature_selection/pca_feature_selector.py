@@ -3,8 +3,10 @@ from sklearn.decomposition import PCA
 from core.feature_selection.base_feature_selector import BaseFeatureSelector
 
 class PCAFeatureSelector(BaseFeatureSelector):
-    def __init__(self, X_train, n_components=5):
+    def __init__(self, X_train, n_components=5, step=1):
         super().__init__(X_train, n_components=n_components)
+        self.step = step
+        self.n_components = n_components
 
     def _create_selector(self, n_components=5):
         n_features = self.X_train.shape[1]
@@ -12,4 +14,4 @@ class PCAFeatureSelector(BaseFeatureSelector):
         return selector
 
     def get_search_space(self):
-        return {'feature_selection__n_components': [1, 5, 10, 20, 30, 40, 50, 75, 100, 125, 150, 175, 200]}
+        return {'feature_selection__n_components': list(range(1, self.n_components + 1, self.step))}

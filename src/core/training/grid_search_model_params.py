@@ -1,4 +1,7 @@
-class GridSearchModelParams:
+from core.training.model_params import ModelParams
+
+
+class GridSearchModelParams(ModelParams):
     @staticmethod
     def get_param_grid(model_name):
         param_grid_methods = {

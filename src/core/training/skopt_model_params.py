@@ -1,12 +1,5 @@
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-import xgboost as xgb
-
 from skopt.space import Real, Integer, Categorical
-from src.core.training.model_params import ModelParams
+from core.training.model_params import ModelParams
 
 class SkoptModelParams(ModelParams):
 

@@ -1,10 +1,13 @@
+import os
 import joblib
 from core.logging.file_utils import FileUtils
 
 class ModelManager:
     @staticmethod
     def save_model(model, filename, directory=None):
-        file_path = FileUtils.save_file_with_timestamp(model, filename, directory)
+        directory = FileUtils._create_directory_if_not_exists(directory)
+        file_path = FileUtils._generate_filename_with_timestamp(filename)
+        file_path = os.path.join(directory, file_path) if directory else file_path
         joblib.dump(model, file_path)
         return file_path
 

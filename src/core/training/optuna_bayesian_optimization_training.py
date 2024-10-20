@@ -10,14 +10,7 @@ import pandas as pd
 
 class OptunaBayesianOptimizationTraining(ModelTraining):
     def __init__(self):
-        super().__init__()
-        # Configurar um logger nomeado para a otimização bayesiana com Optuna
-        LoggerConfig.configure_log_file(
-            file_main_name='optuna_bayesian_optimization',
-            log_extension=".log",
-            logger_name='optuna_bayesian_optimization'
-        )
-        self.logger = logging.getLogger('optuna_bayesian_optimization')
+        super().__init__(logger_name='optuna_training')
 
     def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_trials, cv, scoring, n_jobs=-1, selector_search_space=None):
         self.logger.info(f"Training and evaluating {model_name} with Optuna Bayesian Optimization and {selector_name}")
@@ -66,32 +59,14 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         study.optimize(objective, n_trials=n_trials)
         total_time = time() - start_time
 
-        # Registrar informações resumidas sobre o estudo
-        self.logger.info(f"Optuna Optimization completed in {total_time:.2f} seconds")
-        self.logger.info(f"Number of trials: {n_trials}")
-        self.logger.info(f"Best trial index: {study.best_trial.number}")
-        self.logger.info(f"Best score: {study.best_trial.value}")
-        self.logger.info(f"Best hyperparameters: {study.best_trial.params}")
-
-        print(f"---Optuna Bayesian Optimization---")
-        print(f"Total time: {total_time:.2f} seconds")
-        print(f"Number of trials: {n_trials}")
-        print(f"Best trial index: {study.best_trial.number}")
-        print(f"Best score: {study.best_trial.value}")
-        print(f"Best hyperparameters: {study.best_trial.params}")
-
-        # # Salvar todos os resultados dos trials em um DataFrame
-        # trials_df = study.trials_dataframe()
-        # trials_csv_path = f"optuna_trials_{model_name}_{selector_name}.csv"
-        # trials_df.to_csv(trials_csv_path, index=False)
-        # self.logger.info(f"All trial results saved to {trials_csv_path}")
-        # print(f"All trial results saved to {trials_csv_path}")
-
         # Atualizar o pipeline com os melhores hiperparâmetros
         pipeline.set_params(**study.best_trial.params)
         
         # Treinar o modelo final com os melhores hiperparâmetros
         pipeline.fit(X_train, y_train)
+
+        # Log the results using the overridden method
+        self.log_search_results(self.logger, study, model_name, selector_name)
         
         # Armazenar os resultados
         self.trained_models[f"{model_name}_{selector_name}"] = {
@@ -105,3 +80,20 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         # Log final do melhor resultado
         self.logger.info(f"Optuna Optimization Best Result for {model_name} with {selector_name}: {study.best_trial.value}")
         print(f"Optuna Optimization Best Result for {model_name} with {selector_name}: {study.best_trial.value}")
+    
+    @staticmethod
+    def log_search_results(logger, study, model_name, selector_name):
+        """Log the results of the Optuna optimization process."""
+        logger.info(f"Best parameters: {study.best_params}")
+        logger.info(f"Best cross-validation score: {study.best_value}")
+
+        # Log all hyperparameter combinations and their cross-validation results
+        logger.info("All hyperparameter combinations and their cross-validation results:")
+        nan_count = 0
+        for trial in study.trials:
+            mean_score = trial.value
+            params = trial.params
+            if pd.isna(mean_score):
+                nan_count += 1
+            logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
+        logger.info(f"Number of tests that resulted in NaN for {model_name}: {nan_count}")
