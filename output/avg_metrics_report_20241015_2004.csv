@@ -1,7 +1,0 @@
-Metric,f1-score-train,precision-train,recall-train,support-train,f1-score-test,precision-test,recall-test,support-test,Model
-balanced_accuracy,0.92,,,,0.32,,,,Decision Tree_pca
-kappa,0.9,,,,0.19,,,,Decision Tree_pca
-auc_pr_macro,0.96,,,,0.25,,,,Decision Tree_pca
-accuracy,0.92,0.92,0.92,0.92,0.41,0.41,0.41,0.41,Decision Tree_pca
-macro avg,0.92,0.92,0.92,1220.0,0.28,0.3,0.32,79.0,Decision Tree_pca
-weighted avg,0.92,0.92,0.92,1220.0,0.36,0.38,0.41,79.0,Decision Tree_pca

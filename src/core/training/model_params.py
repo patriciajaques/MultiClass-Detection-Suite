@@ -1,5 +1,3 @@
-from abc import ABC, abstractmethod
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -9,7 +7,11 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 import xgboost as xgb
 
-class ModelParams(ABC):
+class ModelParams:
+
+    @staticmethod
+    def get_available_models():
+        return list(ModelParams.get_models().keys())
 
     @staticmethod
     def get_models():
@@ -26,6 +28,109 @@ class ModelParams(ABC):
         }
 
     @staticmethod
-    @abstractmethod
     def get_param_space(model_name):
-        pass
+        """
+        Retorna o espaço de parâmetros para um modelo específico.
+        """
+        param_spaces = {
+            'Logistic Regression': ModelParams._get_logistic_regression_params(),
+            'Decision Tree': ModelParams._get_decision_tree_params(),
+            'Random Forest': ModelParams._get_decision_tree_params(),
+            'Gradient Boosting': ModelParams._get_gradient_boosting_space(),
+            'SVM': ModelParams._get_svm_space(),
+            'KNN': ModelParams._get_knn_space(),
+            'XGBoost': ModelParams._get_xgboost_space()
+        }
+        return param_spaces.get(model_name, {})
+
+    @staticmethod
+    def _get_logistic_regression_params():
+        return [
+            {
+                'classifier__penalty': ['l1'],
+                'classifier__C': [0.001, 0.01, 0.1, 1, 10, 100],
+                'classifier__solver': ['liblinear', 'saga']
+            },
+            {
+                'classifier__penalty': ['l2'],
+                'classifier__C': [0.001, 0.01, 0.1, 1, 10, 100],
+                'classifier__solver': ['lbfgs', 'newton-cg', 'sag', 'saga']
+            },
+            {
+                'classifier__penalty': ['elasticnet'],
+                'classifier__C': [0.001, 0.01, 0.1, 1, 10, 100],
+                'classifier__solver': ['saga'],
+                'classifier__l1_ratio': [0.25, 0.5, 0.75]
+            },
+            {
+                'classifier__penalty': ['none'],
+                'classifier__solver': ['lbfgs', 'newton-cg', 'sag', 'saga']
+            }
+        ]
+
+    @staticmethod
+    def _get_decision_tree_params():
+        return {
+            'classifier__n_estimators': [50, 100, 200],
+            'classifier__max_depth': [None, 3, 5, 10, 20, 30],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4, 6, 8, 10]    
+        }
+
+    @staticmethod
+    def _get_gradient_boosting_space():
+        return {
+            'classifier__n_estimators': [50, 100, 200, 300],
+            'classifier__learning_rate': [0.01, 0.05, 0.1, 0.15, 0.2],
+            'classifier__max_depth': [3, 4, 5, 6, 7, 8, 9, 10],
+            'classifier__subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            'classifier__min_samples_split': [2, 5, 10, 15, 20],
+            'classifier__min_samples_leaf': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        }
+
+    @staticmethod
+    def _get_svm_space():
+        return [
+            {
+                'classifier__C': [0.01, 0.1, 1, 10],
+                'classifier__kernel': ['rbf'],
+                'classifier__gamma': [1e-4, 1e-3, 1e-2, 1e-1]
+            },
+            {
+                'classifier__C': [0.01, 0.1, 1, 10],
+                'classifier__kernel': ['linear'],
+                'classifier__gamma': ['scale']
+            },
+            {
+                'classifier__C': [0.01, 0.1, 1, 10],
+                'classifier__kernel': ['poly'],
+                'classifier__gamma': [1e-4, 1e-3, 1e-2, 1e-1],
+                'classifier__degree': [2, 3, 4, 5]
+            },
+            {
+                'classifier__C': [0.01, 0.1, 1, 10],
+                'classifier__kernel': ['sigmoid'],
+                'classifier__gamma': [1e-4, 1e-3, 1e-2, 1e-1]
+            }
+        ]
+
+    @staticmethod
+    def _get_knn_space():
+        return {
+            'classifier__n_neighbors': [3, 5, 7, 9, 11, 13, 15, 17, 19, 20],
+            'classifier__weights': ['uniform', 'distance'],
+            'classifier__metric': ['euclidean', 'manhattan', 'minkowski']
+        }
+
+    @staticmethod
+    def _get_xgboost_space():
+        return {
+            'classifier__n_estimators': [50, 100, 150, 200, 250, 300],
+            'classifier__learning_rate': [0.01, 0.05, 0.1, 0.15, 0.2],
+            'classifier__max_depth': [3, 4, 5, 6, 7, 8, 9, 10],
+            'classifier__subsample': [0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
+            'classifier__colsample_bytree': [0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
+            'classifier__reg_alpha': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+            'classifier__reg_lambda': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        }
+    

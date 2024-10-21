@@ -6,26 +6,33 @@ from core.feature_selection.rfe_feature_selector import RFEFeatureSelector
 from core.feature_selection.mi_feature_selector import MutualInformationFeatureSelector
 
 class FeatureSelectionFactory:
+    SELECTORS = {
+        'rfe': RFEFeatureSelector,
+        'pca': PCAFeatureSelector,
+        'rf': RandomForestFeatureSelector,
+        'mi': MutualInformationFeatureSelector,
+        'none': None
+    }
+
     @staticmethod
     def create_selector(method, X_train, y_train=None, **kwargs):
-        if method == 'rfe':
-            selector = RFEFeatureSelector(X_train, y_train, **kwargs)
-        elif method == 'pca':
-            selector = PCAFeatureSelector(X_train, **kwargs)
-        elif method == 'rf':
-            selector = RandomForestFeatureSelector(X_train, y_train)
-        elif method == 'mi':
-            selector = MutualInformationFeatureSelector(X_train, y_train, **kwargs)
-        else:
+        if method not in FeatureSelectionFactory.SELECTORS:
             raise ValueError(f"Método desconhecido: {method}")
+        
+        selector_class = FeatureSelectionFactory.SELECTORS[method]
+        if method in ['rfe', 'mi', 'rf']:
+            selector = selector_class(X_train, y_train, **kwargs)
+        else:
+            selector = selector_class(X_train, **kwargs)
+        
         return selector
 
     @staticmethod
-    def get_available_selectors():
+    def get_available_selectors_names():
         """
         Retorna uma lista dos métodos de seleção de características disponíveis.
         """
-        return ['rfe', 'pca', 'rf', 'mi']
+        return list(FeatureSelectionFactory.SELECTORS.keys())
 
     @staticmethod
     def extract_selected_features(pipeline, feature_names):
@@ -39,6 +46,9 @@ class FeatureSelectionFactory:
         Returns:
             List: Lista de características selecionadas.
         """
+        if 'feature_selection' not in pipeline.named_steps:
+            return feature_names
+        
         selector = pipeline.named_steps['feature_selection']
 
         if hasattr(selector, 'get_support'):

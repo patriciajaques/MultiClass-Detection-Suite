@@ -25,8 +25,8 @@ class ModelTraining(ABC):
         self,
         X_train,
         y_train,
-        selected_models: Optional[List[str]] = None, # Lista de nomes de modelos a serem treinados.Se None, todos os modelos disponíveis serão utilizados.
-        selected_selectors: Optional[List[str]] = None, # Lista de nomes de seletores a serem utilizados. Se None, todos os seletores disponíveis serão utilizados.
+        selected_models: Optional[List[str]] = None, # Lista de nomes de modelos a serem treinados. Se None, usa todos os modelos.
+        selected_selectors: Optional[List[str]] = None, # Lista de nomes de seletores a serem utilizados. Se None, usa todos os seletores.
         n_iter: int = 50, # Número de iterações para otimização.
         cv: int = 5, # Número de folds para validação cruzada.
         scoring: str = 'balanced_accuracy', # Métrica de avaliação.
@@ -36,7 +36,7 @@ class ModelTraining(ABC):
         Treina modelos com diferentes seletores de características.
         """
         models = ModelParams.get_models()
-        available_selector_names = FeatureSelectionFactory.get_available_selectors()
+        available_selector_names = FeatureSelectionFactory.get_available_selectors_names()
 
         # Filtrar modelos
         models = self._filter_models(models, selected_models)
@@ -46,14 +46,17 @@ class ModelTraining(ABC):
 
         for model_name, model_config in models.items():
             for selector_name in selector_names:
-                # Criar a instância do seletor diretamente dentro do loop
-                selector_instance = FeatureSelectionFactory.create_selector(selector_name, X_train, y_train)
-                selector = selector_instance.selector  # Acessar o seletor criado no construtor
+                if selector_name == 'none':
+                    pipeline = self._create_pipeline(None, model_config)
+                    selector_search_space = {}
+                else:
+                    # Criar a instância do seletor diretamente dentro do loop
+                    selector_instance = FeatureSelectionFactory.create_selector(selector_name, X_train, y_train)
+                    selector = selector_instance.selector  # Acessar o seletor criado no construtor
 
-                pipeline = self._create_pipeline(selector, model_config)
-
-                # Obter o espaço de busca diretamente do selector_instance
-                selector_search_space = selector_instance.get_search_space()
+                    pipeline = self._create_pipeline(selector, model_config)
+                    # Obter o espaço de busca diretamente do selector_instance
+                    selector_search_space = selector_instance.get_search_space()
 
                 self.optimize_model(
                     pipeline,
@@ -98,10 +101,11 @@ class ModelTraining(ABC):
         Returns:
             Pipeline: Pipeline configurado.
         """
-        return Pipeline([
-            ('feature_selection', selector),
-            ('classifier', model_config)
-        ])
+        steps = []
+        if selector is not None:
+            steps.append(('feature_selection', selector))
+        steps.append(('classifier', model_config))
+        return Pipeline(steps)
 
     def _filter_models(self, models: Dict[str, Any], selected_models: Optional[List[str]]) -> Dict[str, Any]:
         """
@@ -140,12 +144,12 @@ class ModelTraining(ABC):
             ValueError: Se algum seletor selecionado não for encontrado.
         """
         if selected_selectors is not None:
-            selector_names = [s for s in selected_selectors if s in available_selector_names]
+            selector_names = [s for s in selected_selectors if s in available_selector_names or s == 'none']
             missing_selectors = set(selected_selectors) - set(selector_names)
             if missing_selectors:
                 raise ValueError(f"Seletores não encontrados: {missing_selectors}")
             return selector_names
-        return available_selector_names
+        return available_selector_names + ['none']
     
     @staticmethod
     def log_search_results(logger, search, model_name, selector_name):

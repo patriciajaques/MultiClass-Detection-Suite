@@ -1,7 +1,0 @@
-Metric,f1-score-train,precision-train,recall-train,support-train,f1-score-test,precision-test,recall-test,support-test,Model
-balanced_accuracy,0.98,,,,0.17,,,,Logistic Regression_pca
-kappa,0.97,,,,-0.12,,,,Logistic Regression_pca
-auc_pr_macro,0.99,,,,0.25,,,,Logistic Regression_pca
-accuracy,0.98,0.98,0.98,0.98,0.36,0.36,0.36,0.36,Logistic Regression_pca
-macro avg,0.97,0.97,0.98,2610.0,0.15,0.13,0.17,195.0,Logistic Regression_pca
-weighted avg,0.97,0.97,0.98,2610.0,0.32,0.29,0.36,195.0,Logistic Regression_pca

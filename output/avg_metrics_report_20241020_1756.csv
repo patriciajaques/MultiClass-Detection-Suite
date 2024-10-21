@@ -1,7 +1,0 @@
-Metric,f1-score-train,precision-train,recall-train,support-train,f1-score-test,precision-test,recall-test,support-test,Model
-balanced_accuracy,0.94,,,,0.87,,,,Random Forest_pca
-kappa,0.93,,,,0.85,,,,Random Forest_pca
-auc_pr_macro,0.99,,,,0.92,,,,Random Forest_pca
-accuracy,0.94,0.94,0.94,0.94,0.87,0.87,0.87,0.87,Random Forest_pca
-macro avg,0.94,0.94,0.94,1437.0,0.87,0.87,0.87,360.0,Random Forest_pca
-weighted avg,0.94,0.94,0.94,1437.0,0.87,0.87,0.87,360.0,Random Forest_pca
