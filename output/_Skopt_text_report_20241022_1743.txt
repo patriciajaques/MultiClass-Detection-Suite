@@ -1,0 +1,162 @@
+
+Evaluating Random Forest_none with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('classifier', RandomForestClassifier(n_estimators=200))], 'verbose': False, 'classifier': RandomForestClassifier(n_estimators=200), 'classifier__bootstrap': True, 'classifier__ccp_alpha': 0.0, 'classifier__class_weight': None, 'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__max_features': 'sqrt', 'classifier__max_leaf_nodes': None, 'classifier__max_samples': None, 'classifier__min_impurity_decrease': 0.0, 'classifier__min_samples_leaf': 1, 'classifier__min_samples_split': 2, 'classifier__min_weight_fraction_leaf': 0.0, 'classifier__n_estimators': 200, 'classifier__n_jobs': None, 'classifier__oob_score': False, 'classifier__random_state': None, 'classifier__verbose': 0, 'classifier__warm_start': False}
+
+Selected Features: num_standard__x0, num_standard__x1, num_standard__x2, num_standard__x3, num_standard__x4, num_standard__x5, num_standard__x6, num_standard__x7, num_standard__x8, num_standard__x9, num_standard__x10, num_standard__x11, num_standard__x12, num_standard__x13, num_standard__x14, num_standard__x15, num_standard__x16, num_standard__x17, num_standard__x18, num_standard__x19, num_standard__x20, num_standard__x21, num_standard__x22, num_standard__x23, num_standard__x24, num_standard__x25, num_standard__x26, num_standard__x27, num_standard__x28, num_standard__x29, num_standard__x30, num_standard__x31, num_standard__x32, num_standard__x33, num_standard__x34, num_standard__x35, num_standard__x36, num_standard__x37, num_standard__x38, num_standard__x39, num_standard__x40, num_standard__x41, num_standard__x42, num_standard__x43, num_standard__x44, num_standard__x45, num_standard__x46, num_standard__x47, num_standard__x48, num_standard__x49, num_standard__x50, num_standard__x51, num_standard__x52, num_standard__x53, num_standard__x54, num_standard__x55, num_standard__x56, num_standard__x57, num_standard__x58, num_standard__x59, num_standard__x60, num_standard__x61, num_standard__x62, num_standard__x63
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 154.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 149.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 5 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 6 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 146.0
+Class 7 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 8 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 9 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 140.0
+
+Train set average metrics:
+Balanced_accuracy: 1.0
+Class kappa - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0          145            0            0            0            0            0            0            0            0            0
+Actual 1            0          154            0            0            0            0            0            0            0            0
+Actual 2            0            0          144            0            0            0            0            0            0            0
+Actual 3            0            0            0          149            0            0            0            0            0            0
+Actual 4            0            0            0            0          135            0            0            0            0            0
+Actual 5            0            0            0            0            0          135            0            0            0            0
+Actual 6            0            0            0            0            0            0          146            0            0            0
+Actual 7            0            0            0            0            0            0            0          145            0            0
+Actual 8            0            0            0            0            0            0            0            0          144            0
+Actual 9            0            0            0            0            0            0            0            0            0          140
+
+Test set class report:
+Class 0 - Precision: 1.0, Recall: 0.97, F1-Score: 0.98, Support: 33.0
+Class 1 - Precision: 0.93, Recall: 1.0, F1-Score: 0.97, Support: 28.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 33.0
+Class 3 - Precision: 1.0, Recall: 0.97, F1-Score: 0.99, Support: 34.0
+Class 4 - Precision: 0.98, Recall: 1.0, F1-Score: 0.99, Support: 46.0
+Class 5 - Precision: 0.94, Recall: 0.96, F1-Score: 0.95, Support: 47.0
+Class 6 - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 35.0
+Class 7 - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 34.0
+Class 8 - Precision: 1.0, Recall: 0.93, F1-Score: 0.97, Support: 30.0
+Class 9 - Precision: 0.95, Recall: 0.95, F1-Score: 0.95, Support: 40.0
+
+Test set average metrics:
+Balanced_accuracy: 0.97
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.97, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 0.97
+Class macro avg - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 360.0
+Class weighted avg - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 360.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0           32            0            0            0            1            0            0            0            0            0
+Actual 1            0           28            0            0            0            0            0            0            0            0
+Actual 2            0            0           33            0            0            0            0            0            0            0
+Actual 3            0            0            0           33            0            1            0            0            0            0
+Actual 4            0            0            0            0           46            0            0            0            0            0
+Actual 5            0            0            0            0            0           45            1            0            0            1
+Actual 6            0            0            0            0            0            1           34            0            0            0
+Actual 7            0            0            0            0            0            0            0           33            0            1
+Actual 8            0            2            0            0            0            0            0            0           28            0
+Actual 9            0            0            0            0            0            1            0            1            0           38
+
+Evaluating XGBoost_none with Bayesian Optimization:
+Hyperparameters: {'memory': None, 'steps': [('classifier', XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.7, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='mlogloss',
+              feature_types=None, gamma=None, grow_policy=None,
+              importance_type=None, interaction_constraints=None,
+              learning_rate=0.15, max_bin=None, max_cat_threshold=None,
+              max_cat_to_onehot=None, max_delta_step=None, max_depth=7,
+              max_leaves=None, min_child_weight=None, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=300,
+              n_jobs=None, num_parallel_tree=None, objective='multi:softprob', ...))], 'verbose': False, 'classifier': XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=0.7, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='mlogloss',
+              feature_types=None, gamma=None, grow_policy=None,
+              importance_type=None, interaction_constraints=None,
+              learning_rate=0.15, max_bin=None, max_cat_threshold=None,
+              max_cat_to_onehot=None, max_delta_step=None, max_depth=7,
+              max_leaves=None, min_child_weight=None, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=300,
+              n_jobs=None, num_parallel_tree=None, objective='multi:softprob', ...), 'classifier__objective': 'multi:softprob', 'classifier__base_score': None, 'classifier__booster': None, 'classifier__callbacks': None, 'classifier__colsample_bylevel': None, 'classifier__colsample_bynode': None, 'classifier__colsample_bytree': 0.7, 'classifier__device': None, 'classifier__early_stopping_rounds': None, 'classifier__enable_categorical': False, 'classifier__eval_metric': 'mlogloss', 'classifier__feature_types': None, 'classifier__gamma': None, 'classifier__grow_policy': None, 'classifier__importance_type': None, 'classifier__interaction_constraints': None, 'classifier__learning_rate': 0.15, 'classifier__max_bin': None, 'classifier__max_cat_threshold': None, 'classifier__max_cat_to_onehot': None, 'classifier__max_delta_step': None, 'classifier__max_depth': 7, 'classifier__max_leaves': None, 'classifier__min_child_weight': None, 'classifier__missing': nan, 'classifier__monotone_constraints': None, 'classifier__multi_strategy': None, 'classifier__n_estimators': 300, 'classifier__n_jobs': None, 'classifier__num_parallel_tree': None, 'classifier__random_state': None, 'classifier__reg_alpha': 1.0, 'classifier__reg_lambda': 0.2, 'classifier__sampling_method': None, 'classifier__scale_pos_weight': None, 'classifier__subsample': 0.7, 'classifier__tree_method': None, 'classifier__validate_parameters': None, 'classifier__verbosity': None, 'classifier__use_label_encoder': False}
+
+Selected Features: num_standard__x0, num_standard__x1, num_standard__x2, num_standard__x3, num_standard__x4, num_standard__x5, num_standard__x6, num_standard__x7, num_standard__x8, num_standard__x9, num_standard__x10, num_standard__x11, num_standard__x12, num_standard__x13, num_standard__x14, num_standard__x15, num_standard__x16, num_standard__x17, num_standard__x18, num_standard__x19, num_standard__x20, num_standard__x21, num_standard__x22, num_standard__x23, num_standard__x24, num_standard__x25, num_standard__x26, num_standard__x27, num_standard__x28, num_standard__x29, num_standard__x30, num_standard__x31, num_standard__x32, num_standard__x33, num_standard__x34, num_standard__x35, num_standard__x36, num_standard__x37, num_standard__x38, num_standard__x39, num_standard__x40, num_standard__x41, num_standard__x42, num_standard__x43, num_standard__x44, num_standard__x45, num_standard__x46, num_standard__x47, num_standard__x48, num_standard__x49, num_standard__x50, num_standard__x51, num_standard__x52, num_standard__x53, num_standard__x54, num_standard__x55, num_standard__x56, num_standard__x57, num_standard__x58, num_standard__x59, num_standard__x60, num_standard__x61, num_standard__x62, num_standard__x63
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 154.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 149.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 5 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 6 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 146.0
+Class 7 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 8 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 9 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 140.0
+
+Train set average metrics:
+Balanced_accuracy: 1.0
+Class kappa - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0          145            0            0            0            0            0            0            0            0            0
+Actual 1            0          154            0            0            0            0            0            0            0            0
+Actual 2            0            0          144            0            0            0            0            0            0            0
+Actual 3            0            0            0          149            0            0            0            0            0            0
+Actual 4            0            0            0            0          135            0            0            0            0            0
+Actual 5            0            0            0            0            0          135            0            0            0            0
+Actual 6            0            0            0            0            0            0          146            0            0            0
+Actual 7            0            0            0            0            0            0            0          145            0            0
+Actual 8            0            0            0            0            0            0            0            0          144            0
+Actual 9            0            0            0            0            0            0            0            0            0          140
+
+Test set class report:
+Class 0 - Precision: 1.0, Recall: 0.97, F1-Score: 0.98, Support: 33.0
+Class 1 - Precision: 0.93, Recall: 1.0, F1-Score: 0.97, Support: 28.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 33.0
+Class 3 - Precision: 1.0, Recall: 0.94, F1-Score: 0.97, Support: 34.0
+Class 4 - Precision: 0.98, Recall: 0.98, F1-Score: 0.98, Support: 46.0
+Class 5 - Precision: 0.96, Recall: 0.94, F1-Score: 0.95, Support: 47.0
+Class 6 - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 35.0
+Class 7 - Precision: 0.94, Recall: 0.97, F1-Score: 0.96, Support: 34.0
+Class 8 - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 30.0
+Class 9 - Precision: 0.93, Recall: 0.95, F1-Score: 0.94, Support: 40.0
+
+Test set average metrics:
+Balanced_accuracy: 0.97
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.96, Support: nan
+Class auc_pr_macro - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 0.97
+Class macro avg - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 360.0
+Class weighted avg - Precision: 0.97, Recall: 0.97, F1-Score: 0.97, Support: 360.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0           32            0            0            0            1            0            0            0            0            0
+Actual 1            0           28            0            0            0            0            0            0            0            0
+Actual 2            0            0           33            0            0            0            0            0            0            0
+Actual 3            0            0            0           32            0            1            0            0            1            0
+Actual 4            0            1            0            0           45            0            0            0            0            0
+Actual 5            0            0            0            0            0           44            1            0            0            2
+Actual 6            0            0            0            0            0            1           34            0            0            0
+Actual 7            0            0            0            0            0            0            0           33            0            1
+Actual 8            0            1            0            0            0            0            0            0           29            0
+Actual 9            0            0            0            0            0            0            0            2            0           38

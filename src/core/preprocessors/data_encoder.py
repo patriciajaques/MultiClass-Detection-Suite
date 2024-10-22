@@ -30,7 +30,7 @@ class DataEncoder():
                 transformers.append(('num_minmax', MinMaxScaler(), self.numerical_columns))
 
         if self.nominal_columns is not None:
-            transformers.append(('nom', OneHotEncoder(sparse=False, handle_unknown='ignore'), self.nominal_columns))
+            transformers.append(('nom', OneHotEncoder(sparse=False, handle_unknown='ignore', drop='first'), self.nominal_columns))
 
         if self.ordinal_columns is not None:
             categories = [self.ordinal_categories[col] for col in self.ordinal_columns]
