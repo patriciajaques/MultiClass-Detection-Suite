@@ -1,10 +1,12 @@
 from sklearn.model_selection import RandomizedSearchCV
+from core.logging.logger_config import with_logging
 from core.training.model_training import ModelTraining
 from core.training.grid_search_model_params import GridSearchModelParams
 
+@with_logging('random_search')
 class RandomSearchTraining(ModelTraining):
     def __init__(self):
-        super().__init__(logger_name='random_search_training')
+        super().__init__()
 
     def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
         self.logger.info(f"Training and evaluating {model_name} with RandomizedSearchCV and {selector_name}")

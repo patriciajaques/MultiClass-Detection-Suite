@@ -3,14 +3,15 @@ from optuna.samplers import TPESampler
 from sklearn.model_selection import cross_val_score
 from core.training.model_training import ModelTraining
 from core.training.optuna_model_params import OptunaModelParams
-from core.logging.logger_config import LoggerConfig
+from core.logging.logger_config import LoggerConfig, with_logging
 import logging
 from time import time
 import pandas as pd
 
+@with_logging('optuna_training')
 class OptunaBayesianOptimizationTraining(ModelTraining):
     def __init__(self):
-        super().__init__(logger_name='optuna_training')
+        super().__init__()
 
     def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_trials, cv, scoring, n_jobs=-1, selector_search_space=None):
         self.logger.info(f"Training and evaluating {model_name} with Optuna Bayesian Optimization and {selector_name}")

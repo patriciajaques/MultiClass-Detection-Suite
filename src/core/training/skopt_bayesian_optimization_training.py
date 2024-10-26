@@ -3,15 +3,16 @@
 from skopt import BayesSearchCV
 from core.training.model_training import ModelTraining
 from core.training.skopt_model_params import SkoptModelParams
-from core.logging.logger_config import LoggerConfig
+from core.logging.logger_config import LoggerConfig, with_logging
 import logging
 
+@with_logging('skopt_training')
 class SkoptBayesianOptimizationTraining(ModelTraining):
     def __init__(self):
-        super().__init__(logger_name='skopt_training')
+        super().__init__()
 
     def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
-        logging.info(f"Training and evaluating {model_name} with Bayesian Optimization and {selector_name}")
+        self.logger.info(f"Training and evaluating {model_name} with Bayesian Optimization and {selector_name}")
         print(f"Training and evaluating {model_name} with Bayesian Optimization and {selector_name}")
 
         # Obter o espaço de busca específico do modelo
@@ -26,7 +27,7 @@ class SkoptBayesianOptimizationTraining(ModelTraining):
         else:
             search_space_model.update(search_space_selector)
 
-        logging.info(f"Search space for {model_name} with selector {selector_name}: {search_space_model}")
+        self.logger.info(f"Search space for {model_name} with selector {selector_name}: {search_space_model}")
 
         best_model, best_result, opt = self._execute_bayesian_optimization(
             pipeline,
@@ -69,5 +70,5 @@ class SkoptBayesianOptimizationTraining(ModelTraining):
             'hyperparameters': best_model.get_params(),
             'cv_result': best_result
         }
-        logging.info(f"Bayesian Optimization Best Result for {model_name} with {selector_name}: {best_result}")
+        self.logger.info(f"Bayesian Optimization Best Result for {model_name} with {selector_name}: {best_result}")
         print(f"Bayesian Optimization Best Result for {model_name} with {selector_name}: {best_result}")

@@ -9,6 +9,7 @@ import xgboost as xgb
 
 class ModelParams:
 
+
     @staticmethod
     def get_available_models():
         return list(ModelParams.get_models().keys())
@@ -35,7 +36,7 @@ class ModelParams:
         param_spaces = {
             'Logistic Regression': ModelParams._get_logistic_regression_params(),
             'Decision Tree': ModelParams._get_decision_tree_params(),
-            'Random Forest': ModelParams._get_decision_tree_params(),
+            'Random Forest': ModelParams._get_random_forest_params(),
             'Gradient Boosting': ModelParams._get_gradient_boosting_space(),
             'SVM': ModelParams._get_svm_space(),
             'KNN': ModelParams._get_knn_space(),
@@ -45,36 +46,47 @@ class ModelParams:
 
     @staticmethod
     def _get_logistic_regression_params():
-        return [
-            {
-                'classifier__penalty': ['l1'],
-                'classifier__C': [0.001, 0.01, 0.1, 1, 10, 100],
-                'classifier__solver': ['liblinear', 'saga']
-            },
-            {
-                'classifier__penalty': ['l2'],
-                'classifier__C': [0.001, 0.01, 0.1, 1, 10, 100],
-                'classifier__solver': ['lbfgs', 'newton-cg', 'sag', 'saga']
-            },
-            {
-                'classifier__penalty': ['elasticnet'],
-                'classifier__C': [0.001, 0.01, 0.1, 1, 10, 100],
-                'classifier__solver': ['saga'],
-                'classifier__l1_ratio': [0.25, 0.5, 0.75]
-            },
-            {
-                'classifier__penalty': ['none'],
-                'classifier__solver': ['lbfgs', 'newton-cg', 'sag', 'saga']
-            }
-        ]
+        """
+        Define o espaço de hiperparâmetros para Regressão Logística de forma unificada.
+        Simplifica a estrutura para evitar redundância nas análises e
+        permitir que os otimizadores escolham combinações válidas mais eficientemente.
+        
+        Returns:
+            dict: Dicionário com os espaços de busca dos hiperparâmetros
+        """
+        return {
+            'classifier__penalty': ['l1', 'l2', 'elasticnet', 'none'],
+            'classifier__solver': ['lbfgs', 'newton-cg', 'sag', 'saga', 'liblinear'],
+            'classifier__C': [0.001, 0.01, 0.1, 1, 10, 100],
+            'classifier__l1_ratio': [0.25, 0.5, 0.75]
+        }
 
     @staticmethod
     def _get_decision_tree_params():
+        """
+        Parâmetros específicos para Árvore de Decisão
+        """
+        return {
+            'classifier__max_depth': [None, 3, 5, 10, 20, 30],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4, 6, 8, 10],
+            'classifier__criterion': ['gini', 'entropy'],
+            'classifier__splitter': ['best', 'random'],
+            'classifier__max_features': ['sqrt', 'log2', None]
+        }
+
+    @staticmethod
+    def _get_random_forest_params():
+        """
+        Parâmetros específicos para Random Forest
+        """
         return {
             'classifier__n_estimators': [50, 100, 200],
             'classifier__max_depth': [None, 3, 5, 10, 20, 30],
             'classifier__min_samples_split': [2, 5, 10],
-            'classifier__min_samples_leaf': [1, 2, 4, 6, 8, 10]    
+            'classifier__min_samples_leaf': [1, 2, 4, 6, 8, 10],
+            'classifier__max_features': ['sqrt', 'log2', None],
+            'classifier__bootstrap': [True, False]
         }
 
     @staticmethod
@@ -133,4 +145,3 @@ class ModelParams:
             'classifier__reg_alpha': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
             'classifier__reg_lambda': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
         }
-    

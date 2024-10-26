@@ -1,0 +1,268 @@
+
+Evaluating Random Forest_pca with RandomizedSearchCV:
+Hyperparameters: {'feature_selection__n_components': 0.99, 'classifier__max_depth': 30}
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 154.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 149.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 5 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 6 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 146.0
+Class 7 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 8 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 9 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 140.0
+
+Train set average metrics:
+Balanced_accuracy: 1.0
+Class kappa - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0          145            0            0            0            0            0            0            0            0            0
+Actual 1            0          154            0            0            0            0            0            0            0            0
+Actual 2            0            0          144            0            0            0            0            0            0            0
+Actual 3            0            0            0          149            0            0            0            0            0            0
+Actual 4            0            0            0            0          135            0            0            0            0            0
+Actual 5            0            0            0            0            0          135            0            0            0            0
+Actual 6            0            0            0            0            0            0          146            0            0            0
+Actual 7            0            0            0            0            0            0            0          145            0            0
+Actual 8            0            0            0            0            0            0            0            0          144            0
+Actual 9            0            0            0            0            0            0            0            0            0          140
+
+Test set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 33.0
+Class 1 - Precision: 1.0, Recall: 0.9642857142857143, F1-Score: 0.9818181818181818, Support: 28.0
+Class 2 - Precision: 0.9428571428571428, Recall: 1.0, F1-Score: 0.9705882352941176, Support: 33.0
+Class 3 - Precision: 1.0, Recall: 0.9117647058823529, F1-Score: 0.9538461538461539, Support: 34.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 46.0
+Class 5 - Precision: 0.9347826086956522, Recall: 0.9148936170212766, F1-Score: 0.924731182795699, Support: 47.0
+Class 6 - Precision: 0.9714285714285714, Recall: 0.9714285714285714, F1-Score: 0.9714285714285714, Support: 35.0
+Class 7 - Precision: 0.9705882352941176, Recall: 0.9705882352941176, F1-Score: 0.9705882352941176, Support: 34.0
+Class 8 - Precision: 0.9655172413793104, Recall: 0.9333333333333333, F1-Score: 0.9491525423728815, Support: 30.0
+Class 9 - Precision: 0.8636363636363636, Recall: 0.95, F1-Score: 0.9047619047619048, Support: 40.0
+
+Test set average metrics:
+Balanced_accuracy: 0.9616294177245365
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.9566477717470776, Support: nan
+Accuracy: 0.9611111111111111
+Class macro avg - Precision: 0.9648810163291157, Recall: 0.9616294177245365, F1-Score: 0.9626915007611629, Support: 360.0
+Class weighted avg - Precision: 0.9626667780828201, Recall: 0.9611111111111111, F1-Score: 0.9613291892762352, Support: 360.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0           33            0            0            0            0            0            0            0            0            0
+Actual 1            0           27            1            0            0            0            0            0            0            0
+Actual 2            0            0           33            0            0            0            0            0            0            0
+Actual 3            0            0            1           31            0            0            0            0            1            1
+Actual 4            0            0            0            0           46            0            0            0            0            0
+Actual 5            0            0            0            0            0           43            1            0            0            3
+Actual 6            0            0            0            0            0            1           34            0            0            0
+Actual 7            0            0            0            0            0            0            0           33            0            1
+Actual 8            0            0            0            0            0            1            0            0           28            1
+Actual 9            0            0            0            0            0            1            0            1            0           38
+
+Evaluating Random Forest_rf with RandomizedSearchCV:
+Hyperparameters: {'feature_selection__threshold': '0.5*mean', 'feature_selection__max_features': 40, 'classifier__n_estimators': 200}
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 154.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 149.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 5 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 6 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 146.0
+Class 7 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 8 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 9 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 140.0
+
+Train set average metrics:
+Balanced_accuracy: 1.0
+Class kappa - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0          145            0            0            0            0            0            0            0            0            0
+Actual 1            0          154            0            0            0            0            0            0            0            0
+Actual 2            0            0          144            0            0            0            0            0            0            0
+Actual 3            0            0            0          149            0            0            0            0            0            0
+Actual 4            0            0            0            0          135            0            0            0            0            0
+Actual 5            0            0            0            0            0          135            0            0            0            0
+Actual 6            0            0            0            0            0            0          146            0            0            0
+Actual 7            0            0            0            0            0            0            0          145            0            0
+Actual 8            0            0            0            0            0            0            0            0          144            0
+Actual 9            0            0            0            0            0            0            0            0            0          140
+
+Test set class report:
+Class 0 - Precision: 1.0, Recall: 0.9696969696969697, F1-Score: 0.9846153846153847, Support: 33.0
+Class 1 - Precision: 0.9333333333333333, Recall: 1.0, F1-Score: 0.9655172413793104, Support: 28.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 33.0
+Class 3 - Precision: 1.0, Recall: 0.9705882352941176, F1-Score: 0.9850746268656716, Support: 34.0
+Class 4 - Precision: 0.9787234042553191, Recall: 1.0, F1-Score: 0.989247311827957, Support: 46.0
+Class 5 - Precision: 0.9583333333333334, Recall: 0.9787234042553191, F1-Score: 0.968421052631579, Support: 47.0
+Class 6 - Precision: 0.9714285714285714, Recall: 0.9714285714285714, F1-Score: 0.9714285714285714, Support: 35.0
+Class 7 - Precision: 0.9705882352941176, Recall: 0.9705882352941176, F1-Score: 0.9705882352941176, Support: 34.0
+Class 8 - Precision: 1.0, Recall: 0.9333333333333333, F1-Score: 0.9655172413793104, Support: 30.0
+Class 9 - Precision: 0.975, Recall: 0.975, F1-Score: 0.975, Support: 40.0
+
+Test set average metrics:
+Balanced_accuracy: 0.9769358749302428
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.9752266588676519, Support: nan
+Accuracy: 0.9777777777777777
+Class macro avg - Precision: 0.9787406877644675, Recall: 0.9769358749302428, F1-Score: 0.97754096654219, Support: 360.0
+Class weighted avg - Precision: 0.9783229905437352, Recall: 0.9777777777777777, F1-Score: 0.977794474509752, Support: 360.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0           32            0            0            0            1            0            0            0            0            0
+Actual 1            0           28            0            0            0            0            0            0            0            0
+Actual 2            0            0           33            0            0            0            0            0            0            0
+Actual 3            0            0            0           33            0            1            0            0            0            0
+Actual 4            0            0            0            0           46            0            0            0            0            0
+Actual 5            0            0            0            0            0           46            1            0            0            0
+Actual 6            0            0            0            0            0            1           34            0            0            0
+Actual 7            0            0            0            0            0            0            0           33            0            1
+Actual 8            0            2            0            0            0            0            0            0           28            0
+Actual 9            0            0            0            0            0            0            0            1            0           39
+
+Evaluating XGBoost_pca with RandomizedSearchCV:
+Hyperparameters: {'feature_selection__n_components': 0.99, 'classifier__subsample': 0.7}
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 154.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 149.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 5 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 6 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 146.0
+Class 7 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 8 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 9 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 140.0
+
+Train set average metrics:
+Balanced_accuracy: 1.0
+Class kappa - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0          145            0            0            0            0            0            0            0            0            0
+Actual 1            0          154            0            0            0            0            0            0            0            0
+Actual 2            0            0          144            0            0            0            0            0            0            0
+Actual 3            0            0            0          149            0            0            0            0            0            0
+Actual 4            0            0            0            0          135            0            0            0            0            0
+Actual 5            0            0            0            0            0          135            0            0            0            0
+Actual 6            0            0            0            0            0            0          146            0            0            0
+Actual 7            0            0            0            0            0            0            0          145            0            0
+Actual 8            0            0            0            0            0            0            0            0          144            0
+Actual 9            0            0            0            0            0            0            0            0            0          140
+
+Test set class report:
+Class 0 - Precision: 0.9696969696969697, Recall: 0.9696969696969697, F1-Score: 0.9696969696969697, Support: 33.0
+Class 1 - Precision: 0.9, Recall: 0.9642857142857143, F1-Score: 0.9310344827586207, Support: 28.0
+Class 2 - Precision: 0.9428571428571428, Recall: 1.0, F1-Score: 0.9705882352941176, Support: 33.0
+Class 3 - Precision: 1.0, Recall: 0.9411764705882353, F1-Score: 0.9696969696969697, Support: 34.0
+Class 4 - Precision: 0.9787234042553191, Recall: 1.0, F1-Score: 0.989247311827957, Support: 46.0
+Class 5 - Precision: 0.88, Recall: 0.9361702127659575, F1-Score: 0.9072164948453608, Support: 47.0
+Class 6 - Precision: 1.0, Recall: 0.9714285714285714, F1-Score: 0.9855072463768115, Support: 35.0
+Class 7 - Precision: 0.9696969696969697, Recall: 0.9411764705882353, F1-Score: 0.955223880597015, Support: 34.0
+Class 8 - Precision: 1.0, Recall: 0.8666666666666667, F1-Score: 0.9285714285714286, Support: 30.0
+Class 9 - Precision: 0.925, Recall: 0.925, F1-Score: 0.925, Support: 40.0
+
+Test set average metrics:
+Balanced_accuracy: 0.9515601076020351
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.9473430616740088, Support: nan
+Accuracy: 0.9527777777777777
+Class macro avg - Precision: 0.9565974486506402, Recall: 0.9515601076020351, F1-Score: 0.9531783019665252, Support: 360.0
+Class weighted avg - Precision: 0.9546257202214649, Recall: 0.9527777777777777, F1-Score: 0.9528892618724778, Support: 360.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0           32            0            0            0            1            0            0            0            0            0
+Actual 1            0           27            0            0            0            1            0            0            0            0
+Actual 2            0            0           33            0            0            0            0            0            0            0
+Actual 3            0            0            1           32            0            1            0            0            0            0
+Actual 4            0            0            0            0           46            0            0            0            0            0
+Actual 5            0            0            0            0            0           44            0            0            0            3
+Actual 6            1            0            0            0            0            0           34            0            0            0
+Actual 7            0            0            0            0            0            2            0           32            0            0
+Actual 8            0            3            1            0            0            0            0            0           26            0
+Actual 9            0            0            0            0            0            2            0            1            0           37
+
+Evaluating XGBoost_rf with RandomizedSearchCV:
+Hyperparameters: {'feature_selection__threshold': '0.5*mean', 'feature_selection__max_features': 51, 'classifier__subsample': 0.8}
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 154.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 149.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 5 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 135.0
+Class 6 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 146.0
+Class 7 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 145.0
+Class 8 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 144.0
+Class 9 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 140.0
+
+Train set average metrics:
+Balanced_accuracy: 1.0
+Class kappa - Precision: nan, Recall: nan, F1-Score: 1.0, Support: nan
+Accuracy: 1.0
+Class macro avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 1437.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0          145            0            0            0            0            0            0            0            0            0
+Actual 1            0          154            0            0            0            0            0            0            0            0
+Actual 2            0            0          144            0            0            0            0            0            0            0
+Actual 3            0            0            0          149            0            0            0            0            0            0
+Actual 4            0            0            0            0          135            0            0            0            0            0
+Actual 5            0            0            0            0            0          135            0            0            0            0
+Actual 6            0            0            0            0            0            0          146            0            0            0
+Actual 7            0            0            0            0            0            0            0          145            0            0
+Actual 8            0            0            0            0            0            0            0            0          144            0
+Actual 9            0            0            0            0            0            0            0            0            0          140
+
+Test set class report:
+Class 0 - Precision: 0.9696969696969697, Recall: 0.9696969696969697, F1-Score: 0.9696969696969697, Support: 33.0
+Class 1 - Precision: 0.9032258064516129, Recall: 1.0, F1-Score: 0.9491525423728813, Support: 28.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 33.0
+Class 3 - Precision: 1.0, Recall: 0.9705882352941176, F1-Score: 0.9850746268656716, Support: 34.0
+Class 4 - Precision: 0.9782608695652174, Recall: 0.9782608695652174, F1-Score: 0.9782608695652174, Support: 46.0
+Class 5 - Precision: 0.9574468085106383, Recall: 0.9574468085106383, F1-Score: 0.9574468085106385, Support: 47.0
+Class 6 - Precision: 0.9714285714285714, Recall: 0.9714285714285714, F1-Score: 0.9714285714285714, Support: 35.0
+Class 7 - Precision: 0.9428571428571428, Recall: 0.9705882352941176, F1-Score: 0.9565217391304348, Support: 34.0
+Class 8 - Precision: 1.0, Recall: 0.9333333333333333, F1-Score: 0.9655172413793104, Support: 30.0
+Class 9 - Precision: 0.9487179487179487, Recall: 0.925, F1-Score: 0.9367088607594937, Support: 40.0
+
+Test set average metrics:
+Balanced_accuracy: 0.9676343023122966
+Class kappa - Precision: nan, Recall: nan, F1-Score: 0.9628521308430502, Support: nan
+Accuracy: 0.9666666666666667
+Class macro avg - Precision: 0.9671634117228102, Recall: 0.9676343023122966, F1-Score: 0.9669808229709188, Support: 360.0
+Class weighted avg - Precision: 0.9674893982958499, Recall: 0.9666666666666667, F1-Score: 0.9667344980612981, Support: 360.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4  Predicted 5  Predicted 6  Predicted 7  Predicted 8  Predicted 9
+Actual 0           32            0            0            0            1            0            0            0            0            0
+Actual 1            0           28            0            0            0            0            0            0            0            0
+Actual 2            0            0           33            0            0            0            0            0            0            0
+Actual 3            0            0            0           33            0            1            0            0            0            0
+Actual 4            0            1            0            0           45            0            0            0            0            0
+Actual 5            0            0            0            0            0           45            1            0            0            1
+Actual 6            1            0            0            0            0            0           34            0            0            0
+Actual 7            0            0            0            0            0            0            0           33            0            1
+Actual 8            0            1            0            0            0            1            0            0           28            0
+Actual 9            0            1            0            0            0            0            0            2            0           37

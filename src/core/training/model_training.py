@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
+from time import time
 from sklearn.pipeline import Pipeline
 
 from typing import List, Optional, Dict, Any
-import logging
 import pandas as pd
 
 from core.logging.logger_config import LoggerConfig
@@ -11,15 +11,16 @@ from core.feature_selection.feature_selection_factory import FeatureSelectionFac
 
 
 class ModelTraining(ABC):
-    def __init__(self, logger_name):
+    def __init__(self):
         # Configurar um logger nomeado
-        LoggerConfig.configure_log_file(
-            file_main_name=logger_name,
-            log_extension=".log",
-            logger_name=logger_name
-        )
-        self.logger = logging.getLogger(logger_name)
+        # LoggerConfig.configure_log_file(
+        #     file_main_name=logger_name,
+        #     log_extension=".log",
+        #     logger_name=logger_name
+        # )
+        # self.logger = logging.getLogger(logger_name)
         self.trained_models: Dict[str, Any] = {}
+        self.total_execution_time = 0
 
     def train_model(
         self,
@@ -35,12 +36,12 @@ class ModelTraining(ABC):
         """
         Treina modelos com diferentes seletores de características.
         """
-        models = ModelParams.get_models()
+
+        start_time = time()
+
         available_selector_names = FeatureSelectionFactory.get_available_selectors_names()
-
         # Filtrar modelos
-        models = self._filter_models(models, selected_models)
-
+        models = self._filter_models(ModelParams.get_models(), selected_models)
         # Filtrar seletores
         selector_names = self._filter_selectors(selected_selectors, available_selector_names)
 
@@ -71,6 +72,8 @@ class ModelTraining(ABC):
                     selector_search_space  # Passar o espaço de busca
                 )
 
+        self.total_execution_time = time() - start_time
+        self._log_execution_time(len(models)) 
         return self.trained_models
 
     @abstractmethod
@@ -169,3 +172,16 @@ class ModelTraining(ABC):
                     nan_count += 1
                 logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
             logger.info(f"Number of tests that resulted in NaN for {model_name}: {nan_count}")
+
+    def _log_execution_time(self, num_models):
+        """
+        Registra no log as informações sobre o tempo de execução do algoritmo.
+        
+        Args:
+            num_models (int): Número total de modelos treinados
+        """
+        algorithm_name = self.__class__.__name__.replace('Training', '')
+        self.logger.info(f"\n{'='*50}")
+        self.logger.info(f"Tempo total de execução do {algorithm_name}: {self.total_execution_time:.2f} segundos")
+        self.logger.info(f"Média de tempo por modelo: {self.total_execution_time/num_models:.2f} segundos")
+        self.logger.info(f"{'='*50}\n")

@@ -1,9 +1,43 @@
 import logging
 import os
+import warnings
+from functools import wraps
 from datetime import datetime
 from pathlib import Path
 
 class LoggerConfig:
+    _loggers = {}  # Cache para armazenar loggers já criados
+
+    @staticmethod
+    def get_logger(logger_name):
+        """
+        Obtém ou cria um logger com o nome especificado.
+        
+        Args:
+            logger_name (str): Nome do logger a ser obtido/criado
+            
+        Returns:
+            logging.Logger: Logger configurado
+        """
+        # Se o logger já existe no cache, retorna ele
+        if logger_name in LoggerConfig._loggers:
+            return LoggerConfig._loggers[logger_name]
+        
+        # Configura o arquivo de log para o logger
+        LoggerConfig.configure_log_file(
+            file_main_name=logger_name,
+            log_extension=".log",
+            logger_name=logger_name
+        )
+        
+        # Obtém o logger configurado
+        logger = logging.getLogger(logger_name)
+        
+        # Armazena no cache
+        LoggerConfig._loggers[logger_name] = logger
+        
+        return logger
+
     @staticmethod
     def configure_log_file(file_main_name='bayesian_optimization', log_extension=".log", logger_name=None):
         """
@@ -20,7 +54,7 @@ class LoggerConfig:
         
         if logger_name:
             logger = logging.getLogger(logger_name)
-            logger.setLevel(logging.DEBUG)  # Captura todos os níveis de log
+            logger.setLevel(logging.DEBUG)
             
             # Evita adicionar múltiplos handlers se já existirem
             if not logger.handlers:
@@ -99,12 +133,44 @@ class LoggerConfig:
             result: Resultado da iteração (deve ter atributos x_iters e func_vals).
         """
         if hasattr(result, 'x_iters') and hasattr(result, 'func_vals') and result.x_iters:
-            score = abs(result.func_vals[-1])  # Use valor absoluto para simplificar
+            score = abs(result.func_vals[-1])
             logging.info(f"Iteration {len(result.x_iters)}: tested parameters: {result.x_iters[-1]}, score: {score}")
 
-def main():
-    LoggerConfig.configure_log_file('example_log')
-    logging.info('Log configuration successful.')
+def with_logging(logger_name: str):
+    """
+    Decorator que utiliza a LoggerConfig existente para configurar logging.
+    
+    Args:
+        logger_name (str): Nome para identificar o logger
+        
+    Returns:
+        function: Decorador que configura o logger na classe
+    """
+    def decorator(cls):
+        original_init = cls.__init__
+        
+        @wraps(cls.__init__)
+        def new_init(self, *args, **kwargs):
+            # Configura o logger usando o método get_logger
+            self.logger = LoggerConfig.get_logger(logger_name)
+            
+            # Configura o tratamento de warnings para usar o logger
+            def warning_to_logger(message, category, filename, lineno, file=None, line=None):
+                msg = f"{category.__name__}: {str(message)}"
+                self.logger.warning(msg)
+            
+            # Guarda o handler original de warnings
+            original_showwarning = warnings.showwarning
+            warnings.showwarning = warning_to_logger
+            
+            try:
+                # Executa o __init__ original
+                original_init(self, *args, **kwargs)
+            finally:
+                # Restaura o handler original de warnings
+                warnings.showwarning = original_showwarning
+        
+        cls.__init__ = new_init
+        return cls
 
-if __name__ == "__main__":
-    main()
+    return decorator

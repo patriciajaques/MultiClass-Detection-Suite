@@ -5,8 +5,7 @@ from core.logging.file_utils import FileUtils
 
 @staticmethod
 def evaluate_models(trained_models, X_train, y_train, X_test, y_test):
-    feature_names = X_train.columns  # Assumindo que os nomes das características são as colunas
-    return Evaluation.evaluate_all_models(trained_models, X_train, y_train, X_test, y_test, feature_names)
+    return Evaluation.evaluate_all_models(trained_models, X_train, y_train, X_test, y_test)
 
 @staticmethod
 def generate_reports(class_metrics_results, avg_metrics_results, directory="../output/", filename_prefix=""):
