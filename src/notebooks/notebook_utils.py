@@ -8,7 +8,7 @@ def evaluate_models(trained_models, X_train, y_train, X_test, y_test):
     return Evaluation.evaluate_all_models(trained_models, X_train, y_train, X_test, y_test)
 
 @staticmethod
-def generate_reports(class_metrics_results, avg_metrics_results, directory="../output/", filename_prefix=""):
+def generate_reports(class_metrics_results, avg_metrics_results, directory="../output/", filename_prefix="", csv_params=None):
 
     # Gerar relatório textual a partir dos resultados de avaliação
     text_report = ReportFormatter.generate_text_report(class_metrics_results, avg_metrics_results)
@@ -23,8 +23,8 @@ def generate_reports(class_metrics_results, avg_metrics_results, directory="../o
     avg_metrics_report_df = ReportFormatter.generate_avg_metrics_report_dataframe(avg_metrics_results)
 
     # Salvar os DataFrames como arquivos CSV, se necessário
-    FileUtils.save_file_with_timestamp(class_report_df, filename_prefix+"class_report.csv", directory, is_csv=True)
-    FileUtils.save_file_with_timestamp(avg_metrics_report_df, filename_prefix+"avg_metrics_report.csv", directory, is_csv=True)
+    FileUtils.save_file_with_timestamp(class_report_df, filename_prefix+"class_report.csv", directory, is_csv=True, csv_params=csv_params)
+    FileUtils.save_file_with_timestamp(avg_metrics_report_df, filename_prefix+"avg_metrics_report.csv", directory, is_csv=True, csv_params=csv_params)
 
 @staticmethod
 def save_models(trained_models, model_dir="../models/", filename_prefix=""):

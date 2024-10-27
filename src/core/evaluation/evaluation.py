@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Evaluation:
     @staticmethod
     def evaluate_all_models(trained_models, X_train, y_train, X_test, y_test):
@@ -78,19 +81,34 @@ class Evaluation:
 
             selector = pipeline.named_steps['feature_selection']
             X_transformed = selector.transform(X_train)
+            n_features_transformed = X_transformed.shape[1]
             
             # Para PCA
             if hasattr(selector, 'components_'):
-                return {
+                feature_info = {
                     'type': 'pca',
-                    'n_components': X_transformed.shape[1],
-                    'description': f'Usando {X_transformed.shape[1]} componentes principais'
+                    'n_features': n_features_transformed,
+                    'n_components': n_features_transformed,
+                    'new_features': [f'PC{i+1}' for i in range(n_features_transformed)],
+                    'description': f'Usando {n_features_transformed} componentes principais'
                 }
+                
+                # Adicionar informação de variância explicada se disponível
+                if hasattr(selector, 'explained_variance_ratio_'):
+                    feature_info['explained_variance_ratio'] = selector.explained_variance_ratio_
+                    feature_info['cumulative_variance'] = np.cumsum(selector.explained_variance_ratio_)
+                
+                return feature_info
             
             # Para seletores baseados em máscara (RF, RFE, MI)
             elif hasattr(selector, 'get_support'):
                 mask = selector.get_support()
-                selected = X_train.columns[mask].tolist()
+                # Tratar tanto DataFrames quanto arrays numpy
+                if hasattr(X_train, 'columns'):
+                    selected = X_train.columns[mask].tolist()
+                else:
+                    selected = [f'feature_{i}' for i in range(len(mask)) if mask[i]]
+                
                 return {
                     'type': 'selector',
                     'n_features': len(selected),
@@ -102,13 +120,17 @@ class Evaluation:
             else:
                 return {
                     'type': 'transform',
-                    'n_features': X_transformed.shape[1],
-                    'description': f'Transformado para {X_transformed.shape[1]} features'
+                    'n_features': n_features_transformed,
+                    'description': f'Transformado para {n_features_transformed} features'
                 }
             
         except Exception as e:
             print(f"Erro ao obter informações das features: {str(e)}")
-            return None
+            return {
+                'type': 'error',
+                'n_features': X_train.shape[1] if hasattr(X_train, 'shape') else 0,
+                'description': f'Erro ao obter informações: {str(e)}'
+            }
 
     @staticmethod
     def _generate_metrics(y_true, y_pred, y_prob):

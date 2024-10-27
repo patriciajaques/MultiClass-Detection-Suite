@@ -1,10 +1,10 @@
 import optuna
 from optuna.samplers import TPESampler
 from sklearn.model_selection import cross_val_score
+from sklearn.base import clone
 from core.training.model_training import ModelTraining
 from core.training.optuna_model_params import OptunaModelParams
-from core.logging.logger_config import LoggerConfig, with_logging
-import logging
+from core.logging.logger_config import with_logging
 from time import time
 import pandas as pd
 
@@ -14,8 +14,9 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         super().__init__()
 
     def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_trials, cv, scoring, n_jobs=-1, selector_search_space=None):
-        self.logger.info(f"Training and evaluating {model_name} with Optuna Bayesian Optimization and {selector_name}")
-        print(f"Training and evaluating {model_name} with Optuna Bayesian Optimization and {selector_name}")
+        self.logger.info(f"Training and evaluating {model_name} with Optuna Optimization and {selector_name}")
+        print(f"Inside OptunaBayesianOptimizationTraining.optimize_model")
+
 
         def objective(trial):
             try:
@@ -51,19 +52,23 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         study.optimize(objective, n_trials=n_trials)
         total_time = time() - start_time
 
-        # Atualizar o pipeline com os melhores hiperparâmetros
-        pipeline.set_params(**study.best_trial.params)
+        # Criar uma cópia do pipeline para o treinamento final
+        best_pipeline = clone(pipeline)
+
+        # Configurar com os melhores hiperparâmetros
+        best_pipeline.set_params(**study.best_trial.params)
         
-        # Treinar o modelo final com os melhores hiperparâmetros
-        pipeline.fit(X_train, y_train)
+        # Treinar o pipeline final com todos os dados
+        best_pipeline.fit(X_train, y_train)
+
 
         # Log the results using the overridden method
         self.log_search_results(self.logger, study, model_name, selector_name)
         
         # Armazenar os resultados
         self.trained_models[f"{model_name}_{selector_name}"] = {
-            'model': pipeline,
-            'training_type': "Optuna Bayesian Optimization",
+            'model': best_pipeline,
+            'training_type': "Optuna",
             'hyperparameters': study.best_trial.params,
             'cv_result': study.best_trial.value,
             'optimization_time_seconds': total_time

@@ -30,7 +30,7 @@ class GridSearchTraining(ModelTraining):
             cv=cv,
             n_jobs=n_jobs,
             scoring=scoring,
-            verbose=1
+            verbose=2
         )
 
         self.logger.info("Starting GridSearchCV fitting process")

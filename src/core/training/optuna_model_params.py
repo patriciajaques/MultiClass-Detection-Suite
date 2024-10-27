@@ -29,19 +29,44 @@ class OptunaModelParams:
             
         return OptunaModelParams._suggest_parameters(trial, param_space)
 
-    @staticmethod
     def suggest_selector_hyperparameters(trial, selector_search_space):
         """
         Sugere hiperparâmetros para o seletor de features baseado no espaço de busca fornecido.
-        
-        Args:
-            trial: Trial do Optuna
-            selector_search_space (dict): Dicionário com os espaços de busca dos parâmetros
-            
-        Returns:
-            dict: Dicionário com os parâmetros sugeridos
         """
-        return OptunaModelParams._suggest_parameters(trial, selector_search_space)
+        if not selector_search_space:
+            return {}
+
+        suggested_params = {}
+        
+        for param_name, param_values in selector_search_space.items():
+            if isinstance(param_values, list):
+                # Se todos os valores são float, usar suggest_float
+                if all(isinstance(x, float) for x in param_values):
+                    suggested_params[param_name] = trial.suggest_float(
+                        param_name,
+                        min(param_values),
+                        max(param_values)
+                    )
+                # Se todos os valores são int, usar suggest_int
+                elif all(isinstance(x, int) for x in param_values):
+                    suggested_params[param_name] = trial.suggest_int(
+                        param_name,
+                        min(param_values),
+                        max(param_values)
+                    )
+                # Caso contrário, usar categorical
+                else:
+                    suggested_params[param_name] = trial.suggest_categorical(
+                        param_name,
+                        param_values
+                    )
+            else:
+                # Para outros tipos de parâmetros
+                suggested_params[param_name] = OptunaModelParams._suggest_single_parameter(
+                    trial, param_name, param_values
+                )
+
+        return suggested_params
 
     @staticmethod
     def _suggest_parameters(trial, param_space):

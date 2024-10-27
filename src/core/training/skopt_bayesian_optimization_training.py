@@ -57,7 +57,7 @@ class SkoptBayesianOptimizationTraining(ModelTraining):
             scoring=scoring,
             n_jobs=n_jobs,
             random_state=42,
-            verbose=3
+            verbose=2
         )
 
         search.fit(X_train, y_train, callback=LoggerConfig.log_results)

@@ -71,10 +71,10 @@ selected_models = [
     # 'Logistic Regression',
     'Decision Tree',
     'Random Forest',
-    'Gradient Boosting',
-    'SVM',
-    'KNN',
-    'XGBoost'
+    # 'Gradient Boosting',
+    # 'SVM',
+    # 'KNN',
+    # 'XGBoost'
 ]
 selected_selectors = ['pca', 'rf']
 
@@ -84,50 +84,6 @@ n_jobs = 4  # Number of processors to be used in the execution: -1 to use all pr
 
 # Choose a scoring metric
 scoring_metric = 'balanced_accuracy'  # Possible values: 'f1_macro', 'balanced_accuracy', 'roc_auc_ovr', etc.
-
-# %% [markdown]
-# ## Usando Optuna (Otimização Bayesiana)
-
-# %%
-# Importação da nova classe OptunaBayesianOptimizationTraining
-from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
-
-# Instanciação da classe de treinamento com Otimização Bayesiana via Optuna
-training = OptunaBayesianOptimizationTraining()
-
-# Executar o treinamento
-trained_models = training.train_model(
-    X_train=X_train,
-    y_train=y_train,
-    selected_models=selected_models,
-    selected_selectors=selected_selectors,
-    n_iter=n_iter,  # Será mapeado para n_trials na classe OptunaBayesianOptimizationTraining
-    cv=cv,
-    scoring=scoring_metric,
-    n_jobs=n_jobs
-)
-
-# Exemplo de acesso aos modelos treinados
-for model_key, model_info in trained_models.items():
-    print(f"Modelo: {model_key}")
-    print(f"Melhores Hiperparâmetros: {model_info['hyperparameters']}")
-    print(f"Resultado CV: {model_info['cv_result']}\n")
-
-
-# %% [markdown]
-# ### Avaliação e logging
-
-# %%
-import notebook_utils as nb_utils
-
-# Avaliação dos Modelos
-class_metrics_results, avg_metrics_results = nb_utils.evaluate_models(trained_models, X_train, y_train, X_test, y_test)
-
-# Geração dos Relatórios
-nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_Optuna_")
-
-# Salvando os modelos em arquivos para recuperação
-nb_utils.save_models(trained_models, filename_prefix="_Optuna_")
 
 # %% [markdown]
 # ## Usando BayesSearchCV (Otimização Bayesiana)
@@ -165,95 +121,139 @@ import notebook_utils as nb_utils
 class_metrics_results, avg_metrics_results = nb_utils.evaluate_models(trained_models, X_train, y_train, X_test, y_test)
 
 # Geração dos Relatórios
-nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_Skopt_")
+nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_Optuna_")
 
 # Salvando os modelos em arquivos para recuperação
-nb_utils.save_models(trained_models, filename_prefix="_Skopt_")
+nb_utils.save_models(trained_models, filename_prefix="_Optuna_")
 
 # %% [markdown]
-# ## Using GridSearchCV
+# import notebook_utils as nb_utils
+# 
+# # Avaliação dos Modelos
+# class_metrics_results, avg_metrics_results = nb_utils.evaluate_models(trained_models, X_train, y_train, X_test, y_test)
+# 
+# # Geração dos Relatórios
+# nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_Skopt_")
+# 
+# # Salvando os modelos em arquivos para recuperação
+# nb_utils.save_models(trained_models, filename_prefix="_Skopt_")
 
 # %%
-from core.training.grid_search_training import GridSearchTraining
-
-# Instantiate the GridSearchCV training class
-training = GridSearchTraining()
-
-# Execute the training
-trained_models = training.train_model(
-    X_train=X_train,
-    y_train=y_train,
-    selected_models=selected_models,
-    selected_selectors=selected_selectors,
-    n_iter=n_iter,  # This parameter is not used in GridSearchCV but kept for consistency
-    cv=cv,
-    scoring=scoring_metric,
-    n_jobs=n_jobs
-)
-
-# Example of accessing the trained models
-for model_key, model_info in trained_models.items():
-    print(f"Model: {model_key}")
-    print(f"Best Hyperparameters: {model_info['hyperparameters']}")
-    print(f"CV Result: {model_info['cv_result']}\n")
+## Usando Optuna (Otimização Bayesiana)
 
 # %% [markdown]
-# ### Avaliação e logging
+# # Importação da nova classe OptunaBayesianOptimizationTraining
+# from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
+# 
+# # Instanciação da classe de treinamento com Otimização Bayesiana via Optuna
+# training = OptunaBayesianOptimizationTraining()
+# 
+# # Executar o treinamento
+# trained_models = training.train_model(
+#     X_train=X_train,
+#     y_train=y_train,
+#     selected_models=selected_models,
+#     selected_selectors=selected_selectors,
+#     n_iter=n_iter,  # Será mapeado para n_trials na classe OptunaBayesianOptimizationTraining
+#     cv=cv,
+#     scoring=scoring_metric,
+#     n_jobs=n_jobs
+# )
+# 
+# # Exemplo de acesso aos modelos treinados
+# for model_key, model_info in trained_models.items():
+#     print(f"Modelo: {model_key}")
+#     print(f"Melhores Hiperparâmetros: {model_info['hyperparameters']}")
+#     print(f"Resultado CV: {model_info['cv_result']}\n")
+# 
 
 # %%
-import notebook_utils as nb_utils
-
-# Avaliação dos Modelos
-class_metrics_results, avg_metrics_results = nb_utils.evaluate_models(trained_models, X_train, y_train, X_test, y_test)
-
-# Geração dos Relatórios
-nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_GridSearch_")
-
-# Salvando os modelos em arquivos para recuperação
-nb_utils.save_models(trained_models, filename_prefix="_GridSearch_")
+### Avaliação e logging
 
 # %% [markdown]
-# ## Treinando com RandomSearchCV
+# import notebook_utils as nb_utils
+# 
+# # Avaliação dos Modelos
+# class_metrics_results, avg_metrics_results = nb_utils.evaluate_models(trained_models, X_train, y_train, X_test, y_test)
+# 
+# # Geração dos Relatórios
+# nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_Optuna_")
+# 
+# # Salvando os modelos em arquivos para recuperação
+# nb_utils.save_models(trained_models, filename_prefix="_Optuna_")
 
 # %%
-# src/notebooks/model_training_behavior_multiclassification_by_student_level.ipynb
-
-from core.training.random_search_training import RandomSearchTraining
-
-# Instantiate the RandomizedSearchCV training class
-training = RandomSearchTraining()
-
-# Execute the training
-trained_models = training.train_model(
-    X_train=X_train,
-    y_train=y_train,
-    selected_models=selected_models,
-    selected_selectors=selected_selectors,
-    n_iter=n_iter,
-    cv=cv,
-    scoring=scoring_metric,
-    n_jobs=n_jobs
-)
-
-# Example of accessing the trained models
-for model_key, model_info in trained_models.items():
-    print(f"Model: {model_key}")
-    print(f"Best Hyperparameters: {model_info['hyperparameters']}")
-    print(f"CV Result: {model_info['cv_result']}\n")
+## Using GridSearchCV
 
 # %% [markdown]
-# ### Avaliação e logging
+# from core.training.grid_search_training import GridSearchTraining
+# 
+# # Instantiate the GridSearchCV training class
+# training = GridSearchTraining()
+# 
+# # Execute the training
+# trained_models = training.train_model(
+#     X_train=X_train,
+#     y_train=y_train,
+#     selected_models=selected_models,
+#     selected_selectors=selected_selectors,
+#     n_iter=n_iter,  # This parameter is not used in GridSearchCV but kept for consistency
+#     cv=cv,
+#     scoring=scoring_metric,
+#     n_jobs=n_jobs
+# )
+# 
+# # Example of accessing the trained models
+# for model_key, model_info in trained_models.items():
+#     print(f"Model: {model_key}")
+#     print(f"Best Hyperparameters: {model_info['hyperparameters']}")
+#     print(f"CV Result: {model_info['cv_result']}\n")
 
 # %%
-import notebook_utils as nb_utils
+### Avaliação e logging
 
-# Avaliação dos Modelos
-class_metrics_results, avg_metrics_results = nb_utils.evaluate_models(trained_models, X_train, y_train, X_test, y_test)
+# %% [markdown]
+# import notebook_utils as nb_utils
+# 
+# # Avaliação dos Modelos
+# class_metrics_results, avg_metrics_results = nb_utils.evaluate_models(trained_models, X_train, y_train, X_test, y_test)
+# 
+# # Geração dos Relatórios
+# nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_GridSearch_")
+# 
+# # Salvando os modelos em arquivos para recuperação
+# nb_utils.save_models(trained_models, filename_prefix="_GridSearch_")
 
-# Geração dos Relatórios
-nb_utils.generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="_RandomSearch_")
+# %%
+## Treinando com RandomSearchCV
 
-# Salvando os modelos em arquivos para recuperação
-nb_utils.save_models(trained_models, filename_prefix="_RandomSearch_")
+# %% [markdown]
+# # src/notebooks/model_training_behavior_multiclassification_by_student_level.ipynb
+# 
+# from core.training.random_search_training import RandomSearchTraining
+# 
+# # Instantiate the RandomizedSearchCV training class
+# training = RandomSearchTraining()
+# 
+# # Execute the training
+# trained_models = training.train_model(
+#     X_train=X_train,
+#     y_train=y_train,
+#     selected_models=selected_models,
+#     selected_selectors=selected_selectors,
+#     n_iter=n_iter,
+#     cv=cv,
+#     scoring=scoring_metric,
+#     n_jobs=n_jobs
+# )
+# 
+# # Example of accessing the trained models
+# for model_key, model_info in trained_models.items():
+#     print(f"Model: {model_key}")
+#     print(f"Best Hyperparameters: {model_info['hyperparameters']}")
+#     print(f"CV Result: {model_info['cv_result']}\n")
+
+# %%
+### Avaliação e logging
 
 

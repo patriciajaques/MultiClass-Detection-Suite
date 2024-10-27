@@ -11,11 +11,33 @@ class ReportFormatter:
 
     @staticmethod
     def _format_model_report(model_name, model_info, avg_info):
-        report = (f"\nEvaluating {model_name} with {avg_info['training_type']}:\n"
+        model_parts = model_name.split('_')
+        base_model = model_parts[0]
+        selector = model_parts[1] if len(model_parts) > 1 else 'none'
+        
+        report = (f"\nEvaluating {base_model} with {selector} selector using {avg_info['training_type']}:\n"
                   f"Hyperparameters: {avg_info['hyperparameters']}\n")
         
-        if 'selected_features' in model_info:
-            report += f"\nSelected Features: {', '.join(str(feature) for feature in model_info['selected_features'])}\n"
+        if 'feature_info' in model_info:
+            feature_info = model_info['feature_info']
+            
+            if feature_info['type'] == 'pca':
+                report += "\nPCA Information:\n"
+                report += f"Number of components: {feature_info['n_components']}\n"
+                if 'explained_variance_ratio' in feature_info:
+                    total_variance = sum(feature_info['explained_variance_ratio'])
+                    report += f"Total explained variance: {total_variance:.2%}\n"
+                    report += "New features: " + ", ".join(feature_info['new_features']) + "\n"
+                
+            elif feature_info['type'] == 'selector':
+                if 'selected_features' in feature_info:
+                    report += "\nSelected Features:\n"
+                    report += ", ".join(map(str, feature_info['selected_features'])) + "\n"
+                    
+            report += f"\n{feature_info['description']}\n"
+
+        report += "\nCross-Validation Results:\n"
+        report += f"Average Score: {avg_info['cv_report']:.4f}\n"
         
         report += ReportFormatter._format_set_report("Train", model_info, avg_info)
         report += ReportFormatter._format_set_report("Test", model_info, avg_info)
@@ -44,10 +66,25 @@ class ReportFormatter:
 
     @staticmethod
     def generate_class_report_dataframe(class_metrics_reports):
-        return pd.concat([
-            ReportFormatter._prepare_model_report(model_name, model_info)
-            for model_name, model_info in class_metrics_reports.items()
-        ])
+        dfs = []
+        for model_name, model_info in class_metrics_reports.items():
+            train_report = model_info['train_class_report'].add_suffix('-train')
+            test_report = model_info['test_class_report'].add_suffix('-test')
+            combined_report = train_report.join(test_report)
+            combined_report['Model'] = model_name
+            
+            # Adicionar informações do feature selector
+            if 'feature_info' in model_info:
+                feature_info = model_info['feature_info']
+                combined_report['Feature_Selection_Type'] = feature_info['type']
+                combined_report['N_Features'] = feature_info['n_features']
+                
+                if feature_info['type'] == 'pca' and 'explained_variance_ratio' in feature_info:
+                    combined_report['Total_Variance_Explained'] = sum(feature_info['explained_variance_ratio'])
+                
+            dfs.append(combined_report.reset_index().rename(columns={'index': 'Metric'}))
+            
+        return pd.concat(dfs, ignore_index=True)
 
     @staticmethod
     def _prepare_model_report(model_name, model_info):

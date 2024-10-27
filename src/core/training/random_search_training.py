@@ -29,7 +29,7 @@ class RandomSearchTraining(ModelTraining):
             cv=cv,
             n_jobs=n_jobs,
             scoring=scoring,
-            verbose=1,
+            verbose=2,
             random_state=42  # Para reprodutibilidade
         )
 
