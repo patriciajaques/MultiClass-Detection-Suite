@@ -41,7 +41,7 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
                 ).mean()
                 
             except Exception as e:
-                self.logger.warning(f"Trial failed with error: {str(e)}")
+                self.log_parameter_error(self.logger, model_name, hyperparams)
                 return float('-inf')
 
         # Criar um estudo do Optuna

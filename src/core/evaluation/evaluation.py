@@ -10,6 +10,10 @@ class Evaluation:
         class_metrics_results = {}
         avg_metrics_results = {}
 
+        if not trained_models:
+            print("Aviso: Nenhum modelo foi treinado com sucesso.")
+            return {}, {}
+
         for model_name, model_info in trained_models.items():
             print(f"\nAvaliando modelo: {model_name}")
             try:
@@ -26,15 +30,11 @@ class Evaluation:
                     X_train_transformed = selector.transform(X_train)
                     print(f"Shape após feature selection: {X_train_transformed.shape}")
                 
-                try:
-                    # Get predictions using the full pipeline
-                    y_train_pred = pipeline.predict(X_train)
-                    y_train_prob = pipeline.predict_proba(X_train)
-                    y_test_pred = pipeline.predict(X_test)
-                    y_test_prob = pipeline.predict_proba(X_test)
-                except Exception as pred_error:
-                    print(f"Erro nas predições: {str(pred_error)}")
-                    continue
+                # Get predictions using the full pipeline
+                y_train_pred = pipeline.predict(X_train)
+                y_train_prob = pipeline.predict_proba(X_train)
+                y_test_pred = pipeline.predict(X_test)
+                y_test_prob = pipeline.predict_proba(X_test)
 
                 # Generate evaluation metrics
                 train_metrics = Evaluation._generate_metrics(y_train, y_train_pred, y_train_prob)
@@ -63,6 +63,10 @@ class Evaluation:
             except Exception as e:
                 print(f"Erro ao avaliar modelo {model_name}: {str(e)}")
                 continue
+
+        if not class_metrics_results:
+            print("Aviso: Nenhum modelo pôde ser avaliado com sucesso.")
+            return {}, {}
 
         return class_metrics_results, avg_metrics_results
 

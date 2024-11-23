@@ -154,9 +154,21 @@ class ModelTraining(ABC):
             return selector_names
         return available_selector_names + ['none']
     
+    def log_parameter_error(self, logger, model_name: str, params: dict) -> None:
+        """
+        Método comum para logar erros de parâmetros inválidos.
+        
+        Args:
+            logger: Logger configurado
+            model_name: Nome do modelo
+            params: Parâmetros que causaram o erro
+        """
+        logger.warning(f"Trial failed: Invalid parameter combination for {model_name}")
+        logger.warning(f"Parameters that failed: {params}")
+    
     @staticmethod
     def log_search_results(logger, search, model_name, selector_name):
-        """Log the results of the search process (GridSearchCV, RandomizedSearchCV, or any search with cv_results_)."""
+        """Log the results of the search process."""
         if hasattr(search, 'best_params_'):
             logger.info(f"Best parameters: {search.best_params_}")
         if hasattr(search, 'best_score_'):
@@ -164,14 +176,17 @@ class ModelTraining(ABC):
 
         # Log all hyperparameter combinations and their cross-validation results
         logger.info("All hyperparameter combinations and their cross-validation results:")
+        
         if hasattr(search, 'cv_results_'):
             cv_results = search.cv_results_
-            nan_count = 0
+            success_count = 0
             for mean_score, params in zip(cv_results['mean_test_score'], cv_results['params']):
-                if pd.isna(mean_score):
-                    nan_count += 1
-                logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
-            logger.info(f"Number of tests that resulted in NaN for {model_name}: {nan_count}")
+                if not pd.isna(mean_score):
+                    success_count += 1
+                    logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
+            
+            logger.info(f"Number of successful trials for {model_name}: {success_count}")
+            logger.info(f"Number of failed trials for {model_name}: {len(cv_results['mean_test_score']) - success_count}")
 
     def _log_execution_time(self, num_models):
         """
