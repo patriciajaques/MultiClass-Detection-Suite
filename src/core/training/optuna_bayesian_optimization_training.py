@@ -2,18 +2,18 @@ import optuna
 from optuna.samplers import TPESampler
 from sklearn.model_selection import cross_val_score
 from sklearn.base import clone
-from core.training.model_training import ModelTraining
-from core.training.optuna_model_params import OptunaModelParams
+from core.training.base_training import BaseTraining
+from core.models.parameter_handlers.optuna_param_converter import OptunaParamConverter
 from core.logging.logger_config import with_logging
 from time import time
 import pandas as pd
 
 @with_logging('optuna_training')
-class OptunaBayesianOptimizationTraining(ModelTraining):
+class OptunaBayesianOptimizationTraining(BaseTraining):
     def __init__(self):
         super().__init__()
 
-    def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_trials, cv, scoring, n_jobs=-1, selector_search_space=None):
+    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
         self.logger.info(f"Training and evaluating {model_name} with Optuna Optimization and {selector_name}")
         print(f"Inside OptunaBayesianOptimizationTraining.optimize_model")
 
@@ -21,10 +21,10 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         def objective(trial):
             try:
                 # Sugerir hiperparâmetros do modelo
-                model_hyperparams = OptunaModelParams.suggest_model_hyperparameters(trial, model_name)
-                
+                model_hyperparams = OptunaParamConverter.suggest_parameters(trial, model_params, model_name)
+                 
                 # Sugerir hiperparâmetros do seletor
-                selector_hyperparams = OptunaModelParams.suggest_selector_hyperparameters(
+                selector_hyperparams = OptunaParamConverter.suggest_selector_hyperparameters(
                     trial, selector_search_space) if selector_search_space else {}
                 
                 # Combinar os hiperparâmetros
@@ -49,7 +49,7 @@ class OptunaBayesianOptimizationTraining(ModelTraining):
         
         # Iniciar o tempo de otimização
         start_time = time()
-        study.optimize(objective, n_trials=n_trials)
+        study.optimize(objective, n_trials=n_iter)
         total_time = time() - start_time
 
         # Criar uma cópia do pipeline para o treinamento final

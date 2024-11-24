@@ -1,20 +1,19 @@
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
-from core.logging.logger_config import LoggerConfig, with_logging
-from core.training.model_training import ModelTraining
-from core.training.grid_search_model_params import GridSearchModelParams
-import logging
+from core.logging.logger_config import with_logging
+from core.training.base_training import BaseTraining
+from core.models.parameter_handlers.grid_search_param_converter import GridSearchParamConverter
 
 @with_logging('grid_search')
-class GridSearchTraining(ModelTraining):
+class GridSearchTraining(BaseTraining):
     def __init__(self):
         super().__init__()
 
-    def optimize_model(self, pipeline, model_name, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
         try:
             self.logger.info(f"Training and evaluating {model_name} with GridSearchCV and {selector_name}")
 
-            param_grid = GridSearchModelParams.get_param_grid(model_name)
+            param_grid = GridSearchParamConverter.convert_param_space(model_params, model_name)
             if selector_search_space:
                 if isinstance(param_grid, list):
                     for subspace in param_grid:
