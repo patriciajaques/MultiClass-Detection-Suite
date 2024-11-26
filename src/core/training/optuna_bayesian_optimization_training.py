@@ -1,5 +1,6 @@
 import optuna
 from optuna.samplers import TPESampler
+from optuna.logging import set_verbosity, WARNING
 from sklearn.model_selection import cross_val_score
 from sklearn.base import clone
 from core.training.base_training import BaseTraining
@@ -14,6 +15,7 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
         super().__init__()
 
     def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+        set_verbosity(WARNING)
         self.logger.info(f"Training and evaluating {model_name} with Optuna Optimization and {selector_name}")
         print(f"Inside OptunaBayesianOptimizationTraining.optimize_model")
 

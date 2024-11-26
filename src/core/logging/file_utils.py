@@ -13,7 +13,8 @@ class FileUtils:
             default_csv_params = {
                 'sep': ';',      # separador de colunas
                 'decimal': ',',   # separador decimal
-                'index': False    # não incluir índice
+                'index': False,    # não incluir índice
+                'float_format': '%.3f'  # formatar floats com 3 casas decimais
             }
             
             # Atualizar com parâmetros customizados se fornecidos

@@ -96,10 +96,57 @@ class ReportFormatter:
 
     @staticmethod
     def generate_avg_metrics_report_dataframe(avg_metrics_reports):
-        return pd.concat([
-            ReportFormatter._prepare_avg_metrics_report(model_name, model_info)
-            for model_name, model_info in avg_metrics_reports.items()
-        ])
+        """
+        Gera um DataFrame com métricas médias de todos os modelos.
+        
+        Args:
+            avg_metrics_reports (dict): Dicionário com resultados das métricas médias
+            
+        Returns:
+            pd.DataFrame: DataFrame formatado com as métricas médias
+        """
+        rows = []
+        for model_name, model_info in avg_metrics_reports.items():
+            row = {'Model': model_name}
+            
+            # Adicionar score da cross-validation
+            row['CV Score'] = model_info['cv_report']
+            
+            # Adicionar métricas de treino
+            train_metrics = model_info['train_avg_metrics']
+            row['balanced_accuracy-train'] = train_metrics.loc['balanced_accuracy', 'f1-score']
+            row['f1-score-train'] = train_metrics.loc['weighted avg', 'f1-score']
+            row['precision-train'] = train_metrics.loc['weighted avg', 'precision']
+            row['recall-train'] = train_metrics.loc['weighted avg', 'recall']
+            
+            # Adicionar métricas de teste
+            test_metrics = model_info['test_avg_metrics']
+            row['balanced_accuracy-test'] = test_metrics.loc['balanced_accuracy', 'f1-score']
+            row['f1-score-test'] = test_metrics.loc['weighted avg', 'f1-score']
+            row['precision-test'] = test_metrics.loc['weighted avg', 'precision']
+            row['recall-test'] = test_metrics.loc['weighted avg', 'recall']
+            
+            rows.append(row)
+        
+        # Criar DataFrame final
+        result_df = pd.DataFrame(rows)
+        
+        # Definir ordem das colunas
+        column_order = [
+            'Model', 
+            'CV Score',
+            'balanced_accuracy-train',
+            'f1-score-train',
+            'precision-train',
+            'recall-train',
+            'balanced_accuracy-test',
+            'f1-score-test',
+            'precision-test',
+            'recall-test'
+        ]
+        
+        return result_df[column_order]
+
 
     @staticmethod
     def _prepare_avg_metrics_report(model_name, model_info):

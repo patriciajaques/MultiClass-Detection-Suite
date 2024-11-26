@@ -1,5 +1,6 @@
+from sklearn.metrics import classification_report, confusion_matrix, balanced_accuracy_score, cohen_kappa_score, precision_score, recall_score, f1_score
+import pandas as pd
 import numpy as np
-
 
 class Evaluation:
     @staticmethod
@@ -141,9 +142,6 @@ class Evaluation:
         """
         Gera todas as métricas de avaliação para um conjunto de predições.
         """
-        from sklearn.metrics import classification_report, confusion_matrix, balanced_accuracy_score, cohen_kappa_score
-        import pandas as pd
-        import numpy as np
 
         # Generate classification report
         class_report = pd.DataFrame(classification_report(y_true, y_pred, output_dict=True)).transpose()
@@ -155,22 +153,38 @@ class Evaluation:
             columns=[f'Predicted {i}' for i in range(len(np.unique(y_true)))]
         )
 
-        # Calculate additional metrics
-        balanced_acc = balanced_accuracy_score(y_true, y_pred)
-        kappa = cohen_kappa_score(y_true, y_pred)
+        # Calculate all average metrics
+        metrics_dict = {
+            'balanced_accuracy': balanced_accuracy_score(y_true, y_pred),
+            'accuracy': class_report.loc['accuracy', 'f1-score'],
+            'precision': precision_score(y_true, y_pred, average='weighted'),
+            'recall': recall_score(y_true, y_pred, average='weighted'),
+            'f1-score': f1_score(y_true, y_pred, average='weighted'),
+            'kappa': cohen_kappa_score(y_true, y_pred)
+        }
         
-        # Create average metrics DataFrame
-        avg_metrics = pd.DataFrame({
-            'balanced_accuracy': {'f1-score': balanced_acc},
-            'kappa': {'f1-score': kappa}
-        }).transpose()
-
-        # Add macro and weighted averages from classification report
-        additional_metrics = class_report.loc[['accuracy', 'macro avg', 'weighted avg']]
-        avg_metrics = pd.concat([avg_metrics, additional_metrics])
+        # Create average metrics DataFrame with consistent structure
+        metrics_df = pd.DataFrame(
+            {
+                'precision': metrics_dict['precision'],
+                'recall': metrics_dict['recall'],
+                'f1-score': metrics_dict['f1-score'],
+                'support': len(y_true)  # Total support for average metrics
+            },
+            index=['weighted avg']
+        )
+        
+        # Add other metrics maintaining the same column structure
+        for metric in ['balanced_accuracy', 'accuracy', 'kappa']:
+            metrics_df.loc[metric] = [
+                metrics_dict[metric],  # precision column
+                metrics_dict[metric],  # recall column
+                metrics_dict[metric],  # f1-score column
+                len(y_true)           # support column
+            ]
 
         return {
             'class_report': class_report.drop(['accuracy', 'macro avg', 'weighted avg']),
             'conf_matrix': conf_matrix,
-            'avg_metrics': avg_metrics
+            'avg_metrics': metrics_df
         }
