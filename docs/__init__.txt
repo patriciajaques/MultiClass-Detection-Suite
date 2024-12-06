@@ -1,9 +1,0 @@
-Help on module __init__:
-
-NAME
-    __init__
-
-FILE
-    /Users/patricia/Documents/code/python-code/behavior-detection/src/__init__.py
-
-

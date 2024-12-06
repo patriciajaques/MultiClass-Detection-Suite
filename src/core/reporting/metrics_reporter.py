@@ -1,6 +1,6 @@
-from core.logging.model_manager import ModelManager
 from core.evaluation.evaluation import Evaluation  
-from core.logging.report_formatter import ReportFormatter
+from core.models.model_manager import ModelManager
+from core.reporting.report_formatter import ReportFormatter
 from core.logging.file_utils import FileUtils
 
 @staticmethod
