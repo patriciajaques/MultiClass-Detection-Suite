@@ -65,7 +65,6 @@ class MulticlassModelParams(BaseModelParams):
             'classifier__solver': ['lbfgs', 'newton-cg', 'sag'],
             'classifier__C': [0.1, 1.0, 10.0],
             'classifier__max_iter': [3000, 5000, 7000],
-            'classifier__multi_class': ['multinomial'],
             'classifier__class_weight': ['balanced', None]
         }
 

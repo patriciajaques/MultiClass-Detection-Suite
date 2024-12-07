@@ -14,7 +14,6 @@ class BehaviorModelParams(MulticlassModelParams):
             'classifier__C': [0.01, 0.1, 1.0, 10.0],  # Maior range para regularização
             'classifier__solver': ['lbfgs', 'newton-cg'],  # Solvers mais eficientes para multiclasse
             'classifier__max_iter': [5000],  # Aumentado para garantir convergência
-            'classifier__multi_class': ['multinomial'],  # Melhor para problemas multiclasse
             'classifier__class_weight': ['balanced']  # Importante para classes desbalanceadas
         }
 
