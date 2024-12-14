@@ -1,0 +1,26 @@
+model;train_metrics;test_metrics
+Gradient Boosting_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 17.0}
+Gradient Boosting_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.6153846153846154, 'recall': 0.34782608695652173, 'f1-score': 0.4444444444444444, 'support': 23.0}
+Gradient Boosting_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5302013422818792, 'recall': 0.7247706422018348, 'f1-score': 0.6124031007751938, 'support': 109.0}
+Gradient Boosting_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Gradient Boosting_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 1.0, 'recall': 0.11538461538461539, 'f1-score': 0.20689655172413793, 'support': 26.0}
+Gradient Boosting_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 17.0}
+Gradient Boosting_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 23.0}
+Gradient Boosting_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.572972972972973, 'recall': 0.9724770642201835, 'f1-score': 0.7210884353741497, 'support': 109.0}
+Gradient Boosting_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Gradient Boosting_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.75, 'recall': 0.11538461538461539, 'f1-score': 0.2, 'support': 26.0}
+Gradient Boosting_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 17.0}
+Gradient Boosting_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.21875, 'recall': 0.30434782608695654, 'f1-score': 0.2545454545454545, 'support': 23.0}
+Gradient Boosting_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.543859649122807, 'recall': 0.5688073394495413, 'f1-score': 0.5560538116591929, 'support': 109.0}
+Gradient Boosting_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Gradient Boosting_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.9, 'recall': 0.34615384615384615, 'f1-score': 0.5, 'support': 26.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.03333333333333333, 'recall': 0.058823529411764705, 'f1-score': 0.0425531914893617, 'support': 17.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.3333333333333333, 'recall': 0.30434782608695654, 'f1-score': 0.3181818181818182, 'support': 23.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5354330708661418, 'recall': 0.6238532110091743, 'f1-score': 0.576271186440678, 'support': 109.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 1.0, 'recall': 0.15384615384615385, 'f1-score': 0.26666666666666666, 'support': 26.0}
+Gradient Boosting_mi;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 17.0}
+Gradient Boosting_mi;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.38095238095238093, 'recall': 0.34782608695652173, 'f1-score': 0.36363636363636365, 'support': 23.0}
+Gradient Boosting_mi;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5138888888888888, 'recall': 0.6788990825688074, 'f1-score': 0.5849802371541502, 'support': 109.0}
+Gradient Boosting_mi;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Gradient Boosting_mi;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 1.0, 'recall': 0.11538461538461539, 'f1-score': 0.20689655172413793, 'support': 26.0}

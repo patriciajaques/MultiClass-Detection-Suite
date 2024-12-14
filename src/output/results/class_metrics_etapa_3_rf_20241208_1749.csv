@@ -1,0 +1,26 @@
+model;train_metrics;test_metrics
+Random Forest_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.19047619047619047, 'recall': 0.23529411764705882, 'f1-score': 0.21052631578947367, 'support': 17.0}
+Random Forest_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.25, 'recall': 0.21739130434782608, 'f1-score': 0.23255813953488372, 'support': 23.0}
+Random Forest_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5289855072463768, 'recall': 0.6697247706422018, 'f1-score': 0.5910931174089069, 'support': 109.0}
+Random Forest_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Random Forest_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.6875, 'recall': 0.4230769230769231, 'f1-score': 0.5238095238095238, 'support': 26.0}
+Random Forest_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.1111111111111111, 'recall': 0.058823529411764705, 'f1-score': 0.07692307692307693, 'support': 17.0}
+Random Forest_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5, 'recall': 0.2608695652173913, 'f1-score': 0.34285714285714286, 'support': 23.0}
+Random Forest_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5808383233532934, 'recall': 0.8899082568807339, 'f1-score': 0.7028985507246377, 'support': 109.0}
+Random Forest_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Random Forest_pca;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.4, 'recall': 0.07692307692307693, 'f1-score': 0.12903225806451613, 'support': 26.0}
+Random Forest_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 17.0}
+Random Forest_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.2903225806451613, 'recall': 0.391304347826087, 'f1-score': 0.3333333333333333, 'support': 23.0}
+Random Forest_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5825242718446602, 'recall': 0.5504587155963303, 'f1-score': 0.5660377358490566, 'support': 109.0}
+Random Forest_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.15384615384615385, 'recall': 0.2, 'f1-score': 0.17391304347826086, 'support': 20.0}
+Random Forest_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.7333333333333333, 'recall': 0.4230769230769231, 'f1-score': 0.5365853658536586, 'support': 26.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0625, 'recall': 0.058823529411764705, 'f1-score': 0.06060606060606061, 'support': 17.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.4, 'recall': 0.34782608695652173, 'f1-score': 0.37209302325581395, 'support': 23.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.5833333333333334, 'recall': 0.7064220183486238, 'f1-score': 0.6390041493775933, 'support': 109.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 0.6470588235294118, 'recall': 0.4230769230769231, 'f1-score': 0.5116279069767442, 'support': 26.0}
+Random Forest_mi;{'precision': 0.9865900383141762, 'recall': 0.9865900383141762, 'f1-score': 0.9865900383141762, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 17.0}
+Random Forest_mi;{'precision': 1.0, 'recall': 0.9923371647509579, 'f1-score': 0.9961538461538462, 'support': 522.0};{'precision': 0.2413793103448276, 'recall': 0.30434782608695654, 'f1-score': 0.2692307692307692, 'support': 23.0}
+Random Forest_mi;{'precision': 0.9771428571428571, 'recall': 0.9827586206896551, 'f1-score': 0.9799426934097422, 'support': 522.0};{'precision': 0.5109489051094891, 'recall': 0.6422018348623854, 'f1-score': 0.5691056910569106, 'support': 109.0}
+Random Forest_mi;{'precision': 0.9942748091603053, 'recall': 0.9980842911877394, 'f1-score': 0.9961759082217974, 'support': 522.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 20.0}
+Random Forest_mi;{'precision': 0.9980806142034548, 'recall': 0.9961685823754789, 'f1-score': 0.99712368168744, 'support': 522.0};{'precision': 0.6875, 'recall': 0.4230769230769231, 'f1-score': 0.5238095238095238, 'support': 26.0}

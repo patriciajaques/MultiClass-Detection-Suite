@@ -1,0 +1,26 @@
+Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features;Total_Variance_Explained
+0;1,000;1,000;1,000;522,000;0,000;0,000;0,000;17,000;Gradient Boosting_none;original;470;
+1;1,000;1,000;1,000;522,000;0,615;0,348;0,444;23,000;Gradient Boosting_none;original;470;
+2;1,000;1,000;1,000;522,000;0,530;0,725;0,612;109,000;Gradient Boosting_none;original;470;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Gradient Boosting_none;original;470;
+4;1,000;1,000;1,000;522,000;1,000;0,115;0,207;26,000;Gradient Boosting_none;original;470;
+0;1,000;1,000;1,000;522,000;0,000;0,000;0,000;17,000;Gradient Boosting_pca;pca;89;0,990
+1;1,000;1,000;1,000;522,000;0,000;0,000;0,000;23,000;Gradient Boosting_pca;pca;89;0,990
+2;1,000;1,000;1,000;522,000;0,573;0,972;0,721;109,000;Gradient Boosting_pca;pca;89;0,990
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Gradient Boosting_pca;pca;89;0,990
+4;1,000;1,000;1,000;522,000;0,750;0,115;0,200;26,000;Gradient Boosting_pca;pca;89;0,990
+0;1,000;1,000;1,000;522,000;0,000;0,000;0,000;17,000;Gradient Boosting_rfe;selector;22;
+1;1,000;1,000;1,000;522,000;0,219;0,304;0,255;23,000;Gradient Boosting_rfe;selector;22;
+2;1,000;1,000;1,000;522,000;0,544;0,569;0,556;109,000;Gradient Boosting_rfe;selector;22;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Gradient Boosting_rfe;selector;22;
+4;1,000;1,000;1,000;522,000;0,900;0,346;0,500;26,000;Gradient Boosting_rfe;selector;22;
+0;1,000;1,000;1,000;522,000;0,033;0,059;0,043;17,000;Gradient Boosting_rf;selector;105;
+1;1,000;1,000;1,000;522,000;0,333;0,304;0,318;23,000;Gradient Boosting_rf;selector;105;
+2;1,000;1,000;1,000;522,000;0,535;0,624;0,576;109,000;Gradient Boosting_rf;selector;105;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Gradient Boosting_rf;selector;105;
+4;1,000;1,000;1,000;522,000;1,000;0,154;0,267;26,000;Gradient Boosting_rf;selector;105;
+0;1,000;1,000;1,000;522,000;0,000;0,000;0,000;17,000;Gradient Boosting_mi;selector;470;
+1;1,000;1,000;1,000;522,000;0,381;0,348;0,364;23,000;Gradient Boosting_mi;selector;470;
+2;1,000;1,000;1,000;522,000;0,514;0,679;0,585;109,000;Gradient Boosting_mi;selector;470;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Gradient Boosting_mi;selector;470;
+4;1,000;1,000;1,000;522,000;1,000;0,115;0,207;26,000;Gradient Boosting_mi;selector;470;

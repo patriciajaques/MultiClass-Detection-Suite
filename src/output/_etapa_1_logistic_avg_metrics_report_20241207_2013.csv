@@ -1,0 +1,6 @@
+Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
+Logistic Regression_none;0,919;0,975;0,975;0,975;0,975;0,166;0,319;0,284;0,364
+Logistic Regression_pca;0,873;0,919;0,917;0,917;0,919;0,460;0,506;0,615;0,462
+Logistic Regression_rfe;0,812;0,845;0,840;0,839;0,845;0,181;0,127;0,176;0,144
+Logistic Regression_rf;0,915;0,971;0,971;0,971;0,971;0,252;0,395;0,362;0,441
+Logistic Regression_mi;0,919;0,975;0,975;0,975;0,975;0,166;0,319;0,284;0,364

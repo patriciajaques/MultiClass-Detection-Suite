@@ -89,24 +89,20 @@ class LoggerConfig:
     def _get_output_directory():
         """
         Obtém o diretório de saída para armazenar os arquivos de log.
-
-        Returns:
-            str: Caminho do diretório de saída.
         """
-        # Obtém o diretório atual onde o arquivo Python está localizado
-        current_dir = Path(__file__).resolve()
+        if os.path.exists('/app'):  # Ambiente Docker
+            output_dir = '/app/output'
+        else:  # Ambiente local
+            current_dir = Path(__file__).resolve()
+            src_dir = current_dir
+            while src_dir.name != 'behavior-detection' and src_dir.parent != src_dir:
+                src_dir = src_dir.parent
+                
+            if src_dir.name != 'behavior-detection':
+                output_dir = os.path.join(os.getcwd(), 'output')
+            else:
+                output_dir = os.path.join(src_dir, 'output')
         
-        # Encontra a raiz do projeto subindo até encontrar a pasta 'src'
-        src_dir = current_dir
-        while src_dir.name != 'behavior-detection' and src_dir.parent != src_dir:
-            src_dir = src_dir.parent
-
-        # Verifica se a pasta 'src' foi encontrada
-        if src_dir.name != 'behavior-detection':
-            raise FileNotFoundError("Diretório 'src' não encontrado na estrutura de diretórios.")
-        
-        # Define o diretório de saída dentro da pasta src
-        output_dir = src_dir / 'output'
         os.makedirs(output_dir, exist_ok=True)
         return output_dir
 

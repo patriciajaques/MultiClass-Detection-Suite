@@ -1,0 +1,3106 @@
+
+################################################################################
+# Arquivo: requirements.txt
+################################################################################
+
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+joblib
+jupyter
+ipykernel
+xgboost
+scikit-optimize
+imblearn
+optuna
+
+
+
+################################################################################
+# Arquivo: Dockerfile
+################################################################################
+
+# Usar uma imagem oficial do Python como imagem pai
+FROM python:3.10.15
+
+# Definir o diretório de trabalho no container
+WORKDIR /app
+
+# Criar diretórios necessários
+RUN mkdir -p /app/output /app/models
+
+# Copiar os arquivos de requisitos primeiro, para aproveitar o cache de camadas do Docker
+COPY requirements.txt ./
+
+# Instalar as dependências do projeto
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar o resto do código fonte do projeto para o diretório de trabalho
+COPY . .
+
+# Define PYTHONPATH para incluir as subpastas necessárias
+ENV PYTHONPATH=/app:/app/src:/app/src/notebooks
+
+# Comando para rodar a aplicação
+CMD ["python", "/app/src/main.py"]
+
+
+################################################################################
+# Arquivo: src/main.py
+################################################################################
+
+from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
+
+
+def main():
+    """Main function to run the behavior detection pipeline."""
+    pipeline = BehaviorDetectionPipeline(n_iter=50, n_jobs=-1, test_size=0.2)
+    pipeline.run()
+
+if __name__ == "__main__":
+    main()
+
+
+################################################################################
+# Arquivo: src/merge_files.py
+################################################################################
+
+import os
+
+def merge_files(root_dir, output_file):
+    """
+    Percorre todas as subpastas procurando arquivos .py, Dockerfile e requirements.txt
+    e os concatena em um único arquivo.
+    
+    Args:
+        root_dir (str): Diretório raiz para iniciar a busca
+        output_file (str): Nome do arquivo de saída
+    """
+    # Verifica se o arquivo já existe
+    # if os.path.exists(output_file):
+    #     response = input(f'O arquivo {output_file} já existe. Deseja sobrescrevê-lo? (s/n): ')
+    #     if response.lower() != 's':
+    #         print('Operação cancelada.')
+    #         return
+
+    with open(output_file, 'w', encoding='utf-8') as outfile:
+        for root, dirs, files in os.walk(root_dir):
+            for file in files:
+                if file.endswith('.py') or file == 'Dockerfile' or file == 'requirements.txt':
+                    file_path = os.path.join(root, file)
+                    relative_path = os.path.relpath(file_path, root_dir)
+                    
+                    outfile.write('\n' + '#' * 80 + '\n')
+                    outfile.write(f'# Arquivo: {relative_path}\n')
+                    outfile.write('#' * 80 + '\n\n')
+                    
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as infile:
+                            outfile.write(infile.read())
+                            outfile.write('\n\n')
+                    except Exception as e:
+                        outfile.write(f'# Erro ao ler o arquivo: {str(e)}\n\n')
+
+if __name__ == '__main__':
+    # Substitua '.' pelo caminho da sua pasta, se necessário
+    root_directory = '.'
+    output_filename = 'todos_arquivos.txt'
+    
+    merge_files(root_directory, output_filename)
+    print(f'Arquivos mesclados com sucesso em {output_filename}')
+
+
+################################################################################
+# Arquivo: src/behavior/behavior_detection_pipeline.py
+################################################################################
+
+from pathlib import Path
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import StratifiedKFold
+import os
+
+from behavior.data.behavior_data_loader import BehaviorDataLoader
+from core.preprocessors.data_cleaner import DataCleaner
+from core.preprocessors.data_splitter import DataSplitter
+from behavior.data.behavior_data_encoder import BehaviorDataEncoder
+from core.preprocessors.data_balancer import DataBalancer
+from core.models.multiclass.behavior_model_params import BehaviorModelParams
+from core.management.stage_training_manager import StageTrainingManager
+from core.reporting import metrics_reporter
+
+class BehaviorDetectionPipeline:
+    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None):
+        self.n_iter = n_iter
+        self.n_jobs = n_jobs
+        self.test_size = test_size
+        self.setup_paths(base_path)
+        
+    def setup_paths(self, base_path=None):
+        """
+        Configure project paths flexibly for any environment.
+        
+        Args:
+            base_path: Optional path to override automatic detection
+        """
+        # Se um caminho base foi fornecido, use-o
+        if base_path:
+            base_path = Path(base_path)
+        else:
+            # Tenta encontrar o diretório base do projeto
+            current_file = Path(__file__).resolve()
+            
+            # Primeiro, tenta encontrar /app (Docker)
+            if Path('/app').exists():
+                base_path = Path('/app')
+                print("Ambiente Docker detectado")
+            
+            # Depois, tenta encontrar o diretório 'behavior-detection'
+            else:
+                # Sobe nos diretórios até encontrar 'behavior-detection' ou chegar à raiz
+                current_path = current_file.parent
+                while current_path.name != 'behavior-detection' and current_path != current_path.parent:
+                    current_path = current_path.parent
+                
+                if current_path.name == 'behavior-detection':
+                    base_path = current_path
+                    print("Ambiente local detectado")
+                else:
+                    # Se não encontrar, usa o diretório atual
+                    base_path = Path.cwd()
+                    print("Usando diretório atual como base")
+        
+        # Configura os caminhos relativos ao diretório base
+        self.paths = {
+            'data': base_path / 'data',
+            'output': base_path / 'output',
+            'models': base_path / 'models',
+            'src': base_path / 'src'
+        }
+        
+        # Cria os diretórios se não existirem
+        for path in self.paths.values():
+            path.mkdir(exist_ok=True)
+            
+        print(f"\nCaminhos configurados:")
+        for key, path in self.paths.items():
+            print(f"{key}: {path}")
+    
+    def load_and_clean_data(self):
+        """Load and clean the dataset."""
+        # Load data
+        data = BehaviorDataLoader.load_data(self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
+        print(f"Dataset inicial shape: {data.shape}")
+        
+        # Remove undefined behaviors
+        data = DataCleaner.remove_instances_with_value(data, 'comportamento', '?')
+        
+        # Remove unnecessary columns
+        columns_to_remove = self._get_columns_to_remove()
+        cleaned_data = DataCleaner.remove_columns(data, columns_to_remove)
+        
+        # Handle missing values
+        numeric_columns = cleaned_data.select_dtypes(include=['float64', 'int64']).columns
+        categorical_columns = cleaned_data.select_dtypes(exclude=['float64', 'int64']).columns
+        
+        cleaned_data[numeric_columns] = cleaned_data[numeric_columns].fillna(cleaned_data[numeric_columns].median())
+        cleaned_data[categorical_columns] = cleaned_data[categorical_columns].fillna('missing')
+        
+        return cleaned_data
+    
+    # ... resto da classe permanece igual ...
+    
+    def _get_columns_to_remove(self):
+        """Define columns to be removed from the dataset."""
+        columns_to_remove_ids = ['id_log', 'grupo', 'num_dia', 'num_log']
+        columns_to_remove_emotions = [
+            'estado_afetivo', 'estado_engajamento_concentrado', 
+            'estado_confusao', 'estado_frustracao', 'estado_tedio', 'estado_indefinido', 
+            'ultimo_estado_afetivo', 'ultimo_engajamento_concentrado', 'ultimo_confusao', 
+            'ultimo_frustracao', 'ultimo_tedio', 'ultimo_estado_indefinido'
+        ]
+        columns_to_remove_personality = [
+            'traco_amabilidade_fator', 'traco_extrovercao_fator', 'traco_conscienciosidade_fator', 
+            'traco_abertura_fator', 'traco_neuroticismo_fator', 'traco_amabilidade_cat', 
+            'traco_extrovercao_cat', 'traco_conscienciosidade_cat', 'traco_abertura_cat', 
+            'traco_neuroticismo_cat'
+        ]
+        columns_to_remove_behaviors = [
+            'comportamento_on_task', 'comportamento_on_task_conversation', 'comportamento_on_task_out',
+            'comportamento_off_task', 'comportamento_on_system', 'comportamento_indefinido',
+            'ultimo_comportamento', 'ultimo_comportamento_on_task', 'ultimo_comportamento_on_task_conversation',
+            'ultimo_comportamento_on_task_out', 'ultimo_comportamento_off_task', 'ultimo_comportamento_on_system',
+            'ultimo_comportamento_indefinido'
+        ]
+        return columns_to_remove_ids + columns_to_remove_emotions + columns_to_remove_personality + columns_to_remove_behaviors
+    
+    def prepare_data(self, data):
+        """Prepare data for training including splitting and encoding."""
+        # Split by student level
+        train_data, test_data = DataSplitter.split_by_student_level(
+            data, test_size=self.test_size, column_name='aluno'
+        )
+        
+        # Remove student ID column
+        train_data = DataCleaner.remove_columns(train_data, ['aluno'])
+        test_data = DataCleaner.remove_columns(test_data, ['aluno'])
+        
+        # Split features and target
+        X_train, y_train = DataSplitter.split_into_x_y(train_data, 'comportamento')
+        X_test, y_test = DataSplitter.split_into_x_y(test_data, 'comportamento')
+        
+        # Encode target variables
+        y_train = BehaviorDataEncoder.encode_y(y_train)
+        y_test = BehaviorDataEncoder.encode_y(y_test)
+        
+        # Encode features
+        X_encoder = BehaviorDataEncoder(num_classes=5)
+        X_encoder.fit(X_train)
+        X_train = X_encoder.transform(X_train)
+        X_test = X_encoder.transform(X_test)
+        
+        return X_train, X_test, y_train, y_test
+    
+    def balance_data(self, X_train, y_train):
+        """Apply SMOTE to balance the dataset."""
+        data_balancer = DataBalancer()
+        return data_balancer.apply_smote(X_train, y_train)
+    
+    def train_models(self, X_train, X_test, y_train, y_test):
+        """Train all models using stage-based training."""
+        # Setup cross-validation
+        cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+        
+        # Initialize model parameters
+        model_params = BehaviorModelParams()
+        
+        # Define training stages
+        stages = self._get_training_stages()
+        
+        # Initialize training manager
+        training_manager = StageTrainingManager(
+            X_train=X_train,
+            X_test=X_test,
+            y_train=y_train,
+            y_test=y_test,
+            model_params=model_params,
+            n_iter=self.n_iter,
+            cv=cv,
+            scoring='balanced_accuracy',
+            n_jobs=self.n_jobs
+        )
+        
+        # Execute training
+        try:
+            training_manager.execute_all_stages(training_manager, stages)
+            return training_manager
+        except Exception as e:
+            print(f"\nExecução interrompida: {str(e)}")
+            print("Execute novamente para retomar do último stage não completado.")
+            return None
+    
+    def _get_training_stages(self):
+        """Define all training stages."""
+        models = ['Logistic Regression', 'Decision Tree', 'Random Forest', 
+                 'Gradient Boosting', 'SVM', 'KNN', 'XGBoost', 'Naive Bayes', 'MLP']
+        selectors = ['none', 'pca', 'rfe', 'rf', 'mi']
+        
+        stages = []
+        stage_num = 1
+        
+        for model in models:
+            for selector in selectors:
+                stage_name = f'etapa_{stage_num}_{model.lower().replace(" ", "_")}_{selector}'
+                stages.append((stage_name, [model], [selector]))
+                stage_num += 1
+                
+        return stages
+    
+    def generate_reports(self, training_manager):
+        """Generate final reports for all models."""
+        if training_manager:
+            final_results = training_manager.combine_results()
+            training_results, class_metrics, avg_metrics = final_results
+            metrics_reporter.generate_reports(
+                class_metrics, 
+                avg_metrics, 
+                filename_prefix="_Final_Combined_"
+            )
+    
+    def run(self):
+        """Execute the complete behavior detection pipeline."""
+        print("Iniciando pipeline de detecção de comportamentos...")
+        
+        # Load and clean data
+        print("\n1. Carregando e limpando dados...")
+        data = self.load_and_clean_data()
+        
+        # Prepare data
+        print("\n2. Preparando dados para treinamento...")
+        X_train, X_test, y_train, y_test = self.prepare_data(data)
+        
+        # Balance data
+        print("\n3. Balanceando dados de treino...")
+        X_train, y_train = self.balance_data(X_train, y_train)
+        
+        # Train models
+        print("\n4. Iniciando treinamento dos modelos...")
+        training_manager = self.train_models(X_train, X_test, y_train, y_test)
+        
+        # Generate reports
+        print("\n5. Gerando relatórios finais...")
+        self.generate_reports(training_manager)
+        
+        print("\nPipeline concluído!")
+
+
+################################################################################
+# Arquivo: src/behavior/data/behavior_data_loader.py
+################################################################################
+
+# behavior_data_loader.py
+
+from typing import Optional
+import pandas as pd
+from core.preprocessors.data_loader import DataLoader
+
+class BehaviorDataLoader(DataLoader):
+
+    @staticmethod
+    def get_feature_subset(data: pd.DataFrame, regex_pattern: str) -> pd.DataFrame:
+        return data.filter(regex=regex_pattern)
+
+    @staticmethod
+    def get_behavior_features(data: pd.DataFrame) -> pd.DataFrame:
+        return BehaviorDataLoader.get_feature_subset(data, '^comportamento|^ultimo_comportamento')
+
+    @staticmethod
+    def get_personality_features(data: pd.DataFrame) -> pd.DataFrame:
+        personality_features = BehaviorDataLoader.get_feature_subset(data, '^traco_')
+        return personality_features
+    
+    @staticmethod
+    def get_personality_features_names(data: pd.DataFrame) -> list:
+        return BehaviorDataLoader.get_personality_features(data).columns.tolist()
+
+    @staticmethod
+    def get_target_column(data: pd.DataFrame, target_name: Optional[str] = None) -> pd.Series:
+        target = target_name or 'comportamento'
+        if target not in data.columns:
+            raise ValueError(f"The column '{target}' does not exist in the dataset.")
+        return data[target]
+
+    @staticmethod
+    def get_data_info(data: pd.DataFrame) -> dict:
+        return {
+            'num_samples': len(data),
+            'num_features': len(data.columns) - 1,
+            'num_classes': data['comportamento'].nunique(),
+            'class_distribution': data['comportamento'].value_counts().to_dict(),
+            'missing_values': data.isnull().sum().to_dict()
+        }
+
+
+################################################################################
+# Arquivo: src/behavior/data/behavior_data_encoder.py
+################################################################################
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from core.preprocessors.column_selector import ColumnSelector
+from core.preprocessors.data_encoder import DataEncoder
+
+class BehaviorDataEncoder(DataEncoder):
+    def __init__(self, num_classes=5):
+        # Chame o construtor da classe pai com os parâmetros corretos
+        super().__init__(
+            num_classes=num_classes,
+            scaling_strategy='standard',  # Padronizar features numéricas
+            select_numerical=True,        # Selecionar colunas numéricas
+            select_nominal=True,          # Selecionar colunas nominais
+            select_ordinal=False          # Não usar colunas ordinais
+        )
+    
+    @staticmethod
+    def encode_y(y):
+        y_encoded = LabelEncoder().fit_transform(y)
+        return y_encoded
+        
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        # Verificações de debug
+        print(f"Entrada transform - Shape: {X.shape}")
+        
+        # Se o encoder não foi ajustado, fazer o fit
+        if not hasattr(self, 'column_transformer'):
+            self.fit(X)
+            
+        # Realizar a transformação
+        try:
+            X_transformed = super().transform(X)
+            print(f"Saída transform - Shape: {X_transformed.shape}")
+            
+            # Verificar se a transformação foi bem sucedida
+            if X_transformed.shape[1] == 0:
+                raise ValueError("Transformação resultou em DataFrame vazio")
+                
+            return X_transformed
+            
+        except Exception as e:
+            print(f"Erro durante a transformação: {e}")
+            # Se a transformação falhar, retornar os dados originais
+            print("Retornando dados originais após erro...")
+            return X
+
+    def fit(self, X: pd.DataFrame, y=None):
+        # Verificações de debug
+        print(f"Entrada fit - Shape: {X.shape}")
+        
+        # Realizar o fit
+        try:
+            super().fit(X)
+            print("Fit realizado com sucesso")
+            print(f"Colunas numéricas: {len(self.numerical_columns) if self.numerical_columns else 0}")
+            print(f"Colunas nominais: {len(self.nominal_columns) if self.nominal_columns else 0}")
+            return self
+            
+        except Exception as e:
+            print(f"Erro durante o fit: {e}")
+            raise
+
+
+
+################################################################################
+# Arquivo: src/core/preprocessors/column_selector.py
+################################################################################
+
+import pandas as pd
+from typing import List, Dict
+
+class ColumnSelector:
+    def __init__(self, data: pd.DataFrame, num_classes: int = 5):
+        self.data = data
+        self.num_classes = num_classes  # Max number of classes for a column to be considered nominal
+
+    def get_numerical_columns(self) -> List[str]:
+        numerical_columns = self.data.select_dtypes(include=['int64', 'float64']).columns.tolist()
+        return numerical_columns if numerical_columns else None
+
+    def get_nominal_columns(self) -> List[str]:
+        condition = lambda col: (
+            (self.data[col].dtype == 'object' or self.data[col].dtype == 'int64') and
+            self.data[col].nunique() < self.num_classes
+        )
+        nominal_columns = [col for col in self.data.columns if condition(col)]
+        return nominal_columns if nominal_columns else None
+    
+    def get_ordinal_columns(self) -> List[str]:
+        # Assumes ordinal columns have "ordinal" in their name or are integers
+        condition = lambda col: (
+            (isinstance(col, int) or 'ordinal' in str(col)) and
+            self.data[col].nunique() <= self.num_classes
+        )
+        ordinal_columns = [col for col in self.data.columns if condition(col)]
+        return ordinal_columns if ordinal_columns else None
+
+    def get_ordinal_categories(self) -> Dict[str, List]:
+        ordinal_columns = self.get_ordinal_columns()
+        if not ordinal_columns:
+            return None
+        ordinal_categories = {col: self.data[col].unique().tolist() for col in ordinal_columns}
+        return ordinal_categories if ordinal_categories else None
+
+    def get_columns_by_regex(self, regex_pattern: str) -> List[str]:
+        columns_by_regex = self.data.filter(regex=regex_pattern).columns.tolist()
+        return columns_by_regex if columns_by_regex else None
+
+
+
+################################################################################
+# Arquivo: src/core/preprocessors/data_loader.py
+################################################################################
+
+import pandas as pd
+
+class DataLoader():
+    """
+    Class to load data from a CSV file in a dataframe.
+    """
+
+    @staticmethod
+    def load_data(file_path: str, delimiter: str = ',', encoding: str = 'utf-8') -> None:
+        """
+        Load data from the CSV file into a DataFrame.
+        """
+        return pd.read_csv(file_path, delimiter=delimiter, encoding=encoding)
+
+
+
+################################################################################
+# Arquivo: src/core/preprocessors/data_encoder.py
+################################################################################
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, MinMaxScaler, OrdinalEncoder
+from sklearn.compose import ColumnTransformer
+from core.preprocessors.column_selector import ColumnSelector
+
+class DataEncoder():
+    def __init__(self, num_classes: int, scaling_strategy: str = 'standard', select_numerical: bool = False, select_nominal: bool = False, select_ordinal: bool = False):
+        self.num_classes = num_classes
+        self.scaling_strategy = scaling_strategy
+        self.column_selector = None
+        self.column_transformer = None
+        self.numerical_columns = None
+        self.nominal_columns = None
+        self.ordinal_columns = None
+        self.ordinal_categories = None
+        self.select_numerical = select_numerical
+        self.select_nominal = select_nominal
+        self.select_ordinal = select_ordinal
+
+    def initialize_encoder(self):
+        transformers = []
+
+        if self.numerical_columns is not None:
+            if self.scaling_strategy == 'standard':
+                transformers.append(('num_standard', StandardScaler(), self.numerical_columns))
+            elif self.scaling_strategy == 'minmax':
+                transformers.append(('num_minmax', MinMaxScaler(), self.numerical_columns))
+            elif self.scaling_strategy == 'both':
+                transformers.append(('num_standard', StandardScaler(), self.numerical_columns))
+                transformers.append(('num_minmax', MinMaxScaler(), self.numerical_columns))
+
+        if self.nominal_columns is not None:
+            transformers.append(('nom', OneHotEncoder(sparse_output=False, handle_unknown='ignore', drop='first'), self.nominal_columns))
+
+        if self.ordinal_columns is not None:
+            categories = [self.ordinal_categories[col] for col in self.ordinal_columns]
+            transformers.append(('ord', OrdinalEncoder(categories=categories), self.ordinal_columns))
+
+        self.column_transformer = ColumnTransformer(transformers=transformers)
+
+    def select_columns(self, X: pd.DataFrame):
+        """ Seleciona colunas numéricas, nominais e ordinais
+        baseado em algumas heurísticas genéricas definidas em ColumnSelector.
+    
+        Args:
+            X (pd.DataFrame): O DataFrame de entrada.
+            select_numerical (bool): Se True, seleciona colunas numéricas.
+            select_nominal (bool): Se True, seleciona colunas nominais.
+            select_ordinal (bool): Se True, seleciona colunas ordinais.
+        """
+        self.column_selector = ColumnSelector(X, self.num_classes)
+        
+        if self.select_numerical:
+            self.numerical_columns = self.column_selector.get_numerical_columns()
+        else:
+            self.numerical_columns = None
+    
+        if self.select_nominal:
+            self.nominal_columns = self.column_selector.get_nominal_columns()
+        else:
+            self.nominal_columns = None
+    
+        if self.select_ordinal:
+            self.ordinal_columns = self.column_selector.get_ordinal_columns()
+            self.ordinal_categories = self.column_selector.get_ordinal_categories()
+        else:
+            self.ordinal_columns = None
+            self.ordinal_categories = None
+
+    def fit(self, X: pd.DataFrame, y=None):
+        self.select_columns(X)
+        self.initialize_encoder()
+        self.column_transformer.fit(X)
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        X_transformed = self.column_transformer.transform(X)
+        feature_names = self.column_transformer.get_feature_names_out()
+        if X_transformed.shape[1] != len(feature_names):
+            raise ValueError(f"DataEncoder: Shape of transformed data is {X_transformed.shape}, but got {len(feature_names)} feature names.")
+        return pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
+
+    def fit_transform(self, X: pd.DataFrame, y=None) -> pd.DataFrame:
+        self.fit(X, y)
+        return self.transform(X)
+    
+    @staticmethod
+    def encode_y(y):
+        y_encoded = LabelEncoder().fit_transform(y)
+        return y_encoded
+
+
+################################################################################
+# Arquivo: src/core/preprocessors/data_balancer.py
+################################################################################
+
+import pandas as pd
+from imblearn.over_sampling import SMOTE
+from typing import Tuple
+
+class DataBalancer:
+    def __init__(self, random_state: int = 42):
+        self.random_state = random_state
+
+    def apply_smote(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
+        smote = SMOTE(random_state=self.random_state)
+        X_resampled, y_resampled = smote.fit_resample(X, y)
+        
+        # Verifique se y é um pandas.Series ou numpy.ndarray
+        if isinstance(y, pd.Series):
+            y_name = y.name
+        else:
+            y_name = "target"
+        
+        return pd.DataFrame(X_resampled, columns=X.columns), pd.Series(y_resampled, name=y_name)
+
+
+################################################################################
+# Arquivo: src/core/preprocessors/data_cleaner.py
+################################################################################
+
+class DataCleaner():
+    
+    @staticmethod
+    def remove_instances_with_value(data, column: str, value: str):
+        """
+        Remove instances where the specified column has the specified value.
+
+        Args:
+            data (pd.DataFrame): The input data.
+            column (str): The column to check.
+            value (str): The value to remove.
+
+        Returns:
+            pd.DataFrame: The cleaned data.
+        """
+        return data[data[column] != value]
+    
+    @staticmethod
+    def remove_columns(data, columns: list):
+        """
+        Remove the specified columns from the data.
+
+        Args:
+            data (pd.DataFrame): The input data.
+            columns (list): The columns to remove.
+
+        Returns:
+            pd.DataFrame: The cleaned data.
+        """
+        return data.drop(columns=columns)
+    
+
+
+################################################################################
+# Arquivo: src/core/preprocessors/data_splitter.py
+################################################################################
+
+from typing import Tuple
+import pandas as pd
+from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
+
+class DataSplitter:
+    @staticmethod
+    def split_by_student_level(data, test_size=0.2, column_name='aluno'):
+        unique_students = data[column_name].unique()
+        train_students, test_students = train_test_split(unique_students, test_size=test_size, random_state=42)
+        train_data = data[data[column_name].isin(train_students)]
+        test_data = data[data[column_name].isin(test_students)]
+        return train_data, test_data
+
+    @staticmethod
+    def split_by_stratified_student_level(data, test_size=0.2, column_name='aluno', target_column='comportamento', n_splits=10):
+        unique_students = data[column_name].unique()
+        stratified_split = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=42)
+        y = data.groupby(column_name)[target_column].first().loc[unique_students]
+        for train_index, test_index in stratified_split.split(unique_students, y):
+            train_students = unique_students[train_index]
+            test_students = unique_students[test_index]
+            break
+        train_data = data[data[column_name].isin(train_students)]
+        test_data = data[data[column_name].isin(test_students)]
+        return train_data, test_data
+
+    @staticmethod
+    def split_data_stratified(data, test_size=0.2, target_column='comportamento', n_splits=1, random_state=42):
+        stratified_split = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
+        for train_index, test_index in stratified_split.split(data, data[target_column]):
+            train_data = data.iloc[train_index]
+            test_data = data.iloc[test_index]
+            break
+        return train_data, test_data
+
+    @staticmethod
+    def split_into_x_y(data: pd.DataFrame, target_column: str) -> Tuple[pd.DataFrame, pd.Series]:
+        X = data.drop(columns=[target_column])
+        y = data[target_column]
+        return X, y
+
+
+################################################################################
+# Arquivo: src/core/reporting/report_formatter.py
+################################################################################
+
+import pandas as pd
+
+class ReportFormatter:
+    @staticmethod
+    def generate_text_report(class_metrics_reports, avg_metrics_reports):
+        report_output = ""
+        for model_name, model_info in class_metrics_reports.items():
+            avg_info = avg_metrics_reports[model_name]
+            report_output += ReportFormatter._format_model_report(model_name, model_info, avg_info)
+        return report_output
+
+    @staticmethod
+    def _format_model_report(model_name, model_info, avg_info):
+        model_parts = model_name.split('_')
+        base_model = model_parts[0]
+        selector = model_parts[1] if len(model_parts) > 1 else 'none'
+        
+        report = (f"\nEvaluating {base_model} with {selector} selector using {avg_info['training_type']}:\n"
+                  f"Hyperparameters: {avg_info['hyperparameters']}\n")
+        
+        if 'feature_info' in model_info:
+            feature_info = model_info['feature_info']
+            
+            if feature_info['type'] == 'pca':
+                report += "\nPCA Information:\n"
+                report += f"Number of components: {feature_info['n_components']}\n"
+                if 'explained_variance_ratio' in feature_info:
+                    total_variance = sum(feature_info['explained_variance_ratio'])
+                    report += f"Total explained variance: {total_variance:.2%}\n"
+                    report += "New features: " + ", ".join(feature_info['new_features']) + "\n"
+                
+            elif feature_info['type'] == 'selector':
+                if 'selected_features' in feature_info:
+                    report += "\nSelected Features:\n"
+                    report += ", ".join(map(str, feature_info['selected_features'])) + "\n"
+                    
+            report += f"\n{feature_info['description']}\n"
+
+        report += "\nCross-Validation Results:\n"
+        report += f"Average Score: {avg_info['cv_report']:.4f}\n"
+        
+        report += ReportFormatter._format_set_report("Train", model_info, avg_info)
+        report += ReportFormatter._format_set_report("Test", model_info, avg_info)
+        return report
+
+    @staticmethod
+    def _format_set_report(set_name, model_info, avg_info):
+        report = f"\n{set_name} set class report:\n"
+        report += ReportFormatter._format_classification_report(model_info[f'{set_name.lower()}_class_report'])
+        report += f"\n{set_name} set average metrics:\n"
+        report += ReportFormatter._format_classification_report(avg_info[f'{set_name.lower()}_avg_metrics'])
+        report += f"\n{set_name} set confusion matrix:\n"
+        report += model_info[f'{set_name.lower()}_conf_matrix'].to_string() + "\n"
+        return report
+
+    @staticmethod
+    def _format_classification_report(report_df):
+        output = ""
+        for index, row in report_df.iterrows():
+            if index in ['accuracy', 'balanced_accuracy']:
+                output += f"{index.capitalize()}: {row['f1-score']}\n"
+            else:
+                output += (f"Class {index} - Precision: {row['precision']}, Recall: {row['recall']}, "
+                           f"F1-Score: {row['f1-score']}, Support: {row['support']}\n")
+        return output
+
+    @staticmethod
+    def generate_class_report_dataframe(class_metrics_reports):
+        dfs = []
+        for model_name, model_info in class_metrics_reports.items():
+            train_report = model_info['train_class_report'].add_suffix('-train')
+            test_report = model_info['test_class_report'].add_suffix('-test')
+            combined_report = train_report.join(test_report)
+            combined_report['Model'] = model_name
+            
+            # Adicionar informações do feature selector
+            if 'feature_info' in model_info:
+                feature_info = model_info['feature_info']
+                combined_report['Feature_Selection_Type'] = feature_info['type']
+                combined_report['N_Features'] = feature_info['n_features']
+                
+                if feature_info['type'] == 'pca' and 'explained_variance_ratio' in feature_info:
+                    combined_report['Total_Variance_Explained'] = sum(feature_info['explained_variance_ratio'])
+                
+            dfs.append(combined_report.reset_index().rename(columns={'index': 'Metric'}))
+            
+        return pd.concat(dfs, ignore_index=True)
+
+    @staticmethod
+    def _prepare_model_report(model_name, model_info):
+        train_report = model_info['train_class_report'].add_suffix('-train')
+        test_report = model_info['test_class_report'].add_suffix('-test')
+        combined_report = train_report.join(test_report)
+        combined_report['Model'] = model_name
+        return combined_report.reset_index().rename(columns={'index': 'Metric'})
+
+    @staticmethod
+    def generate_avg_metrics_report_dataframe(avg_metrics_reports):
+        """
+        Gera um DataFrame com métricas médias de todos os modelos.
+        
+        Args:
+            avg_metrics_reports (dict): Dicionário com resultados das métricas médias
+            
+        Returns:
+            pd.DataFrame: DataFrame formatado com as métricas médias
+        """
+        rows = []
+        for model_name, model_info in avg_metrics_reports.items():
+            row = {'Model': model_name}
+            
+            # Adicionar score da cross-validation
+            row['CV Score'] = model_info['cv_report']
+            
+            # Adicionar métricas de treino
+            train_metrics = model_info['train_avg_metrics']
+            row['balanced_accuracy-train'] = train_metrics.loc['balanced_accuracy', 'f1-score']
+            row['f1-score-train'] = train_metrics.loc['weighted avg', 'f1-score']
+            row['precision-train'] = train_metrics.loc['weighted avg', 'precision']
+            row['recall-train'] = train_metrics.loc['weighted avg', 'recall']
+            
+            # Adicionar métricas de teste
+            test_metrics = model_info['test_avg_metrics']
+            row['balanced_accuracy-test'] = test_metrics.loc['balanced_accuracy', 'f1-score']
+            row['f1-score-test'] = test_metrics.loc['weighted avg', 'f1-score']
+            row['precision-test'] = test_metrics.loc['weighted avg', 'precision']
+            row['recall-test'] = test_metrics.loc['weighted avg', 'recall']
+            
+            rows.append(row)
+        
+        # Criar DataFrame final
+        result_df = pd.DataFrame(rows)
+        
+        # Definir ordem das colunas
+        column_order = [
+            'Model', 
+            'CV Score',
+            'balanced_accuracy-train',
+            'f1-score-train',
+            'precision-train',
+            'recall-train',
+            'balanced_accuracy-test',
+            'f1-score-test',
+            'precision-test',
+            'recall-test'
+        ]
+        
+        return result_df[column_order]
+
+
+    @staticmethod
+    def _prepare_avg_metrics_report(model_name, model_info):
+        train_metrics = model_info['train_avg_metrics'].add_suffix('-train')
+        test_metrics = model_info['test_avg_metrics'].add_suffix('-test')
+        combined_report = train_metrics.join(test_metrics)
+        combined_report['Model'] = model_name
+        return combined_report.reset_index().rename(columns={'index': 'Metric'})
+
+
+################################################################################
+# Arquivo: src/core/reporting/metrics_reporter.py
+################################################################################
+
+from core.evaluation.evaluation import Evaluation  
+from core.models.model_manager import ModelManager
+from core.reporting.report_formatter import ReportFormatter
+from core.logging.file_utils import FileUtils
+
+@staticmethod
+def evaluate_models(trained_models, X_train, y_train, X_test, y_test):
+    return Evaluation.evaluate_all_models(trained_models, X_train, y_train, X_test, y_test)
+
+@staticmethod
+def generate_reports(class_metrics_results, avg_metrics_results, directory="../output/", filename_prefix=""):
+    if not class_metrics_results or not avg_metrics_results:
+        print("Aviso: Não há resultados para gerar relatórios.")
+        return
+
+    # Gerar relatório textual a partir dos resultados de avaliação
+    text_report = ReportFormatter.generate_text_report(class_metrics_results, avg_metrics_results)
+
+    # Imprimir ou salvar o relatório
+    FileUtils.save_file_with_timestamp(text_report, filename_prefix+"text_report.txt", directory)
+
+    # Gerar DataFrame detalhado dos relatórios por classe
+    try:
+        class_report_df = ReportFormatter.generate_class_report_dataframe(class_metrics_results)
+        FileUtils.save_file_with_timestamp(class_report_df, filename_prefix+"class_report.csv", directory, is_csv=True)
+    except ValueError as e:
+        print(f"Aviso: Não foi possível gerar o relatório de classes: {str(e)}")
+
+    # Gerar DataFrame resumido dos relatórios de métricas médias
+    try:
+        avg_metrics_report_df = ReportFormatter.generate_avg_metrics_report_dataframe(avg_metrics_results)
+        FileUtils.save_file_with_timestamp(avg_metrics_report_df, filename_prefix+"avg_metrics_report.csv", directory, is_csv=True)
+    except ValueError as e:
+        print(f"Aviso: Não foi possível gerar o relatório de métricas médias: {str(e)}")
+
+@staticmethod
+def save_models(trained_models, model_dir="../models/", filename_prefix=""):
+    # Salvar todos os modelos
+    saved_models = ModelManager.save_all_models(trained_models, model_dir, filename_prefix)
+    print("Modelos salvos:", saved_models)
+    return saved_models
+
+
+################################################################################
+# Arquivo: src/core/training/grid_search_training.py
+################################################################################
+
+import pandas as pd
+from sklearn.model_selection import GridSearchCV
+from core.logging.logger_config import with_logging
+from core.training.base_training import BaseTraining
+from core.models.parameter_handlers.grid_search_param_converter import GridSearchParamConverter
+
+@with_logging('grid_search')
+class GridSearchTraining(BaseTraining):
+    def __init__(self):
+        super().__init__()
+
+    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+        try:
+            self.logger.info(f"Training and evaluating {model_name} with GridSearchCV and {selector_name}")
+
+            param_grid = GridSearchParamConverter.convert_param_space(model_params, model_name)
+            if selector_search_space:
+                if isinstance(param_grid, list):
+                    for subspace in param_grid:
+                        subspace.update(selector_search_space)
+                else:
+                    param_grid.update(selector_search_space)
+
+            grid_search = GridSearchCV(
+                estimator=pipeline,
+                param_grid=param_grid,
+                cv=cv,
+                n_jobs=n_jobs,
+                scoring=scoring,
+                verbose=0,
+                error_score=float('-inf')  # Retorna -inf em vez de levantar erro
+            )
+
+            grid_search.fit(X_train, y_train)
+            
+            # Log the results using ModelTraining's method
+            self.log_search_results(self.logger, grid_search, model_name, selector_name)
+
+            self.trained_models[f"{model_name}_{selector_name}"] = {
+                'model': grid_search.best_estimator_,
+                'training_type': "GridSearchCV",
+                'hyperparameters': grid_search.best_params_,
+                'cv_result': grid_search.best_score_
+            }
+
+        except Exception as e:
+            self.log_parameter_error(self.logger, model_name, param_grid)
+
+
+################################################################################
+# Arquivo: src/core/training/optuna_bayesian_optimization_training.py
+################################################################################
+
+import optuna
+from optuna.samplers import TPESampler
+from optuna.logging import set_verbosity, WARNING
+from sklearn.model_selection import cross_val_score
+from sklearn.base import clone
+from core.training.base_training import BaseTraining
+from core.models.parameter_handlers.optuna_param_converter import OptunaParamConverter
+from core.logging.logger_config import with_logging
+from time import time
+import pandas as pd
+
+@with_logging('optuna_training')
+class OptunaBayesianOptimizationTraining(BaseTraining):
+    def __init__(self):
+        super().__init__()
+
+    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+        set_verbosity(WARNING)
+        self.logger.info(f"Training and evaluating {model_name} with Optuna Optimization and {selector_name}")
+        print(f"Inside OptunaBayesianOptimizationTraining.optimize_model")
+
+
+        def objective(trial):
+            try:
+                # Sugerir hiperparâmetros do modelo
+                model_hyperparams = OptunaParamConverter.suggest_parameters(trial, model_params, model_name)
+                 
+                # Sugerir hiperparâmetros do seletor
+                selector_hyperparams = OptunaParamConverter.suggest_selector_hyperparameters(
+                    trial, selector_search_space) if selector_search_space else {}
+                
+                # Combinar os hiperparâmetros
+                hyperparams = {**model_hyperparams, **selector_hyperparams}
+                pipeline.set_params(**hyperparams)
+                
+                return cross_val_score(
+                    estimator=pipeline,
+                    X=X_train,
+                    y=y_train,
+                    scoring=scoring,
+                    cv=cv,
+                    n_jobs=n_jobs
+                ).mean()
+                
+            except Exception as e:
+                self.log_parameter_error(self.logger, model_name, hyperparams)
+                return float('-inf')
+
+        # Criar um estudo do Optuna
+        study = optuna.create_study(direction='maximize', sampler=TPESampler())
+        
+        # Iniciar o tempo de otimização
+        start_time = time()
+        study.optimize(objective, n_trials=n_iter)
+        total_time = time() - start_time
+
+        # Criar uma cópia do pipeline para o treinamento final
+        best_pipeline = clone(pipeline)
+
+        # Configurar com os melhores hiperparâmetros
+        best_pipeline.set_params(**study.best_trial.params)
+        
+        # Treinar o pipeline final com todos os dados
+        best_pipeline.fit(X_train, y_train)
+
+
+        # Log the results using the overridden method
+        self.log_search_results(self.logger, study, model_name, selector_name)
+        
+        # Armazenar os resultados
+        self.trained_models[f"{model_name}_{selector_name}"] = {
+            'model': best_pipeline,
+            'training_type': "Optuna",
+            'hyperparameters': study.best_trial.params,
+            'cv_result': study.best_trial.value,
+            'optimization_time_seconds': total_time
+        }
+
+        # Log final do melhor resultado
+        self.logger.info(f"Optuna Optimization Best Result for {model_name} with {selector_name}: {study.best_trial.value}")
+    
+    @staticmethod
+    def log_search_results(logger, study, model_name, selector_name):
+        """Log the results of the Optuna optimization process."""
+        logger.info(f"Best parameters: {study.best_params}")
+        logger.info(f"Best cross-validation score: {study.best_value}")
+
+        # Log all hyperparameter combinations and their cross-validation results
+        logger.info("All hyperparameter combinations and their cross-validation results:")
+        nan_count = 0
+        for trial in study.trials:
+            mean_score = trial.value
+            params = trial.params
+            if pd.isna(mean_score):
+                nan_count += 1
+            logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
+        logger.info(f"Number of tests that resulted in NaN for {model_name}: {nan_count}")
+
+
+
+################################################################################
+# Arquivo: src/core/training/random_search_training.py
+################################################################################
+
+from sklearn.model_selection import RandomizedSearchCV
+from core.logging.logger_config import with_logging
+from core.training.base_training import BaseTraining
+from core.models.parameter_handlers.grid_search_param_converter import GridSearchParamConverter
+
+@with_logging('random_search')
+class RandomSearchTraining(BaseTraining):
+    def __init__(self):
+        super().__init__()
+
+    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+        try:
+            self.logger.info(f"Training and evaluating {model_name} with RandomizedSearchCV and {selector_name}")
+
+            param_grid = GridSearchParamConverter.convert_param_space(model_params, model_name)
+            if selector_search_space:
+                if isinstance(param_grid, list):
+                    for subspace in param_grid:
+                        subspace.update(selector_search_space)
+                else:
+                    param_grid.update(selector_search_space)
+
+            random_search = RandomizedSearchCV(
+                estimator=pipeline,
+                param_distributions=param_grid,
+                n_iter=n_iter,
+                cv=cv,
+                n_jobs=n_jobs,
+                scoring=scoring,
+                verbose=0,
+                error_score=float('-inf'),  # Retorna -inf em vez de levantar erro
+                random_state=42
+            )
+
+            random_search.fit(X_train, y_train)
+            
+            # Log the results using ModelTraining's method
+            self.log_search_results(self.logger, random_search, model_name, selector_name)
+
+            self.trained_models[f"{model_name}_{selector_name}"] = {
+                'model': random_search.best_estimator_,
+                'training_type': "RandomizedSearchCV",
+                'hyperparameters': random_search.best_params_,
+                'cv_result': random_search.best_score_
+            }
+
+        except Exception as e:
+            self.log_parameter_error(self.logger, model_name, param_grid)
+
+
+
+################################################################################
+# Arquivo: src/core/training/base_training.py
+################################################################################
+
+from abc import ABC, abstractmethod
+from time import time
+from sklearn.pipeline import Pipeline
+
+from typing import List, Optional, Dict, Any
+import pandas as pd
+
+from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
+
+
+class BaseTraining(ABC):
+    def __init__(self):
+        self.trained_models: Dict[str, Any] = {}
+        self.total_execution_time = 0
+
+
+    def train_model(
+        self,
+        X_train,
+        y_train,
+        model_params,  # define os parâmetros do modelo para o dataset específico
+        selected_models: Optional[List[str]] = None, # Lista de nomes de modelos a serem treinados. Se None, usa todos os modelos.
+        selected_selectors: Optional[List[str]] = None, # Lista de nomes de seletores a serem utilizados. Se None, usa todos os seletores.
+        n_iter: int = 50, # Número de iterações para otimização.
+        cv: int = 5, # Número de folds para validação cruzada.
+        scoring: str = 'balanced_accuracy', # Métrica de avaliação.
+        n_jobs: int = -1 # Número de trabalhos paralelos.
+    ) -> Dict[str, Any]: # Dicionário contendo os modelos treinados e seus resultados.
+        """
+        Treina modelos com diferentes seletores de características.
+        """
+
+        start_time = time()
+
+        available_selector_names = FeatureSelectionFactory.get_available_selectors_names()
+        # Filtrar modelos
+        models = self._filter_models(model_params.get_models(), selected_models)
+        # Filtrar seletores
+        selector_names = self._filter_selectors(selected_selectors, available_selector_names)
+
+        for model_name, model_config in models.items():
+            for selector_name in selector_names:
+                if selector_name == 'none':
+                    pipeline = self._create_pipeline(None, model_config)
+                    selector_search_space = {}
+                else:
+                    # Criar a instância do seletor diretamente dentro do loop
+                    selector_instance = FeatureSelectionFactory.create_selector(selector_name, X_train, y_train)
+                    selector = selector_instance.selector  # Acessar o seletor criado no construtor
+
+                    pipeline = self._create_pipeline(selector, model_config)
+                    # Obter o espaço de busca diretamente do selector_instance
+                    selector_search_space = selector_instance.get_search_space()
+
+                self.optimize_model(
+                    pipeline=pipeline,
+                    model_name=model_name,
+                    model_params=model_params,  
+                    selector_name=selector_name,
+                    X_train=X_train,
+                    y_train=y_train,
+                    n_iter=n_iter,
+                    cv=cv,
+                    scoring=scoring,
+                    n_jobs=n_jobs,
+                    selector_search_space=selector_search_space
+                )
+
+        self.total_execution_time = time() - start_time
+        self._log_execution_time(len(models)) 
+        return self.trained_models
+
+    @abstractmethod
+    def optimize_model(
+        self,
+        pipeline,
+        model_name: str,
+        selector_name: str,
+        X_train,
+        y_train,
+        n_iter: int,
+        cv: int,
+        scoring: str,
+        n_jobs: int,
+        selector_search_space: dict
+    ):
+        pass
+
+    @staticmethod
+    def _create_pipeline(selector, model_config) -> Pipeline:
+        """
+        Cria um pipeline com seleção de características e o classificador.
+
+        Args:
+            selector: Seletor de características.
+            model_config: Configuração do modelo de classificação.
+
+        Returns:
+            Pipeline: Pipeline configurado.
+        """
+        steps = []
+        if selector is not None:
+            steps.append(('feature_selection', selector))
+        steps.append(('classifier', model_config))
+        return Pipeline(steps)
+
+    def _filter_models(self, models: Dict[str, Any], selected_models: Optional[List[str]]) -> Dict[str, Any]:
+        """
+        Filtra os modelos baseados na lista de modelos selecionados.
+
+        Args:
+            models (Dict[str, Any]): Dicionário de modelos disponíveis.
+            selected_models (Optional[List[str]]): Lista de modelos a serem utilizados.
+
+        Returns:
+            Dict[str, Any]: Dicionário filtrado de modelos.
+        """
+        if selected_models is not None:
+            filtered_models = {name: cfg for name, cfg in models.items() if name in selected_models}
+            missing_models = set(selected_models) - set(filtered_models.keys())
+            if missing_models:
+                raise ValueError(f"Modelos não encontrados: {missing_models}")
+            return filtered_models
+        return models
+
+    def _filter_selectors(self, selected_selectors: Optional[List[str]], available_selector_names: List[str]) -> List[str]:
+        """
+        Filtra os seletores baseados na lista de seletores selecionados.
+
+        Args:
+            selected_selectors (Optional[List[str]]): Lista de seletores a serem utilizados.
+            available_selector_names (List[str]): Lista de seletores disponíveis.
+
+        Returns:
+            List[str]: Lista filtrada de seletores.
+
+        Raises:
+            ValueError: Se algum seletor selecionado não for encontrado.
+        """
+        if selected_selectors is not None:
+            selector_names = [s for s in selected_selectors if s in available_selector_names or s == 'none']
+            missing_selectors = set(selected_selectors) - set(selector_names)
+            if missing_selectors:
+                raise ValueError(f"Seletores não encontrados: {missing_selectors}")
+            return selector_names
+        return available_selector_names + ['none']
+    
+    def log_parameter_error(self, logger, model_name: str, params: dict) -> None:
+        """
+        Método comum para logar erros de parâmetros inválidos.
+        
+        Args:
+            logger: Logger configurado
+            model_name: Nome do modelo
+            params: Parâmetros que causaram o erro
+        """
+        logger.warning(f"Trial failed: Invalid parameter combination for {model_name}")
+        logger.warning(f"Parameters that failed: {params}")
+    
+    @staticmethod
+    def log_search_results(logger, search, model_name, selector_name):
+        """Log the results of the search process."""
+        if hasattr(search, 'best_params_'):
+            logger.info(f"Best parameters: {search.best_params_}")
+        if hasattr(search, 'best_score_'):
+            logger.info(f"Best cross-validation score: {search.best_score_}")
+
+        # Log all hyperparameter combinations and their cross-validation results
+        logger.info("All hyperparameter combinations and their cross-validation results:")
+        
+        if hasattr(search, 'cv_results_'):
+            cv_results = search.cv_results_
+            success_count = 0
+            for mean_score, params in zip(cv_results['mean_test_score'], cv_results['params']):
+                if not pd.isna(mean_score):
+                    success_count += 1
+                    logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
+            
+            logger.info(f"Number of successful trials for {model_name}: {success_count}")
+            logger.info(f"Number of failed trials for {model_name}: {len(cv_results['mean_test_score']) - success_count}")
+
+    def _log_execution_time(self, num_models):
+        """
+        Registra no log as informações sobre o tempo de execução do algoritmo.
+        
+        Args:
+            num_models (int): Número total de modelos treinados
+        """
+        algorithm_name = self.__class__.__name__.replace('Training', '')
+        self.logger.info(f"\n{'='*50}")
+        self.logger.info(f"Tempo total de execução do {algorithm_name}: {self.total_execution_time:.2f} segundos")
+        self.logger.info(f"Média de tempo por modelo: {self.total_execution_time/num_models:.2f} segundos")
+        self.logger.info(f"{'='*50}\n")
+
+
+################################################################################
+# Arquivo: src/core/management/stage_training_manager.py
+################################################################################
+
+# stage_training_manager.py
+
+from datetime import datetime
+import json
+import os
+from core.management.checkpoint_manager import CheckpointManager
+from core.management.results_manager import ResultsManager
+from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
+from core.reporting import metrics_reporter
+
+class StageTrainingManager:
+    def __init__(self, X_train, X_test, y_train, y_test, model_params,
+                 checkpoint_path='../output/checkpoints/',
+                 results_path='../output/results/',
+                 progress_file='../output/progress.json',
+                 n_iter=50,
+                 cv=5,
+                 scoring='balanced_accuracy',
+                 n_jobs=-1):
+        """
+        Inicializa o gerenciador de treinamento em etapas.
+        
+        Args:
+            X_train: Features de treino
+            X_test: Features de teste
+            y_train: Target de treino
+            y_test: Target de teste
+            model_params: Parâmetros dos modelos
+            checkpoint_path: Caminho para salvar checkpoints
+            results_path: Caminho para salvar resultados
+            n_iter: Número de iterações para otimização
+            cv: Número de folds para validação cruzada
+            scoring: Métrica de avaliação
+            n_jobs: Número de jobs paralelos
+        """
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
+        self.model_params = model_params
+        self.n_iter = n_iter
+        self.cv = cv
+        self.scoring = scoring
+        self.n_jobs = n_jobs
+        
+        self.checkpoint_handler = CheckpointManager(checkpoint_path)
+        self.results_handler = ResultsManager(results_path)
+
+        self.progress_file = progress_file
+        
+    def train_models(self, selected_models, selected_selectors):
+        """Executa o treinamento dos modelos selecionados."""
+        training = OptunaBayesianOptimizationTraining()
+        trained_models = training.train_model(
+            X_train=self.X_train,
+            y_train=self.y_train,
+            model_params=self.model_params,
+            selected_models=selected_models,
+            selected_selectors=selected_selectors,
+            n_iter=self.n_iter,
+            cv=self.cv,
+            scoring=self.scoring,
+            n_jobs=self.n_jobs
+        )
+        
+        class_metrics, avg_metrics = metrics_reporter.evaluate_models(
+            trained_models, self.X_train, self.y_train, 
+            self.X_test, self.y_test
+        )
+        
+        return trained_models, class_metrics, avg_metrics
+    
+    def save_stage_results(self, trained_models, class_metrics, avg_metrics, stage_name):
+        """Salva os resultados de uma etapa."""
+        checkpoint = {
+            'trained_models': trained_models,
+            'stage': stage_name,
+            'timestamp': datetime.now()
+        }
+        self.checkpoint_handler.save_checkpoint(checkpoint, f"stage_{stage_name}")
+        
+        self.results_handler.save_training_results(trained_models, stage_name)
+        self.results_handler.save_evaluation_results(class_metrics, avg_metrics, stage_name)
+    
+    def execute_stage(self, stage_name, models, selectors):
+        """Executa uma etapa completa do treinamento."""
+        print(f"Executando etapa: {stage_name}")
+        print(f"Modelos: {models}")
+        print(f"Seletores: {selectors}")
+        
+        checkpoint = self.checkpoint_handler.load_latest_checkpoint(f"stage_{stage_name}")
+        
+        if checkpoint is None:
+            print(f"Iniciando treinamento da etapa {stage_name}...")
+            trained_models, class_metrics, avg_metrics = self.train_models(models, selectors)
+            self.save_stage_results(trained_models, class_metrics, avg_metrics, stage_name)
+            print(f"Etapa {stage_name} concluída e resultados salvos.")
+            return trained_models, class_metrics, avg_metrics
+        else:
+            print(f"Etapa {stage_name} já foi executada anteriormente.")
+            return None
+    
+    def combine_results(self):
+        """Combina os resultados de todas as etapas."""
+        return self.results_handler.load_all_results()
+    
+    def _load_progress(self):
+        """Carrega o progresso atual do treinamento."""
+        try:
+            with open(self.progress_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {'completed_stages': [], 'last_stage': None}
+            
+    def _save_progress(self, completed_stages, current_stage=None):
+        """Salva o progresso atual do treinamento."""
+        progress = {
+            'completed_stages': completed_stages,
+            'last_stage': current_stage
+        }
+        os.makedirs(os.path.dirname(self.progress_file), exist_ok=True)
+        with open(self.progress_file, 'w') as f:
+            json.dump(progress, f)
+    
+    def execute_all_stages(self, training_manager, stages):
+        """
+        Executa todas as etapas sequencialmente, com capacidade de retomar de onde parou.
+        
+        Args:
+            training_manager: Instância do StageTrainingManager
+            stages: Lista de tuplas (stage_name, models, selectors)
+        """
+        # Carregar progresso anterior
+        progress = training_manager._load_progress()
+        completed_stages = set(progress['completed_stages'])
+    
+        print("\nVerificando progresso anterior...")
+        if completed_stages:
+            print(f"Stages já completados: {', '.join(completed_stages)}")
+        else:
+            print("Nenhum stage completado anteriormente. Iniciando do começo.")
+        
+        all_results = []
+        
+        for stage_num, (stage_name, models, selectors) in enumerate(stages, 1):
+            if stage_name in completed_stages:
+                print(f"\nStage {stage_num} ({stage_name}) já foi completado. Pulando...")
+                continue
+                
+            print(f"\n{'='*50}")
+            print(f"Iniciando Stage {stage_num}: {stage_name}")
+            print(f"{'='*50}")
+            
+            try:
+                # Salvar stage atual como "em progresso"
+                training_manager._save_progress(list(completed_stages), stage_name)
+                
+                # Executar stage
+                results = training_manager.execute_stage(stage_name, models, selectors)
+                
+                if results:
+                    trained_models, class_metrics, avg_metrics = results
+                    
+                    # Gerar relatórios para o stage atual
+                    print(f"\nGerando relatórios para {stage_name}...")
+                    metrics_reporter.generate_reports(
+                        class_metrics, 
+                        avg_metrics, 
+                        filename_prefix=f"_{stage_name}_"
+                    )
+                    
+                    all_results.append(results)
+                    
+                    # Marcar stage como completado
+                    completed_stages.add(stage_name)
+                    training_manager._save_progress(list(completed_stages))
+                    
+                    print(f"\nStage {stage_num} ({stage_name}) concluído com sucesso!")
+                
+                print(f"{'='*50}")
+                print(f"Finalizando Stage {stage_num}: {stage_name}")
+                print(f"{'='*50}\n")
+                
+            except Exception as e:
+                print(f"\nErro no Stage {stage_num} ({stage_name}): {str(e)}")
+                print("O treinamento pode ser retomado deste ponto posteriormente.")
+                raise  # Re-lança a exceção para interromper o processo
+        
+        if all_results or completed_stages:
+            print("\nGerando relatório final combinado...")
+            training_results, class_metrics, avg_metrics = training_manager.combine_results()
+            metrics_reporter.generate_reports(
+                class_metrics, 
+                avg_metrics, 
+                filename_prefix="_Final_Combined_"
+            )
+            print("\nProcesso completo! Todos os stages foram executados e relatórios gerados.")
+
+
+
+################################################################################
+# Arquivo: src/core/management/results_manager.py
+################################################################################
+
+import pandas as pd
+from datetime import datetime
+import os
+
+class ResultsManager:
+    def __init__(self, base_path='drive/MyDrive/behavior_detection/results/'):
+        self.base_path = base_path
+        os.makedirs(base_path, exist_ok=True)
+        
+    def save_training_results(self, trained_models, stage_name):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        
+        # Salvar hiperparâmetros e scores CV
+        results = []
+        for model_name, info in trained_models.items():
+            results.append({
+                'model_name': model_name,
+                'hyperparameters': str(info['hyperparameters']),
+                'cv_score': info['cv_result'],
+                'training_type': info['training_type']
+            })
+        
+        df_results = pd.DataFrame(results)
+        df_results.to_csv(f"{self.base_path}training_results_{stage_name}_{timestamp}.csv", 
+                         index=False, sep=';')
+        
+    def save_evaluation_results(self, class_metrics, avg_metrics, stage_name):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        
+        # Salvar métricas por classe
+        class_metrics_df = pd.DataFrame()
+        for model_name, metrics in class_metrics.items():
+            model_metrics = pd.DataFrame({
+                'model': model_name,
+                'train_metrics': metrics['train_class_report'].to_dict('index'),
+                'test_metrics': metrics['test_class_report'].to_dict('index')
+            })
+            class_metrics_df = pd.concat([class_metrics_df, model_metrics])
+            
+        class_metrics_df.to_csv(f"{self.base_path}class_metrics_{stage_name}_{timestamp}.csv", 
+                               index=False, sep=';')
+        
+        # Salvar métricas médias
+        avg_metrics_df = pd.DataFrame([{
+            'model': model_name,
+            **metrics
+        } for model_name, metrics in avg_metrics.items()])
+        
+        avg_metrics_df.to_csv(f"{self.base_path}avg_metrics_{stage_name}_{timestamp}.csv", 
+                             index=False, sep=';')
+    
+    def load_all_results(self):
+        training_files = [f for f in os.listdir(self.base_path) if f.startswith('training_results_')]
+        class_metrics_files = [f for f in os.listdir(self.base_path) if f.startswith('class_metrics_')]
+        avg_metrics_files = [f for f in os.listdir(self.base_path) if f.startswith('avg_metrics_')]
+        
+        all_training_results = pd.concat([
+            pd.read_csv(os.path.join(self.base_path, f), sep=';') 
+            for f in training_files
+        ])
+        
+        all_class_metrics = pd.concat([
+            pd.read_csv(os.path.join(self.base_path, f), sep=';')
+            for f in class_metrics_files
+        ])
+        
+        all_avg_metrics = pd.concat([
+            pd.read_csv(os.path.join(self.base_path, f), sep=';')
+            for f in avg_metrics_files
+        ])
+        
+        return all_training_results, all_class_metrics, all_avg_metrics
+
+
+################################################################################
+# Arquivo: src/core/management/checkpoint_manager.py
+################################################################################
+
+import os
+import pickle
+from datetime import datetime
+
+class CheckpointManager:
+    def __init__(self, base_path='drive/MyDrive/behavior_detection/checkpoints/'):
+        self.base_path = base_path
+        os.makedirs(self.base_path, exist_ok=True)  # Cria o diretório se não existir
+        
+    def save_checkpoint(self, state, filename):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        full_path = f"{self.base_path}{filename}_{timestamp}.pkl"
+        
+        with open(full_path, 'wb') as f:
+            pickle.dump(state, f)
+            
+    def load_latest_checkpoint(self, filename_prefix):
+        import glob
+        files = glob.glob(f"{self.base_path}{filename_prefix}*.pkl")
+        if not files:
+            return None
+        
+        latest_file = max(files, key=os.path.getctime)
+        with open(latest_file, 'rb') as f:
+            return pickle.load(f)
+
+    def merge_results(self, checkpoints):
+        merged_models = {}
+        for checkpoint in checkpoints:
+            merged_models.update(checkpoint['trained_models'])
+        return merged_models
+
+
+################################################################################
+# Arquivo: src/core/models/model_manager.py
+################################################################################
+
+import os
+import joblib
+from core.logging.file_utils import FileUtils
+
+class ModelManager:
+    @staticmethod
+    def save_model(model, filename, directory=None):
+        directory = FileUtils._create_directory_if_not_exists(directory)
+        file_path = FileUtils._generate_filename_with_timestamp(filename)
+        file_path = os.path.join(directory, file_path) if directory else file_path
+        joblib.dump(model, file_path)
+        return file_path
+
+    @staticmethod
+    def load_model(filename, directory=None):
+        file_path = os.path.join(directory, filename) if directory else filename
+        return joblib.load(file_path)
+
+    @classmethod
+    def save_all_models(cls, trained_models, directory, prefix='model'):
+        saved_models = []
+        for model_name, model_info in trained_models.items():
+            filename = f"{prefix}_{model_name}.pkl"
+            file_path = cls.save_model(model_info['model'], filename, directory)
+            saved_models.append(file_path)
+            print(f"Model '{model_name}' saved at: {file_path}")
+        return saved_models
+
+
+################################################################################
+# Arquivo: src/core/models/base_model_params.py
+################################################################################
+
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List
+
+from sklearn.base import BaseEstimator
+
+class BaseModelParams(ABC):
+    """
+    Classe base abstrata que define a interface para todos os parâmetros de modelo.
+    """
+    @abstractmethod
+    def get_models(self) -> Dict[str, BaseEstimator]:
+        """Retorna o dicionário de modelos base."""
+        pass
+    
+    @abstractmethod
+    def get_param_space(self, model_name: str) -> Dict[str, Any]:
+        """Retorna o espaço de parâmetros para um modelo específico."""
+        pass
+    
+    @classmethod
+    def get_available_models(cls) -> List[str]:
+        """Retorna lista de modelos disponíveis."""
+        return list(cls().get_models().keys())
+
+
+
+################################################################################
+# Arquivo: src/core/models/parameter_handlers/optuna_param_converter.py
+################################################################################
+
+import logging
+
+class OptunaParamConverter:
+    # Usar o mesmo logger do OptunaBayesianOptimizationTraining
+    logger = logging.getLogger('optuna_training')
+
+    @staticmethod
+    def suggest_parameters(trial, model_params, model_name):
+        """
+        Sugere parâmetros para o Optuna com base no espaço de parâmetros do modelo.
+        
+        Args:
+            trial: Trial do Optuna
+            model_params (BaseModelParams): Instância que define os parâmetros do modelo
+            model_name (str): Nome do modelo
+            
+        Returns:
+            dict: Dicionário com os parâmetros sugeridos
+        """
+        param_space = model_params.get_param_space(model_name)
+        
+        # Se for uma lista de dicionários (como no caso da Regressão Logística)
+        if isinstance(param_space, list):
+            # Combina todos os dicionários em um único espaço de busca
+            combined_space = {}
+            for param_dict in param_space:
+                combined_space.update(param_dict)
+            param_space = combined_space
+            
+        return OptunaParamConverter._suggest_from_space(trial, param_space)
+
+    def suggest_selector_hyperparameters(trial, selector_search_space):
+        """
+        Sugere hiperparâmetros para o seletor de features baseado no espaço de busca fornecido.
+        """
+        if not selector_search_space:
+            return {}
+
+        suggested_params = {}
+        
+        for param_name, param_values in selector_search_space.items():
+            if isinstance(param_values, list):
+                # Se todos os valores são float, usar suggest_float
+                if all(isinstance(x, float) for x in param_values):
+                    suggested_params[param_name] = trial.suggest_float(
+                        param_name,
+                        min(param_values),
+                        max(param_values)
+                    )
+                # Se todos os valores são int, usar suggest_int
+                elif all(isinstance(x, int) for x in param_values):
+                    suggested_params[param_name] = trial.suggest_int(
+                        param_name,
+                        min(param_values),
+                        max(param_values)
+                    )
+                # Caso contrário, usar categorical
+                else:
+                    suggested_params[param_name] = trial.suggest_categorical(
+                        param_name,
+                        param_values
+                    )
+            else:
+                # Para outros tipos de parâmetros
+                suggested_params[param_name] = OptunaParamConverter._suggest_single_parameter(
+                    trial, param_name, param_values
+                )
+
+        return suggested_params
+
+    @staticmethod
+    def _suggest_from_space(trial, param_space):
+        """
+        Método auxiliar para sugerir parâmetros baseado no espaço de busca.
+        
+        Args:
+            trial: Trial do Optuna
+            param_space (dict): Dicionário com o espaço de busca dos parâmetros
+            
+        Returns:
+            dict: Dicionário com os parâmetros sugeridos
+        """
+        if not param_space:
+            return {}
+            
+        suggested_params = {}
+        
+        for param_name, param_values in param_space.items():
+            try:
+                suggested_params[param_name] = OptunaParamConverter._suggest_single_parameter(
+                    trial, param_name, param_values
+                )
+            except Exception as e:
+                # Usar o logger da classe ao invés de logging diretamente
+                OptunaParamConverter.logger.warning(f"Erro ao sugerir parâmetro {param_name}: {str(e)}")
+                
+                
+        return suggested_params
+
+    @staticmethod
+    def _suggest_single_parameter(trial, param_name, param_values):
+        """
+        Sugere um único parâmetro baseado em seus valores possíveis.
+        
+        Args:
+            trial: Trial do Optuna
+            param_name (str): Nome do parâmetro
+            param_values (list|tuple): Valores possíveis para o parâmetro
+            
+        Returns:
+            Valor sugerido para o parâmetro
+        """
+        if isinstance(param_values, list):
+            return trial.suggest_categorical(param_name, param_values)
+        
+        elif isinstance(param_values, tuple):
+            if isinstance(param_values[0], int):
+                return trial.suggest_int(param_name, param_values[0], param_values[1])
+            else:
+                is_log = len(param_values) > 2 and param_values[2] == 'log-uniform'
+                return trial.suggest_float(param_name, param_values[0], param_values[1], log=is_log)
+        
+        raise ValueError(f"Tipo de valor não suportado para o parâmetro {param_name}: {type(param_values)}")
+
+
+################################################################################
+# Arquivo: src/core/models/parameter_handlers/grid_search_param_converter.py
+################################################################################
+
+
+class GridSearchParamConverter:
+    @staticmethod
+    def convert_param_space(model_params, model_name):
+        param_space = model_params.get_param_space(model_name)
+        if isinstance(param_space, list):
+            # Se param_space for uma lista, retorne-a diretamente
+            return param_space
+        if isinstance(param_space, list):
+            return [
+                {k: GridSearchParamConverter._convert_single_param(v) for k, v in space.items()}
+                for space in param_space
+            ]
+        else:
+            return {k: GridSearchParamConverter._convert_single_param(v) for k, v in param_space.items()}
+
+    @staticmethod
+    def _convert_single_param(space):
+        """Converte um único espaço de parâmetro para o formato do GridSearchCV."""
+        if isinstance(space, tuple):
+            if isinstance(space[0], int):
+                return list(range(space[0], space[1] + 1))
+            return [space[0], (space[0] + space[1]) / 2, space[1]]
+        elif isinstance(space, list):
+            return space
+        return [space]
+
+
+################################################################################
+# Arquivo: src/core/models/multiclass/behavior_model_params.py
+################################################################################
+
+from core.models.multiclass.multiclass_model_params import MulticlassModelParams
+
+class BehaviorModelParams(MulticlassModelParams):
+    """
+    Classe especializada para parâmetros de modelos específicos para a classificação
+    de comportamentos de aprendizagem em Sistemas Tutores Inteligentes.
+    """
+    def _get_logistic_regression_params(self):
+        """
+        Parâmetros otimizados para Regressão Logística na classificação de comportamentos.
+        """
+        return {
+            'classifier__penalty': ['l2'],
+            'classifier__C': [0.01, 0.1, 1.0, 10.0],  # Maior range para regularização
+            'classifier__solver': ['lbfgs', 'newton-cg'],  # Solvers mais eficientes para multiclasse
+            'classifier__max_iter': [5000],  # Aumentado para garantir convergência
+            'classifier__class_weight': ['balanced']  # Importante para classes desbalanceadas
+        }
+
+    def _get_random_forest_params(self):
+        """
+        Parâmetros otimizados para Random Forest na classificação de comportamentos.
+        """
+        return {
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__max_depth': [10, 20, 30, None],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4],
+            'classifier__max_features': ['sqrt', 'log2'],
+            'classifier__class_weight': ['balanced', 'balanced_subsample'],
+            'classifier__bootstrap': [True],
+            'classifier__criterion': ['gini', 'entropy']  # Ambos critérios podem ser úteis
+        }
+
+    def _get_gradient_boosting_space(self):
+        """
+        Parâmetros otimizados para Gradient Boosting na classificação de comportamentos.
+        """
+        return {
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__learning_rate': [0.01, 0.05, 0.1],  # Taxas menores para melhor generalização
+            'classifier__max_depth': [3, 5, 7],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4],
+            'classifier__subsample': [0.8, 0.9, 1.0]  # Adiciona subamostragem para reduzir overfitting
+        }
+
+    def _get_svm_space(self):
+        """
+        Parâmetros otimizados para SVM na classificação de comportamentos.
+        """
+        return [
+            {
+                'classifier__C': [0.1, 1.0, 10.0],
+                'classifier__kernel': ['rbf'],
+                'classifier__gamma': ['scale', 'auto', 0.1, 0.01],
+                'classifier__class_weight': ['balanced']
+            },
+            {
+                'classifier__C': [0.1, 1.0, 10.0],
+                'classifier__kernel': ['linear'],
+                'classifier__class_weight': ['balanced']
+            }
+        ]
+
+    def _get_mlp_space(self):
+        """
+        Parâmetros otimizados para MLP na classificação de comportamentos.
+        """
+        return [
+            {
+                'classifier__hidden_layer_sizes': [(50,), (100,), (50, 25), (100, 50)],
+                'classifier__activation': ['relu', 'tanh'],
+                'classifier__alpha': [0.0001, 0.001, 0.01],
+                'classifier__batch_size': [32, 64],
+                'classifier__learning_rate': ['adaptive'],
+                'classifier__max_iter': [2000],
+                'classifier__solver': ['adam'],
+                'classifier__learning_rate_init': [0.001, 0.01]
+            }
+        ]
+
+    def _get_xgboost_space(self):
+        """
+        Parâmetros otimizados para XGBoost na classificação de comportamentos.
+        """
+        return {
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__max_depth': [3, 5, 7],
+            'classifier__learning_rate': [0.01, 0.05, 0.1],
+            'classifier__subsample': [0.8, 0.9, 1.0],
+            'classifier__colsample_bytree': [0.8, 0.9, 1.0],
+            'classifier__min_child_weight': [1, 3, 5],
+            'classifier__gamma': [0, 0.1, 0.2]
+        }
+
+
+################################################################################
+# Arquivo: src/core/models/multiclass/multiclass_model_params.py
+################################################################################
+
+from abc import ABC, abstractmethod
+from typing import Any, Dict
+from sklearn.base import BaseEstimator
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
+import xgboost as xgb
+
+from core.models.base_model_params import BaseModelParams
+
+class MulticlassModelParams(BaseModelParams):
+    """
+    Classe base para problemas de multiclassificação.
+    Implementa a funcionalidade base que pode ser estendida por domínios específicos.
+    """
+
+    def __init__(self):
+        self._model_registry = self._create_base_models()
+
+    def get_models(self) -> Dict[str, BaseEstimator]:
+        return self._model_registry
+    
+    def _create_base_models(self) -> Dict[str, BaseEstimator]:
+        """Cria os modelos base para multiclassificação"""
+        return {
+            'Logistic Regression': LogisticRegression(max_iter=5000),
+            'Decision Tree': DecisionTreeClassifier(),
+            'Random Forest': RandomForestClassifier(),
+            'Gradient Boosting': GradientBoostingClassifier(),
+            'SVM': SVC(probability=True),
+            'KNN': KNeighborsClassifier(),
+            'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss'),
+            'Naive Bayes': GaussianNB(),
+            'MLP': MLPClassifier(max_iter=1000)
+        }
+
+    def get_param_space(self, model_name: str) -> Dict[str, Any]:
+        """
+        Retorna o espaço de parâmetros para um modelo específico.
+        """
+        param_methods = {
+            'Logistic Regression': self._get_logistic_regression_params,
+            'Decision Tree': self._get_decision_tree_params,
+            'Random Forest': self._get_random_forest_params,
+            'Gradient Boosting': self._get_gradient_boosting_space,
+            'SVM': self._get_svm_space,
+            'KNN': self._get_knn_space,
+            'XGBoost': self._get_xgboost_space,
+            'Naive Bayes': self._get_naive_bayes_space,
+            'MLP': self._get_mlp_space
+        }
+        method = param_methods.get(model_name)
+        return method() if method else {}
+
+    def _get_logistic_regression_params(self):
+        """
+        Define o espaço de hiperparâmetros padrão para Regressão Logística em problemas multiclasse.
+        """
+        return {
+            'classifier__penalty': ['l2'],
+            'classifier__solver': ['lbfgs', 'newton-cg', 'sag'],
+            'classifier__C': [0.1, 1.0, 10.0],
+            'classifier__max_iter': [3000, 5000, 7000],
+            'classifier__class_weight': ['balanced', None]
+        }
+
+    def _get_decision_tree_params(self):
+        """
+        Parâmetros padrão para Árvore de Decisão em problemas multiclasse.
+        """
+        return {
+            'classifier__criterion': ['gini', 'entropy'],
+            'classifier__max_depth': [None, 10, 20, 30],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4],
+            'classifier__max_features': ['sqrt', 'log2']
+        }
+
+    def _get_random_forest_params(self):
+        """
+        Parâmetros padrão para Random Forest em problemas multiclasse.
+        """
+        return {
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__max_depth': [None, 10, 20, 30],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4],
+            'classifier__max_features': ['sqrt', 'log2'],
+            'classifier__class_weight': ['balanced', 'balanced_subsample']
+        }
+
+    def _get_gradient_boosting_space(self):
+        """
+        Parâmetros padrão para Gradient Boosting em problemas multiclasse.
+        """
+        return {
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__learning_rate': [0.01, 0.1, 0.3],
+            'classifier__max_depth': [3, 5, 7],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4]
+        }
+
+    def _get_svm_space(self):
+        """
+        Parâmetros padrão para SVM em problemas multiclasse.
+        """
+        return [
+            {
+                'classifier__C': [0.1, 1.0, 10.0],
+                'classifier__kernel': ['rbf'],
+                'classifier__gamma': ['scale', 'auto']
+            },
+            {
+                'classifier__C': [0.1, 1.0, 10.0],
+                'classifier__kernel': ['linear']
+            }
+        ]
+
+    def _get_knn_space(self):
+        """
+        Parâmetros padrão para KNN em problemas multiclasse.
+        """
+        return {
+            'classifier__n_neighbors': [3, 5, 7, 9],
+            'classifier__weights': ['uniform', 'distance'],
+            'classifier__metric': ['euclidean', 'manhattan']
+        }
+
+    def _get_xgboost_space(self):
+        """
+        Parâmetros padrão para XGBoost em problemas multiclasse.
+        """
+        return {
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__max_depth': [3, 6, 9],
+            'classifier__learning_rate': [0.01, 0.1, 0.3],
+            'classifier__subsample': [0.8, 0.9, 1.0],
+            'classifier__colsample_bytree': [0.8, 0.9, 1.0]
+        }
+
+    def _get_naive_bayes_space(self):
+        """
+        Parâmetros padrão para Naive Bayes em problemas multiclasse.
+        """
+        return {
+            'classifier__var_smoothing': [1e-9, 1e-8, 1e-7]
+        }
+
+    def _get_mlp_space(self):
+        """
+        Parâmetros padrão para MLP em problemas multiclasse.
+        """
+        base_params = {
+            'classifier__hidden_layer_sizes': [
+                (100,), (50, 25), (100, 50)
+            ],
+            'classifier__activation': ['relu', 'tanh'],
+            'classifier__alpha': [0.0001, 0.001, 0.01],
+            'classifier__batch_size': [32, 64, 128],
+            'classifier__learning_rate': ['constant', 'adaptive'],
+            'classifier__max_iter': [1000, 2000]
+        }
+
+        return [
+            {
+                **base_params,
+                'classifier__solver': ['adam'],
+                'classifier__learning_rate_init': [0.001, 0.01]
+            },
+            {
+                **base_params,
+                'classifier__solver': ['lbfgs']
+            }
+        ]
+
+
+################################################################################
+# Arquivo: src/core/models/multiclass/digits_model_params.py
+################################################################################
+
+from core.models.multiclass.multiclass_model_params import MulticlassModelParams
+
+class DigitsModelParams(MulticlassModelParams):
+    """
+    Classe para parâmetros de modelos específicos para o dataset MNIST.
+    
+    Esta classe herda todas as configurações da classe MulticlassModelParams sem modificações.
+    Atualmente utiliza os mesmos parâmetros da classe pai para todos os modelos.
+    
+    Note:
+        Se futuramente for necessário customizar parâmetros específicos para o MNIST,
+        basta sobrescrever os métodos relevantes nesta classe.
+    """
+    def get_models(self):
+        """
+        Retorna o dicionário de modelos base.
+        Utiliza a implementação da classe pai MulticlassModelParams.
+        """
+        return super().get_models()
+
+    def get_param_space(self, model_name):
+        """
+        Retorna o espaço de parâmetros para um modelo específico.
+        Utiliza a implementação da classe pai MulticlassModelParams.
+        """
+        return super().get_param_space(model_name)
+
+
+################################################################################
+# Arquivo: src/core/feature_selection/mi_feature_selector.py
+################################################################################
+
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import SelectKBest
+from core.feature_selection.base_feature_selector import BaseFeatureSelector
+
+class MutualInformationFeatureSelector(BaseFeatureSelector):
+    def __init__(self, X_train, y_train, k=10):
+        super().__init__(X_train, y_train, k=k)
+
+    def _create_selector(self, k=10):
+        selector = SelectKBest(mutual_info_classif, k=k)
+        selector.fit(self.X_train, self.y_train)
+        return selector
+
+    def get_search_space(self):
+        return {'feature_selection__k': [5, 10, 20, 30, 40, 50, 'all']}
+
+
+################################################################################
+# Arquivo: src/core/feature_selection/base_feature_selector.py
+################################################################################
+
+from abc import ABC, abstractmethod
+
+class BaseFeatureSelector(ABC):
+    def __init__(self, X_train, y_train=None, **kwargs):
+        self.X_train = X_train
+        self.y_train = y_train
+        self.selector = self._create_selector(**kwargs)
+    
+    @abstractmethod
+    def _create_selector(self, **kwargs):
+        """
+        Método abstrato para criar o seletor de características.
+        Deve ser implementado por todas as subclasses.
+        """
+        pass
+
+    @abstractmethod
+    def get_search_space(self):
+        """
+        Método abstrato para retornar o espaço de busca de hiperparâmetros.
+        Deve ser implementado por todas as subclasses.
+        """
+        pass
+
+
+
+################################################################################
+# Arquivo: src/core/feature_selection/feature_selection_factory.py
+################################################################################
+
+import numpy as np
+
+from core.feature_selection.pca_feature_selector import PCAFeatureSelector
+from core.feature_selection.random_forest_feature_selector import RandomForestFeatureSelector
+from core.feature_selection.rfe_feature_selector import RFEFeatureSelector
+from core.feature_selection.mi_feature_selector import MutualInformationFeatureSelector
+
+class FeatureSelectionFactory:
+    SELECTORS = {
+        'rfe': RFEFeatureSelector,
+        'pca': PCAFeatureSelector,
+        'rf': RandomForestFeatureSelector,
+        'mi': MutualInformationFeatureSelector,
+        'none': None
+    }
+
+    @staticmethod
+    def create_selector(method, X_train, y_train=None, **kwargs):
+        if method not in FeatureSelectionFactory.SELECTORS:
+            raise ValueError(f"Método desconhecido: {method}")
+        
+        selector_class = FeatureSelectionFactory.SELECTORS[method]
+        if method in ['rfe', 'mi', 'rf']:
+            selector = selector_class(X_train, y_train, **kwargs)
+        else:
+            selector = selector_class(X_train, **kwargs)
+        
+        return selector
+
+    @staticmethod
+    def get_available_selectors_names():
+        """
+        Retorna uma lista dos métodos de seleção de características disponíveis.
+        """
+        return list(FeatureSelectionFactory.SELECTORS.keys())
+
+    @staticmethod
+    def extract_selected_features(pipeline, feature_names):
+        """
+        Extrai as características selecionadas pelo seletor de características no pipeline.
+
+        Args:
+            pipeline: Pipeline treinado.
+            feature_names: Lista de nomes das características originais.
+
+        Returns:
+            List: Lista de características selecionadas.
+        """
+        if 'feature_selection' not in pipeline.named_steps:
+            return feature_names
+        
+        selector = pipeline.named_steps['feature_selection']
+
+        if hasattr(selector, 'get_support'):
+            mask = selector.get_support()
+            selected_features = np.array(feature_names)[mask]
+        elif hasattr(selector, 'transform'):
+            # Para métodos como PCA que transformam as características
+            transformed = selector.transform(np.identity(len(feature_names)))
+            # Retornar os componentes principais como nomes
+            selected_features = [f'PC{i+1}' for i in range(transformed.shape[1])]
+        else:
+            raise ValueError("O seletor não tem métodos para extrair características.")
+
+        return selected_features
+
+
+
+################################################################################
+# Arquivo: src/core/feature_selection/random_forest_feature_selector.py
+################################################################################
+
+import numpy as np
+import logging
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectFromModel
+
+from core.feature_selection.base_feature_selector import BaseFeatureSelector
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class RandomForestFeatureSelector(BaseFeatureSelector):
+    def __init__(self, X_train, y_train, max_features=None):
+        self.max_features = max_features
+        super().__init__(X_train, y_train)
+
+    def _create_selector(self):
+        n_features = self.X_train.shape[1]
+        estimator = RandomForestClassifier(n_estimators=100, random_state=42)
+        estimator.fit(self.X_train, self.y_train)
+        
+        # Se max_features não for especificado, use metade das features
+        if self.max_features is None or self.max_features == 'auto':
+            self.max_features = max(1, n_features // 2)
+        elif isinstance(self.max_features, float):
+            self.max_features = max(1, int(self.max_features * n_features))
+        
+        selector = SelectFromModel(estimator, max_features=self.max_features)
+        
+        selected_features = selector.get_support().sum()
+        logger.info(f"Selected {selected_features} features")
+        
+        return selector
+
+    def get_search_space(self):
+        n_features = self.X_train.shape[1]
+        max_features_range = list(range(1, n_features + 1))
+        return {
+            'feature_selection__max_features': max_features_range,
+            'feature_selection__threshold': ['mean', 'median', '0.5*mean', '1.5*mean']
+        }
+
+    def set_params(self, **params):
+        if 'max_features' in params:
+            self.max_features = int(params['max_features'])
+            self.selector.max_features = self.max_features
+        
+        if 'threshold' in params:
+            if isinstance(params['threshold'], str):
+                estimator = self.selector.estimator
+                feature_importances = estimator.feature_importances_
+                if params['threshold'] == 'mean':
+                    threshold = np.mean(feature_importances)
+                elif params['threshold'] == 'median':
+                    threshold = np.median(feature_importances)
+                elif params['threshold'] == '0.5*mean':
+                    threshold = 0.5 * np.mean(feature_importances)
+                elif params['threshold'] == '1.5*mean':
+                    threshold = 1.5 * np.mean(feature_importances)
+                self.selector.threshold = threshold
+            else:
+                self.selector.threshold = params['threshold']
+        return self
+
+
+################################################################################
+# Arquivo: src/core/feature_selection/rfe_feature_selector.py
+################################################################################
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import RFE
+
+from core.feature_selection.base_feature_selector import BaseFeatureSelector
+
+class RFEFeatureSelector(BaseFeatureSelector):
+    def __init__(self, X_train, y_train, n_features_to_select=10):
+        super().__init__(X_train, y_train, n_features_to_select=n_features_to_select)
+
+    def _create_selector(self, n_features_to_select=10):
+        n_features = self.X_train.shape[1]
+        estimator = RandomForestClassifier(n_estimators=100, random_state=42)
+        selector = RFE(estimator, n_features_to_select=min(n_features_to_select, n_features))
+        return selector
+
+    def get_search_space(cls):
+        return {'feature_selection__n_features_to_select': [1, 5, 10, 20, 30, 40, 50]}
+
+
+################################################################################
+# Arquivo: src/core/feature_selection/pca_feature_selector.py
+################################################################################
+
+from sklearn.decomposition import PCA
+
+from core.feature_selection.base_feature_selector import BaseFeatureSelector
+
+class PCAFeatureSelector(BaseFeatureSelector):
+    def __init__(self, X_train, n_components=0.95, step=50):
+        self.step = step
+        self.n_components = n_components
+        self.max_components = X_train.shape[1]
+        super().__init__(X_train)
+
+    def _create_selector(self, n_components=0.95):
+        selector = PCA(n_components=min(n_components, self.max_components))
+        return selector
+
+    def get_search_space(self):
+        if isinstance(self.n_components, float):
+            # Para valores percentuais, retornar lista de valores
+            return {'feature_selection__n_components': [0.7, 0.8, 0.85, 0.9, 0.95, 0.99]}
+        else:
+            # Para valores inteiros, retornar lista de valores
+            max_components = min(self.max_components, 
+                               self.n_components if isinstance(self.n_components, int) 
+                               else self.max_components)
+            return {'feature_selection__n_components': list(range(10, max_components + 1, self.step))}
+
+
+
+################################################################################
+# Arquivo: src/core/exploration/data_exploration.py
+################################################################################
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+from typing import Union, List, Dict
+
+class DataExploration:
+
+    @staticmethod
+    def has_few_classes(column: pd.Series, num_classes: int = 5) -> bool:
+        return column.nunique() < num_classes
+
+    @staticmethod
+    def inspect_dataframe(df: Union[pd.DataFrame, pd.Series]) -> None:
+        print('Primeiras linhas do DataFrame:')
+        print(df.head())
+        print('\nInformações sobre o DataFrame:')
+        print(df.info())
+
+    @staticmethod
+    def inspect_numeric_data(df: pd.DataFrame) -> None:
+        print('Estatísticas descritivas do DataFrame:')
+        print(df.select_dtypes(include=['float64', 'int64']).describe())
+
+    @staticmethod
+    def inspect_categorical_data(df: Union[pd.DataFrame, pd.Series]) -> None:
+        print('Número de instâncias por classe:')
+        if isinstance(df, pd.Series):
+            DataExploration._print_series_categories(df)
+        else:
+            for i, column in enumerate(df.columns, start=1):
+                print(f"({i}) {column}:")
+                DataExploration._print_series_categories(df[column])
+
+    @staticmethod
+    def _print_series_categories(series: pd.Series) -> None:
+        if series.nunique() < 10:
+            for category in series.unique():
+                count = (series == category).sum()
+                print(f"    Categoria: {category}, Contagem: {count}")
+        else:
+            print(f"    Número de categorias: {series.nunique()}")
+
+    @staticmethod
+    def create_metadata_file(df: pd.DataFrame, file_path: str = 'data/metadata.csv') -> None:
+        metadata = df.dtypes
+        metadata.to_csv(file_path, header=['data_type'], sep=';')
+        print(f'Metadados salvos em {file_path}')
+
+    @staticmethod
+    def visualize_histogram(df: pd.DataFrame, num_bins: int = 10, x_range: tuple = (0, 0), y_range: tuple = (0, 0)) -> None:
+        axes = df.hist(bins=num_bins, figsize=(20, 15))
+        for ax in axes.flatten():
+            if x_range != (0, 0):
+                ax.set_xlim(x_range)
+            if y_range != (0, 0):
+                ax.set_ylim(y_range)
+        plt.show()
+
+    @staticmethod
+    def visualize_correlation_numeric(df: pd.DataFrame) -> None:
+        corr = df.corr()
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f")
+        plt.title('Matriz de Correlação')
+        plt.show()
+
+    @staticmethod
+    def visualize_correlation_categorical(X: pd.DataFrame, y: pd.DataFrame, output_dir: str = '../output/heatmaps', batch_size: int = 25) -> None:
+        os.makedirs(output_dir, exist_ok=True)
+        X_cat = X.select_dtypes(include=['object', 'category'])
+        y_cat = y.select_dtypes(include=['object', 'category'])
+
+        total_plots = len(X_cat.columns) * len(y_cat.columns)
+        batches = (total_plots // batch_size) + (total_plots % batch_size != 0)
+
+        for batch in range(batches):
+            fig, axs = plt.subplots(min(batch_size, total_plots - batch * batch_size), 1, figsize=(5, min(batch_size, total_plots - batch * batch_size) * 5))
+            axs = [axs] if total_plots - batch * batch_size == 1 else axs
+            for k, (i, j) in enumerate([(i, j) for i in range(len(X_cat.columns)) for j in range(len(y_cat.columns))][batch * batch_size:(batch + 1) * batch_size]):
+                col_x, col_y = X_cat.columns[i], y_cat.columns[j]
+                contingency_table = pd.crosstab(index=X_cat[col_x], columns=y_cat[col_y])
+                sns.heatmap(contingency_table, annot=True, cmap='coolwarm', fmt=".2f", ax=axs[k])
+                axs[k].set_title(f'{col_x} e {col_y}')
+            
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, f'heatmap_batch_{batch + 1}.png'))
+            plt.close(fig)
+
+    @staticmethod
+    def visualize_feature_target_correlation(X: pd.DataFrame, y: pd.Series, top_n: int = 10, figsize: tuple = (12, 8)) -> None:
+        """
+        Visualiza a correlação entre as features numéricas de X e o target numérico y.
+
+        Args:
+            X (pd.DataFrame): DataFrame contendo as features.
+            y (pd.Series): Series contendo o target numérico.
+            top_n (int): Número de features com maior correlação absoluta a serem exibidas.
+            figsize (tuple): Tamanho da figura para o plot.
+
+        Returns:
+            None
+        """
+        if not pd.api.types.is_numeric_dtype(y):
+            raise ValueError("O target (y) deve ser numérico para calcular correlações.")
+
+        # Selecionar apenas colunas numéricas de X
+        X_numeric = X.select_dtypes(include=['float64', 'int64'])
+
+        # Calcular correlações
+        correlations = X_numeric.apply(lambda x: x.corr(y) if pd.api.types.is_numeric_dtype(x) else 0)
+
+        # Ordenar correlações por valor absoluto e selecionar top_n
+        top_correlations = correlations.abs().nlargest(top_n)
+
+        # Criar um DataFrame com as correlações para facilitar o plotting
+        corr_df = pd.DataFrame({'feature': top_correlations.index, 'correlation': correlations[top_correlations.index]})
+        corr_df = corr_df.sort_values('correlation', key=abs, ascending=True)
+
+        # Plotar
+        plt.figure(figsize=figsize)
+        ax = sns.barplot(x='correlation', y='feature', data=corr_df, orient='h')
+        ax.axvline(x=0, color='black', linewidth=0.5)
+        plt.title(f'Top {top_n} Correlações entre Features e Target')
+        plt.xlabel('Correlação')
+        plt.ylabel('Feature')
+        
+        # Adicionar valores de correlação nas barras
+        for i, v in enumerate(corr_df['correlation']):
+            ax.text(v, i, f'{v:.2f}', va='center', fontweight='bold')
+
+        plt.tight_layout()
+        plt.show()
+
+    @staticmethod
+    def get_feature_target_correlation(X: pd.DataFrame, y: pd.Series) -> pd.Series:
+        """
+        Calcula a correlação entre as features numéricas de X e o target numérico y.
+
+        Args:
+            X (pd.DataFrame): DataFrame contendo as features.
+            y (pd.Series): Series contendo o target numérico.
+
+        Returns:
+            pd.Series: Series contendo as correlações ordenadas por valor absoluto.
+        """
+        if not pd.api.types.is_numeric_dtype(y):
+            raise ValueError("O target (y) deve ser numérico para calcular correlações.")
+
+        X_numeric = X.select_dtypes(include=['float64', 'int64'])
+        correlations = X_numeric.apply(lambda x: x.corr(y) if pd.api.types.is_numeric_dtype(x) else 0)
+        return correlations.sort_values(key=abs, ascending=False)
+
+
+
+
+################################################################################
+# Arquivo: src/core/exploration/data_exploration_main.py
+################################################################################
+
+import pandas as pd
+import numpy as np
+from collections import Counter
+
+# Carregar seus dados
+from behavior.behavior_data_loader import BehaviorDataLoader
+
+data_path = 'data/new_logs_labels.csv'
+
+df = BehaviorDataLoader.load_data(data_path, delimiter=';')
+#df.head(5)
+
+# 1. Informações básicas do dataset
+print("=== Informações Básicas ===")
+print(df.info())
+print("\n=== Primeiras linhas ===")
+print(df.head())
+
+# 2. Distribuição das classes de comportamento
+print("\n=== Distribuição das Classes de Comportamento ===")
+print(df['comportamento'].value_counts(normalize=True))
+
+# 3. Quantidade de instâncias por aluno
+print("\n=== Distribuição de instâncias por aluno ===")
+alunos_count = df['aluno'].value_counts()
+print(f"Média de instâncias por aluno: {alunos_count.mean():.2f}")
+print(f"Mínimo: {alunos_count.min()}")
+print(f"Máximo: {alunos_count.max()}")
+
+# 4. Verificar features disponíveis
+print("\n=== Grupos de Features ===")
+comportamento_cols = [col for col in df.columns if 'comportamento' in col]
+traco_cols = [col for col in df.columns if 'traco_' in col]
+print(f"Features de comportamento: {comportamento_cols}")
+print(f"Features de traços: {traco_cols}")
+print(f"Outras features: {[col for col in df.columns if col not in comportamento_cols + traco_cols]}")
+
+# 5. Verificar valores ausentes
+print("\n=== Valores Ausentes ===")
+missing_values = df.isnull().sum()
+if missing_values.any():
+    print(missing_values[missing_values > 0])
+else:
+    print("Não há valores ausentes no dataset")
+
+
+################################################################################
+# Arquivo: src/core/evaluation/evaluation.py
+################################################################################
+
+from sklearn.metrics import classification_report, confusion_matrix, balanced_accuracy_score, cohen_kappa_score, precision_score, recall_score, f1_score
+import pandas as pd
+import numpy as np
+
+class Evaluation:
+    @staticmethod
+    def evaluate_all_models(trained_models, X_train, y_train, X_test, y_test):
+        """
+        Avalia todos os modelos treinados usando conjuntos de treino e teste.
+        """
+        class_metrics_results = {}
+        avg_metrics_results = {}
+
+        if not trained_models:
+            print("Aviso: Nenhum modelo foi treinado com sucesso.")
+            return {}, {}
+
+        for model_name, model_info in trained_models.items():
+            print(f"\nAvaliando modelo: {model_name}")
+            try:
+                pipeline = model_info['model']
+                cv_score = model_info['cv_result']
+                
+                # Debug information
+                print(f"Pipeline steps: {list(pipeline.named_steps.keys())}")
+                print(f"X_train shape inicial: {X_train.shape}")
+                
+                # Se tiver feature_selection, mostrar a transformação
+                if 'feature_selection' in pipeline.named_steps:
+                    selector = pipeline.named_steps['feature_selection']
+                    X_train_transformed = selector.transform(X_train)
+                    print(f"Shape após feature selection: {X_train_transformed.shape}")
+                
+                # Get predictions using the full pipeline
+                y_train_pred = pipeline.predict(X_train)
+                y_train_prob = pipeline.predict_proba(X_train)
+                y_test_pred = pipeline.predict(X_test)
+                y_test_prob = pipeline.predict_proba(X_test)
+
+                # Generate evaluation metrics
+                train_metrics = Evaluation._generate_metrics(y_train, y_train_pred, y_train_prob)
+                test_metrics = Evaluation._generate_metrics(y_test, y_test_pred, y_test_prob)
+
+                # Get feature info
+                feature_info = Evaluation._get_feature_info(pipeline, X_train)
+                
+                # Store results
+                class_metrics_results[model_name] = {
+                    'train_class_report': train_metrics['class_report'],
+                    'train_conf_matrix': train_metrics['conf_matrix'],
+                    'test_class_report': test_metrics['class_report'],
+                    'test_conf_matrix': test_metrics['conf_matrix'],
+                    'feature_info': feature_info
+                }
+
+                avg_metrics_results[model_name] = {
+                    'cv_report': cv_score,
+                    'train_avg_metrics': train_metrics['avg_metrics'],
+                    'test_avg_metrics': test_metrics['avg_metrics'],
+                    'training_type': model_info['training_type'],
+                    'hyperparameters': model_info['hyperparameters']
+                }
+
+            except Exception as e:
+                print(f"Erro ao avaliar modelo {model_name}: {str(e)}")
+                continue
+
+        if not class_metrics_results:
+            print("Aviso: Nenhum modelo pôde ser avaliado com sucesso.")
+            return {}, {}
+
+        return class_metrics_results, avg_metrics_results
+
+    @staticmethod
+    def _get_feature_info(pipeline, X_train):
+        """
+        Obtém informações sobre as features após a seleção/transformação.
+        """
+        try:
+            if not hasattr(pipeline, 'named_steps') or 'feature_selection' not in pipeline.named_steps:
+                return {
+                    'type': 'original',
+                    'n_features': X_train.shape[1],
+                    'description': f'Usando todas as {X_train.shape[1]} features originais'
+                }
+
+            selector = pipeline.named_steps['feature_selection']
+            X_transformed = selector.transform(X_train)
+            n_features_transformed = X_transformed.shape[1]
+            
+            # Para PCA
+            if hasattr(selector, 'components_'):
+                feature_info = {
+                    'type': 'pca',
+                    'n_features': n_features_transformed,
+                    'n_components': n_features_transformed,
+                    'new_features': [f'PC{i+1}' for i in range(n_features_transformed)],
+                    'description': f'Usando {n_features_transformed} componentes principais'
+                }
+                
+                # Adicionar informação de variância explicada se disponível
+                if hasattr(selector, 'explained_variance_ratio_'):
+                    feature_info['explained_variance_ratio'] = selector.explained_variance_ratio_
+                    feature_info['cumulative_variance'] = np.cumsum(selector.explained_variance_ratio_)
+                
+                return feature_info
+            
+            # Para seletores baseados em máscara (RF, RFE, MI)
+            elif hasattr(selector, 'get_support'):
+                mask = selector.get_support()
+                # Tratar tanto DataFrames quanto arrays numpy
+                if hasattr(X_train, 'columns'):
+                    selected = X_train.columns[mask].tolist()
+                else:
+                    selected = [f'feature_{i}' for i in range(len(mask)) if mask[i]]
+                
+                return {
+                    'type': 'selector',
+                    'n_features': len(selected),
+                    'selected_features': selected,
+                    'description': f'Selecionadas {len(selected)} features originais'
+                }
+            
+            # Para outros transformadores
+            else:
+                return {
+                    'type': 'transform',
+                    'n_features': n_features_transformed,
+                    'description': f'Transformado para {n_features_transformed} features'
+                }
+            
+        except Exception as e:
+            print(f"Erro ao obter informações das features: {str(e)}")
+            return {
+                'type': 'error',
+                'n_features': X_train.shape[1] if hasattr(X_train, 'shape') else 0,
+                'description': f'Erro ao obter informações: {str(e)}'
+            }
+
+    @staticmethod
+    def _generate_metrics(y_true, y_pred, y_prob):
+        """
+        Gera todas as métricas de avaliação para um conjunto de predições.
+        """
+
+        # Generate classification report
+        class_report = pd.DataFrame(classification_report(y_true, y_pred, output_dict=True)).transpose()
+        
+        # Generate confusion matrix
+        conf_matrix = pd.DataFrame(
+            confusion_matrix(y_true, y_pred),
+            index=[f'Actual {i}' for i in range(len(np.unique(y_true)))],
+            columns=[f'Predicted {i}' for i in range(len(np.unique(y_true)))]
+        )
+
+        # Calculate all average metrics
+        metrics_dict = {
+            'balanced_accuracy': balanced_accuracy_score(y_true, y_pred),
+            'accuracy': class_report.loc['accuracy', 'f1-score'],
+            'precision': precision_score(y_true, y_pred, average='weighted'),
+            'recall': recall_score(y_true, y_pred, average='weighted'),
+            'f1-score': f1_score(y_true, y_pred, average='weighted'),
+            'kappa': cohen_kappa_score(y_true, y_pred)
+        }
+        
+        # Create average metrics DataFrame with consistent structure
+        metrics_df = pd.DataFrame(
+            {
+                'precision': metrics_dict['precision'],
+                'recall': metrics_dict['recall'],
+                'f1-score': metrics_dict['f1-score'],
+                'support': len(y_true)  # Total support for average metrics
+            },
+            index=['weighted avg']
+        )
+        
+        # Add other metrics maintaining the same column structure
+        for metric in ['balanced_accuracy', 'accuracy', 'kappa']:
+            metrics_df.loc[metric] = [
+                metrics_dict[metric],  # precision column
+                metrics_dict[metric],  # recall column
+                metrics_dict[metric],  # f1-score column
+                len(y_true)           # support column
+            ]
+
+        return {
+            'class_report': class_report.drop(['accuracy', 'macro avg', 'weighted avg']),
+            'conf_matrix': conf_matrix,
+            'avg_metrics': metrics_df
+        }
+
+
+################################################################################
+# Arquivo: src/core/logging/logger_config.py
+################################################################################
+
+import logging
+import os
+import warnings
+from functools import wraps
+from datetime import datetime
+from pathlib import Path
+
+class LoggerConfig:
+    _loggers = {}  # Cache para armazenar loggers já criados
+
+    @staticmethod
+    def get_logger(logger_name):
+        """
+        Obtém ou cria um logger com o nome especificado.
+        
+        Args:
+            logger_name (str): Nome do logger a ser obtido/criado
+            
+        Returns:
+            logging.Logger: Logger configurado
+        """
+        # Se o logger já existe no cache, retorna ele
+        if logger_name in LoggerConfig._loggers:
+            return LoggerConfig._loggers[logger_name]
+        
+        # Configura o arquivo de log para o logger
+        LoggerConfig.configure_log_file(
+            file_main_name=logger_name,
+            log_extension=".log",
+            logger_name=logger_name
+        )
+        
+        # Obtém o logger configurado
+        logger = logging.getLogger(logger_name)
+        
+        # Armazena no cache
+        LoggerConfig._loggers[logger_name] = logger
+        
+        return logger
+
+    @staticmethod
+    def configure_log_file(file_main_name='bayesian_optimization', log_extension=".log", logger_name=None):
+        """
+        Configura um arquivo de log. Pode configurar o logger raiz ou um logger nomeado.
+
+        Args:
+            file_main_name (str): Nome base para o arquivo de log.
+            log_extension (str): Extensão do arquivo de log.
+            logger_name (str, optional): Nome do logger a ser configurado. Se None, configura o logger raiz.
+        """
+        output_dir = LoggerConfig._get_output_directory()
+        log_filename = LoggerConfig._generate_log_filename(file_main_name, log_extension)
+        log_file_path = os.path.join(output_dir, log_filename)
+        
+        if logger_name:
+            logger = logging.getLogger(logger_name)
+            logger.setLevel(logging.DEBUG)
+            
+            # Evita adicionar múltiplos handlers se já existirem
+            if not logger.handlers:
+                # Handler para arquivo com nível DEBUG
+                fh = logging.FileHandler(log_file_path)
+                fh.setLevel(logging.DEBUG)
+                
+                # Handler para console com nível INFO
+                ch = logging.StreamHandler()
+                ch.setLevel(logging.INFO)
+                
+                # Formatação dos logs
+                formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
+                fh.setFormatter(formatter)
+                ch.setFormatter(formatter)
+                
+                # Adiciona os handlers ao logger
+                logger.addHandler(fh)
+                logger.addHandler(ch)
+        else:
+            # Configura o logger raiz se ainda não estiver configurado
+            root_logger = logging.getLogger()
+            if not root_logger.handlers:
+                logging.basicConfig(
+                    filename=log_file_path,
+                    level=logging.INFO,
+                    filemode='w',
+                    format='%(asctime)s:%(levelname)s:%(message)s'
+                )
+
+    @staticmethod
+    def _get_output_directory():
+        """
+        Obtém o diretório de saída para armazenar os arquivos de log.
+        """
+        if os.path.exists('/app'):  # Ambiente Docker
+            output_dir = '/app/output'
+        else:  # Ambiente local
+            current_dir = Path(__file__).resolve()
+            src_dir = current_dir
+            while src_dir.name != 'behavior-detection' and src_dir.parent != src_dir:
+                src_dir = src_dir.parent
+                
+            if src_dir.name != 'behavior-detection':
+                output_dir = os.path.join(os.getcwd(), 'output')
+            else:
+                output_dir = os.path.join(src_dir, 'output')
+        
+        os.makedirs(output_dir, exist_ok=True)
+        return output_dir
+
+    @staticmethod
+    def _generate_log_filename(file_main_name, log_extension):
+        """
+        Gera um nome de arquivo para o log baseado no timestamp atual.
+
+        Args:
+            file_main_name (str): Nome base para o arquivo de log.
+            log_extension (str): Extensão do arquivo de log.
+
+        Returns:
+            str: Nome completo do arquivo de log.
+        """
+        return datetime.now().strftime(f'{file_main_name}_%Y%m%d_%H%M{log_extension}')
+
+    @staticmethod
+    def log_results(result):
+        """
+        Registra os resultados de uma iteração de otimização.
+
+        Args:
+            result: Resultado da iteração (deve ter atributos x_iters e func_vals).
+        """
+        if hasattr(result, 'x_iters') and hasattr(result, 'func_vals') and result.x_iters:
+            score = abs(result.func_vals[-1])
+            logging.info(f"Iteration {len(result.x_iters)}: tested parameters: {result.x_iters[-1]}, score: {score}")
+
+def with_logging(logger_name: str):
+    """
+    Decorator que utiliza a LoggerConfig existente para configurar logging.
+    
+    Args:
+        logger_name (str): Nome para identificar o logger
+        
+    Returns:
+        function: Decorador que configura o logger na classe
+    """
+    def decorator(cls):
+        original_init = cls.__init__
+        
+        @wraps(cls.__init__)
+        def new_init(self, *args, **kwargs):
+            # Configura o logger usando o método get_logger
+            self.logger = LoggerConfig.get_logger(logger_name)
+            
+            # Configura o tratamento de warnings para usar o logger
+            def warning_to_logger(message, category, filename, lineno, file=None, line=None):
+                msg = f"{category.__name__}: {str(message)}"
+                self.logger.warning(msg)
+            
+            # Guarda o handler original de warnings
+            original_showwarning = warnings.showwarning
+            warnings.showwarning = warning_to_logger
+            
+            try:
+                # Executa o __init__ original
+                original_init(self, *args, **kwargs)
+            finally:
+                # Restaura o handler original de warnings
+                warnings.showwarning = original_showwarning
+        
+        cls.__init__ = new_init
+        return cls
+
+    return decorator
+
+
+################################################################################
+# Arquivo: src/core/logging/file_utils.py
+################################################################################
+
+import os
+from datetime import datetime
+import pandas as pd
+
+class FileUtils:
+    @staticmethod
+    def save_file(content, filename, directory=None, is_csv=False, csv_params=None):
+        directory = FileUtils._create_directory_if_not_exists(directory)
+        file_path = os.path.join(directory, filename)
+        
+        if is_csv:
+            # Definir parâmetros padrão para formato brasileiro
+            default_csv_params = {
+                'sep': ';',      # separador de colunas
+                'decimal': ',',   # separador decimal
+                'index': False,    # não incluir índice
+                'float_format': '%.3f'  # formatar floats com 3 casas decimais
+            }
+            
+            # Atualizar com parâmetros customizados se fornecidos
+            if csv_params:
+                default_csv_params.update(csv_params)
+
+            content.to_csv(file_path, **default_csv_params)
+        else:
+            with open(file_path, 'w') as file:
+                file.write(content)
+        
+        return file_path
+
+    @staticmethod
+    def save_file_with_timestamp(content, filename, directory=None, is_csv=False, csv_params=None):
+        filename_with_timestamp = FileUtils._generate_filename_with_timestamp(filename)
+        return FileUtils.save_file(content, filename_with_timestamp, directory, is_csv, csv_params)
+
+    @staticmethod
+    def _create_directory_if_not_exists(directory):
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        return directory or ""
+
+    @staticmethod
+    def _generate_filename_with_timestamp(filename):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        name, ext = os.path.splitext(filename)
+        return f"{name}_{timestamp}{ext}"
+

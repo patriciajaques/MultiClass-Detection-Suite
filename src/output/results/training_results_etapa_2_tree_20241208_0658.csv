@@ -1,0 +1,6 @@
+model_name;hyperparameters;cv_score;training_type
+Decision Tree_none;{'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'log2'};0.8782656023222062;Optuna
+Decision Tree_pca;{'classifier__criterion': 'entropy', 'classifier__max_depth': 30, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'log2', 'feature_selection__n_components': 0.8288048912809154};0.8509651669085632;Optuna
+Decision Tree_rfe;{'classifier__criterion': 'entropy', 'classifier__max_depth': 20, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'log2', 'feature_selection__n_features_to_select': 27};0.8774383164005807;Optuna
+Decision Tree_rf;{'classifier__criterion': 'entropy', 'classifier__max_depth': 20, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'sqrt', 'feature_selection__max_features': 238, 'feature_selection__threshold': 'median'};0.884687953555878;Optuna
+Decision Tree_mi;{'classifier__criterion': 'entropy', 'classifier__max_depth': 20, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'sqrt', 'feature_selection__k': 'all'};0.8811828737300436;Optuna

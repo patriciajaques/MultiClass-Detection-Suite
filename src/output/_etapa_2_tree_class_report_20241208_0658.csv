@@ -1,0 +1,26 @@
+Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features;Total_Variance_Explained
+0;1,000;1,000;1,000;522,000;0,000;0,000;0,000;17,000;Decision Tree_none;original;470;
+1;1,000;1,000;1,000;522,000;0,167;0,087;0,114;23,000;Decision Tree_none;original;470;
+2;1,000;1,000;1,000;522,000;0,594;0,578;0,586;109,000;Decision Tree_none;original;470;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Decision Tree_none;original;470;
+4;1,000;1,000;1,000;522,000;0,457;0,615;0,525;26,000;Decision Tree_none;original;470;
+0;1,000;1,000;1,000;522,000;0,222;0,235;0,229;17,000;Decision Tree_pca;pca;23;0,834
+1;1,000;1,000;1,000;522,000;0,267;0,522;0,353;23,000;Decision Tree_pca;pca;23;0,834
+2;1,000;1,000;1,000;522,000;0,400;0,294;0,339;109,000;Decision Tree_pca;pca;23;0,834
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Decision Tree_pca;pca;23;0,834
+4;1,000;1,000;1,000;522,000;0,034;0,038;0,036;26,000;Decision Tree_pca;pca;23;0,834
+0;1,000;1,000;1,000;522,000;0,100;0,118;0,108;17,000;Decision Tree_rfe;selector;27;
+1;1,000;1,000;1,000;522,000;0,206;0,304;0,246;23,000;Decision Tree_rfe;selector;27;
+2;1,000;1,000;1,000;522,000;0,537;0,532;0,535;109,000;Decision Tree_rfe;selector;27;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Decision Tree_rfe;selector;27;
+4;1,000;1,000;1,000;522,000;0,318;0,269;0,292;26,000;Decision Tree_rfe;selector;27;
+0;1,000;1,000;1,000;522,000;0,000;0,000;0,000;17,000;Decision Tree_rf;selector;235;
+1;1,000;1,000;1,000;522,000;0,104;0,217;0,141;23,000;Decision Tree_rf;selector;235;
+2;1,000;1,000;1,000;522,000;0,530;0,486;0,507;109,000;Decision Tree_rf;selector;235;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Decision Tree_rf;selector;235;
+4;1,000;1,000;1,000;522,000;0,519;0,538;0,528;26,000;Decision Tree_rf;selector;235;
+0;1,000;1,000;1,000;522,000;0,179;0,706;0,286;17,000;Decision Tree_mi;selector;470;
+1;1,000;1,000;1,000;522,000;0,105;0,087;0,095;23,000;Decision Tree_mi;selector;470;
+2;1,000;1,000;1,000;522,000;0,699;0,468;0,560;109,000;Decision Tree_mi;selector;470;
+3;1,000;1,000;1,000;522,000;0,000;0,000;0,000;20,000;Decision Tree_mi;selector;470;
+4;1,000;1,000;1,000;522,000;0,111;0,154;0,129;26,000;Decision Tree_mi;selector;470;

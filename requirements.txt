@@ -9,3 +9,4 @@ ipykernel
 xgboost
 scikit-optimize
 imblearn
+optuna
