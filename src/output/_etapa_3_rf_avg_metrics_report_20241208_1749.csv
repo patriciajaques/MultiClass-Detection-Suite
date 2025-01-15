@@ -1,6 +1,0 @@
-Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
-Random Forest_none;0,942;1,000;1,000;1,000;1,000;0,309;0,446;0,433;0,477
-Random Forest_pca;0,940;1,000;1,000;1,000;1,000;0,257;0,457;0,447;0,544
-Random Forest_rfe;0,939;1,000;1,000;1,000;1,000;0,313;0,445;0,473;0,431
-Random Forest_rf;0,941;1,000;1,000;1,000;1,000;0,307;0,475;0,465;0,497
-Random Forest_mi;0,931;0,991;0,991;0,991;0,991;0,274;0,420;0,406;0,451

@@ -1,6 +1,0 @@
-Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
-Decision Tree_none;0,878;1,000;1,000;1,000;1,000;0,256;0,411;0,413;0,415
-Decision Tree_pca;0,851;1,000;1,000;1,000;1,000;0,218;0,256;0,279;0,251
-Decision Tree_rfe;0,877;1,000;1,000;1,000;1,000;0,245;0,376;0,376;0,379
-Decision Tree_rf;0,885;1,000;1,000;1,000;1,000;0,248;0,371;0,378;0,369
-Decision Tree_mi;0,881;1,000;1,000;1,000;1,000;0,283;0,367;0,433;0,354

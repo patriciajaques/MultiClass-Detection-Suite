@@ -10,44 +10,43 @@ from core.reporting import metrics_reporter
 
 class StageTrainingManager:
     def __init__(self, X_train, X_test, y_train, y_test, model_params,
-                 checkpoint_path='../output/checkpoints/',
-                 results_path='../output/results/',
-                 progress_file='../output/progress.json',
-                 n_iter=50,
-                 cv=5,
-                 scoring='balanced_accuracy',
-                 n_jobs=-1):
-        """
-        Inicializa o gerenciador de treinamento em etapas.
-        
-        Args:
-            X_train: Features de treino
-            X_test: Features de teste
-            y_train: Target de treino
-            y_test: Target de teste
-            model_params: Parâmetros dos modelos
-            checkpoint_path: Caminho para salvar checkpoints
-            results_path: Caminho para salvar resultados
-            n_iter: Número de iterações para otimização
-            cv: Número de folds para validação cruzada
-            scoring: Métrica de avaliação
-            n_jobs: Número de jobs paralelos
-        """
-        self.X_train = X_train
-        self.X_test = X_test
-        self.y_train = y_train
-        self.y_test = y_test
-        self.model_params = model_params
-        self.n_iter = n_iter
-        self.cv = cv
-        self.scoring = scoring
-        self.n_jobs = n_jobs
-        
-        self.checkpoint_handler = CheckpointManager(checkpoint_path)
-        self.results_handler = ResultsManager(results_path)
+                    checkpoint_path='../output/checkpoints/',
+                    results_path='../output/results/',
+                    progress_file='../output/progress.json',
+                    n_iter=50,
+                    cv=5,
+                    scoring='balanced_accuracy',
+                    n_jobs=-1,
+                    stage_range=None):  # Novo parâmetro
+            """
+            Inicializa o gerenciador de treinamento em etapas.
+            
+            Args:
+                ...
+                stage_range (tuple): Tupla (início, fim) indicando o intervalo de stages a executar
+            """
+            self.X_train = X_train
+            self.X_test = X_test
+            self.y_train = y_train
+            self.y_test = y_test
+            self.model_params = model_params
+            self.n_iter = n_iter
+            self.cv = cv
+            self.scoring = scoring
+            self.n_jobs = n_jobs
+            self.stage_range = stage_range
+            
+            # Modificar os caminhos para incluir o intervalo de stages no nome
+            if stage_range:
+                range_str = f"_{stage_range[0]}_{stage_range[1]}"
+                checkpoint_path = checkpoint_path.rstrip('/') + range_str + '/'
+                results_path = results_path.rstrip('/') + range_str + '/'
+                progress_file = progress_file.replace('.json', f'{range_str}.json')
+            
+            self.checkpoint_handler = CheckpointManager(checkpoint_path)
+            self.results_handler = ResultsManager(results_path)
+            self.progress_file = progress_file
 
-        self.progress_file = progress_file
-        
     def train_models(self, selected_models, selected_selectors):
         """Executa o treinamento dos modelos selecionados."""
         training = OptunaBayesianOptimizationTraining()
@@ -123,75 +122,77 @@ class StageTrainingManager:
             json.dump(progress, f)
     
     def execute_all_stages(self, training_manager, stages):
-        """
-        Executa todas as etapas sequencialmente, com capacidade de retomar de onde parou.
-        
-        Args:
-            training_manager: Instância do StageTrainingManager
-            stages: Lista de tuplas (stage_name, models, selectors)
-        """
-        # Carregar progresso anterior
-        progress = training_manager._load_progress()
-        completed_stages = set(progress['completed_stages'])
-    
-        print("\nVerificando progresso anterior...")
-        if completed_stages:
-            print(f"Stages já completados: {', '.join(completed_stages)}")
-        else:
-            print("Nenhum stage completado anteriormente. Iniciando do começo.")
-        
-        all_results = []
-        
-        for stage_num, (stage_name, models, selectors) in enumerate(stages, 1):
-            if stage_name in completed_stages:
-                print(f"\nStage {stage_num} ({stage_name}) já foi completado. Pulando...")
-                continue
-                
-            print(f"\n{'='*50}")
-            print(f"Iniciando Stage {stage_num}: {stage_name}")
-            print(f"{'='*50}")
+            """
+            Executa um intervalo específico de etapas sequencialmente.
             
-            try:
-                # Salvar stage atual como "em progresso"
-                training_manager._save_progress(list(completed_stages), stage_name)
-                
-                # Executar stage
-                results = training_manager.execute_stage(stage_name, models, selectors)
-                
-                if results:
-                    trained_models, class_metrics, avg_metrics = results
-                    
-                    # Gerar relatórios para o stage atual
-                    print(f"\nGerando relatórios para {stage_name}...")
-                    metrics_reporter.generate_reports(
-                        class_metrics, 
-                        avg_metrics, 
-                        filename_prefix=f"_{stage_name}_"
-                    )
-                    
-                    all_results.append(results)
-                    
-                    # Marcar stage como completado
-                    completed_stages.add(stage_name)
-                    training_manager._save_progress(list(completed_stages))
-                    
-                    print(f"\nStage {stage_num} ({stage_name}) concluído com sucesso!")
-                
-                print(f"{'='*50}")
-                print(f"Finalizando Stage {stage_num}: {stage_name}")
-                print(f"{'='*50}\n")
-                
-            except Exception as e:
-                print(f"\nErro no Stage {stage_num} ({stage_name}): {str(e)}")
-                print("O treinamento pode ser retomado deste ponto posteriormente.")
-                raise  # Re-lança a exceção para interromper o processo
+            Args:
+                training_manager: Instância do StageTrainingManager
+                stages: Lista de tuplas (stage_name, models, selectors)
+            """
+            # Determinar o intervalo de stages a executar
+            if self.stage_range:
+                start_idx, end_idx = self.stage_range
+                stages = stages[start_idx-1:end_idx]  # -1 porque os índices começam em 1
+                print(f"\nExecutando stages do {start_idx} ao {end_idx}")
+            
+            # Carregar progresso anterior
+            progress = training_manager._load_progress()
+            completed_stages = set(progress['completed_stages'])
         
-        if all_results or completed_stages:
-            print("\nGerando relatório final combinado...")
-            training_results, class_metrics, avg_metrics = training_manager.combine_results()
-            metrics_reporter.generate_reports(
-                class_metrics, 
-                avg_metrics, 
-                filename_prefix="_Final_Combined_"
-            )
-            print("\nProcesso completo! Todos os stages foram executados e relatórios gerados.")
+            print("\nVerificando progresso anterior...")
+            if completed_stages:
+                print(f"Stages já completados: {', '.join(completed_stages)}")
+            else:
+                print("Nenhum stage completado anteriormente. Iniciando do começo.")
+            
+            all_results = []
+            
+            for stage_num, (stage_name, models, selectors) in enumerate(stages, 1):
+                if stage_name in completed_stages:
+                    print(f"\nStage {stage_num} ({stage_name}) já foi completado. Pulando...")
+                    continue
+                    
+                print(f"\n{'='*50}")
+                print(f"Iniciando Stage {stage_num}: {stage_name}")
+                print(f"{'='*50}")
+                
+                try:
+                    # Salvar stage atual como "em progresso"
+                    training_manager._save_progress(list(completed_stages), stage_name)
+                    
+                    # Executar stage
+                    results = training_manager.execute_stage(stage_name, models, selectors)
+                    
+                    if results:
+                        trained_models, class_metrics, avg_metrics = results
+                        
+                        # Gerar relatórios para o stage atual
+                        print(f"\nGerando relatórios para {stage_name}...")
+                        metrics_reporter.generate_reports(
+                            class_metrics, 
+                            avg_metrics, 
+                            filename_prefix=f"_{stage_name}_"
+                        )
+                        
+                        all_results.append(results)
+                        
+                        # Marcar stage como completado
+                        completed_stages.add(stage_name)
+                        training_manager._save_progress(list(completed_stages))
+                        
+                        print(f"\nStage {stage_num} ({stage_name}) concluído com sucesso!")
+                    
+                except Exception as e:
+                    print(f"\nErro no Stage {stage_num} ({stage_name}): {str(e)}")
+                    print("O treinamento pode ser retomado deste ponto posteriormente.")
+                    raise
+            
+            if all_results or completed_stages:
+                print("\nGerando relatório final para o intervalo de stages...")
+                training_results, class_metrics, avg_metrics = training_manager.combine_results()
+                metrics_reporter.generate_reports(
+                    class_metrics, 
+                    avg_metrics, 
+                    filename_prefix=f"_Final_Combined_{self.stage_range[0]}_{self.stage_range[1]}_"
+                )
+                print("\nProcesso completo! Todos os stages do intervalo foram executados.")

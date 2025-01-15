@@ -1,6 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-Logistic Regression_none;{'classifier__penalty': 'l2', 'classifier__C': 10.0, 'classifier__solver': 'newton-cg', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced'};0.9188026124818578;Optuna
-Logistic Regression_pca;{'classifier__penalty': 'l2', 'classifier__C': 10.0, 'classifier__solver': 'newton-cg', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced', 'feature_selection__n_components': 0.9897714750854589};0.8728301886792453;Optuna
-Logistic Regression_rfe;{'classifier__penalty': 'l2', 'classifier__C': 10.0, 'classifier__solver': 'lbfgs', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced', 'feature_selection__n_features_to_select': 48};0.8115602322206097;Optuna
-Logistic Regression_rf;{'classifier__penalty': 'l2', 'classifier__C': 10.0, 'classifier__solver': 'newton-cg', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced', 'feature_selection__max_features': 331, 'feature_selection__threshold': 'median'};0.9153047895500727;Optuna
-Logistic Regression_mi;{'classifier__penalty': 'l2', 'classifier__C': 10.0, 'classifier__solver': 'newton-cg', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced', 'feature_selection__k': 'all'};0.9188026124818578;Optuna

@@ -2,7 +2,6 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
-import os
 
 from behavior.data.behavior_data_loader import BehaviorDataLoader
 from core.preprocessors.data_cleaner import DataCleaner
@@ -14,18 +13,34 @@ from core.management.stage_training_manager import StageTrainingManager
 from core.reporting import metrics_reporter
 
 class BehaviorDetectionPipeline:
-    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None):
+    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None):
+        """
+        Inicializa o pipeline de detecção de comportamentos.
+        
+        Args:
+            n_iter (int): Número de iterações para otimização
+            n_jobs (int): Número de jobs paralelos
+            test_size (float): Tamanho do conjunto de teste
+            base_path (str): Caminho base para os arquivos
+            stage_range (tuple): Intervalo de stages a executar (inicio, fim)
+        """
         self.n_iter = n_iter
         self.n_jobs = n_jobs
         self.test_size = test_size
-        self.setup_paths(base_path)
+        self.stage_range = stage_range
+        self.base_path = base_path
+        self.paths = self._setup_paths(base_path)
+        self.model_params = BehaviorModelParams()
         
-    def setup_paths(self, base_path=None):
+    def _setup_paths(self, base_path=None):
         """
-        Configure project paths flexibly for any environment.
+        Configura os caminhos do projeto flexivelmente para qualquer ambiente.
         
         Args:
-            base_path: Optional path to override automatic detection
+            base_path: Caminho base opcional para sobrescrever a detecção automática
+            
+        Returns:
+            dict: Dicionário com os caminhos configurados
         """
         # Se um caminho base foi fornecido, use-o
         if base_path:
@@ -55,7 +70,7 @@ class BehaviorDetectionPipeline:
                     print("Usando diretório atual como base")
         
         # Configura os caminhos relativos ao diretório base
-        self.paths = {
+        paths = {
             'data': base_path / 'data',
             'output': base_path / 'output',
             'models': base_path / 'models',
@@ -63,15 +78,17 @@ class BehaviorDetectionPipeline:
         }
         
         # Cria os diretórios se não existirem
-        for path in self.paths.values():
+        for path in paths.values():
             path.mkdir(exist_ok=True)
             
         print(f"\nCaminhos configurados:")
-        for key, path in self.paths.items():
+        for key, path in paths.items():
             print(f"{key}: {path}")
+            
+        return paths
     
     def load_and_clean_data(self):
-        """Load and clean the dataset."""
+        """Carrega e limpa o dataset."""
         # Load data
         data = BehaviorDataLoader.load_data(self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
         print(f"Dataset inicial shape: {data.shape}")
@@ -92,10 +109,8 @@ class BehaviorDetectionPipeline:
         
         return cleaned_data
     
-    # ... resto da classe permanece igual ...
-    
     def _get_columns_to_remove(self):
-        """Define columns to be removed from the dataset."""
+        """Define as colunas a serem removidas do dataset."""
         columns_to_remove_ids = ['id_log', 'grupo', 'num_dia', 'num_log']
         columns_to_remove_emotions = [
             'estado_afetivo', 'estado_engajamento_concentrado', 
@@ -119,7 +134,7 @@ class BehaviorDetectionPipeline:
         return columns_to_remove_ids + columns_to_remove_emotions + columns_to_remove_personality + columns_to_remove_behaviors
     
     def prepare_data(self, data):
-        """Prepare data for training including splitting and encoding."""
+        """Prepara os dados para treinamento, incluindo divisão e codificação."""
         # Split by student level
         train_data, test_data = DataSplitter.split_by_student_level(
             data, test_size=self.test_size, column_name='aluno'
@@ -146,45 +161,12 @@ class BehaviorDetectionPipeline:
         return X_train, X_test, y_train, y_test
     
     def balance_data(self, X_train, y_train):
-        """Apply SMOTE to balance the dataset."""
+        """Aplica SMOTE para balancear o dataset."""
         data_balancer = DataBalancer()
         return data_balancer.apply_smote(X_train, y_train)
     
-    def train_models(self, X_train, X_test, y_train, y_test):
-        """Train all models using stage-based training."""
-        # Setup cross-validation
-        cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-        
-        # Initialize model parameters
-        model_params = BehaviorModelParams()
-        
-        # Define training stages
-        stages = self._get_training_stages()
-        
-        # Initialize training manager
-        training_manager = StageTrainingManager(
-            X_train=X_train,
-            X_test=X_test,
-            y_train=y_train,
-            y_test=y_test,
-            model_params=model_params,
-            n_iter=self.n_iter,
-            cv=cv,
-            scoring='balanced_accuracy',
-            n_jobs=self.n_jobs
-        )
-        
-        # Execute training
-        try:
-            training_manager.execute_all_stages(training_manager, stages)
-            return training_manager
-        except Exception as e:
-            print(f"\nExecução interrompida: {str(e)}")
-            print("Execute novamente para retomar do último stage não completado.")
-            return None
-    
     def _get_training_stages(self):
-        """Define all training stages."""
+        """Define todos os stages de treinamento."""
         models = ['Logistic Regression', 'Decision Tree', 'Random Forest', 
                  'Gradient Boosting', 'SVM', 'KNN', 'XGBoost', 'Naive Bayes', 'MLP']
         selectors = ['none', 'pca', 'rfe', 'rf', 'mi']
@@ -193,6 +175,9 @@ class BehaviorDetectionPipeline:
         stage_num = 1
         
         for model in models:
+            if model == 'SVM':
+                print("SVM muito lento, pulando...")
+                continue
             for selector in selectors:
                 stage_name = f'etapa_{stage_num}_{model.lower().replace(" ", "_")}_{selector}'
                 stages.append((stage_name, [model], [selector]))
@@ -200,19 +185,8 @@ class BehaviorDetectionPipeline:
                 
         return stages
     
-    def generate_reports(self, training_manager):
-        """Generate final reports for all models."""
-        if training_manager:
-            final_results = training_manager.combine_results()
-            training_results, class_metrics, avg_metrics = final_results
-            metrics_reporter.generate_reports(
-                class_metrics, 
-                avg_metrics, 
-                filename_prefix="_Final_Combined_"
-            )
-    
     def run(self):
-        """Execute the complete behavior detection pipeline."""
+        """Executa o pipeline completo de detecção de comportamentos."""
         print("Iniciando pipeline de detecção de comportamentos...")
         
         # Load and clean data
@@ -229,10 +203,24 @@ class BehaviorDetectionPipeline:
         
         # Train models
         print("\n4. Iniciando treinamento dos modelos...")
-        training_manager = self.train_models(X_train, X_test, y_train, y_test)
+        training_manager = StageTrainingManager(
+            X_train=X_train,
+            X_test=X_test,
+            y_train=y_train,
+            y_test=y_test,
+            model_params=self.model_params,
+            n_iter=self.n_iter,
+            cv=10,
+            scoring='balanced_accuracy',
+            n_jobs=self.n_jobs,
+            stage_range=self.stage_range
+        )
         
-        # Generate reports
-        print("\n5. Gerando relatórios finais...")
-        self.generate_reports(training_manager)
+        # Define training stages
+        stages = self._get_training_stages()
+        
+        # Execute training stages
+        print(f"\n5. Executando stages {self.stage_range if self.stage_range else 'todos'}...")
+        training_manager.execute_all_stages(training_manager, stages)
         
         print("\nPipeline concluído!")
