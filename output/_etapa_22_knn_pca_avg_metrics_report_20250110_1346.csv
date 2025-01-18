@@ -1,0 +1,2 @@
+Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
+KNN_pca;0,820;1,000;1,000;1,000;1,000;0,233;0,409;0,485;0,371

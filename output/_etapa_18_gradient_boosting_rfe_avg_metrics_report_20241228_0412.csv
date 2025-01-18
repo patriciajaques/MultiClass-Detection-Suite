@@ -1,0 +1,2 @@
+Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
+Gradient Boosting_rfe;0,819;0,999;0,999;0,999;0,999;0,232;0,460;0,431;0,548

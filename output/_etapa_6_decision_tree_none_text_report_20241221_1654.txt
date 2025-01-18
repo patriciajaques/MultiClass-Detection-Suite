@@ -1,0 +1,50 @@
+
+Evaluating Decision Tree with none selector using Optuna:
+Hyperparameters: {'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'sqrt'}
+
+Usando todas as 473 features originais
+
+Cross-Validation Results:
+Average Score: 0.7923
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2519.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2519.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2519.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2519.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 2519.0
+
+Train set average metrics:
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12595.0
+Balanced_accuracy: 1.0
+Accuracy: 1.0
+Class kappa - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 12595.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         2519            0            0            0            0
+Actual 1            0         2519            0            0            0
+Actual 2            0            0         2519            0            0
+Actual 3            0            0            0         2519            0
+Actual 4            0            0            0            0         2519
+
+Test set class report:
+Class 0 - Precision: 0.04285714285714286, Recall: 0.023255813953488372, F1-Score: 0.03015075376884422, Support: 129.0
+Class 1 - Precision: 0.25, Recall: 0.06818181818181818, F1-Score: 0.10714285714285714, Support: 176.0
+Class 2 - Precision: 0.5611814345991561, Recall: 0.415625, F1-Score: 0.47755834829443444, Support: 640.0
+Class 3 - Precision: 0.14184397163120568, Recall: 0.5882352941176471, F1-Score: 0.22857142857142856, Support: 34.0
+Class 4 - Precision: 0.07957559681697612, Recall: 0.22900763358778625, F1-Score: 0.11811023622047244, Support: 131.0
+
+Test set average metrics:
+Class weighted avg - Precision: 0.3819205295410056, Recall: 0.2981981981981982, F1-Score: 0.3167818040703353, Support: 1110.0
+Balanced_accuracy: 0.264861111968148
+Accuracy: 0.2981981981981982
+Class kappa - Precision: -0.008877807348430355, Recall: -0.008877807348430355, F1-Score: -0.008877807348430355, Support: 1110.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0            3           12           32           78            4
+Actual 1            5           12          106            0           53
+Actual 2           59           12          266           20          283
+Actual 3            0            5            2           20            7
+Actual 4            3            7           68           23           30

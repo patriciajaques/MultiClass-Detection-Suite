@@ -1,0 +1,6 @@
+Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features;Total_Variance_Explained
+0;0,754;0,710;0,731;2519,000;0,126;0,140;0,132;129,000;Logistic Regression_pca;pca;98;0,989
+1;0,839;0,855;0,847;2519,000;0,508;0,716;0,594;176,000;Logistic Regression_pca;pca;98;0,989
+2;0,727;0,638;0,680;2519,000;0,755;0,448;0,563;640,000;Logistic Regression_pca;pca;98;0,989
+3;0,854;0,918;0,885;2519,000;0,162;0,706;0,264;34,000;Logistic Regression_pca;pca;98;0,989
+4;0,863;0,939;0,899;2519,000;0,319;0,466;0,379;131,000;Logistic Regression_pca;pca;98;0,989

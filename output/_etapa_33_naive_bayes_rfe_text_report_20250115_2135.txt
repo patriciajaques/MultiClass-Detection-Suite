@@ -1,0 +1,53 @@
+
+Evaluating Naive Bayes with rfe selector using Optuna:
+Hyperparameters: {'classifier__var_smoothing': 0.0001}
+
+Selected Features:
+num_standard__verificado_com_teclado, num_standard__idle_time_acumulado, num_standard__num_click_acumulado, num_standard__num_click_passo, num_standard__num_click_eq, num_standard__type_step_verification, num_standard__type_click, num_standard__type_typing, num_standard__type_mouse_stop, num_standard__type_user_idle, num_standard__pontuacao, num_standard__num_passos_equacao, num_standard__num_passos_errados_eq, num_standard__num_passos_errados_seguidos_eq, num_standard__num_passos_corretos_eq, num_standard__efetividade_passos_eq, num_standard__tempo_equacao, num_standard__tempo_passo, num_standard__tempo_medio_eq_diario, num_standard__tempo_medio_passo_diario, num_standard__num_passos_diario, num_standard__num_passos_corretos_diario, num_standard__num_passos_errados_diario, num_standard__num_equacoes_resolvidas_diario, num_standard__efetividade_passos_eq_diario, num_standard__tempo_medio_eq_diario_turma, num_standard__tempo_medio_passo_diario_turma, num_standard__media_num_passos_diario_turma, num_standard__media_num_passos_corretos_diario_turma, num_standard__media_num_passos_errados_diario_turma, num_standard__media_num_equacoes_resolvidas_diario_turma, num_standard__media_efetividade_passos_eq_turma, num_standard__tempo_medio_eq_total, num_standard__tempo_medio_passo_total, num_standard__num_passos_total, num_standard__num_passos_corretos_total, num_standard__num_passos_errados_total, num_standard__num_equacoes_resolvidas_total, num_standard__efetividade_passos_eq_total, num_standard__tempo_medio_eq_total_turma, num_standard__tempo_medio_passo_total_turma, num_standard__media_num_passos_total_turma, num_standard__media_num_passos_corretos_total_turma, num_standard__media_num_passos_errados_total_turma, num_standard__media_num_equacoes_resolvidas_total_turma, num_standard__media_efetividade_passos_eq_total_turma, num_standard__eq_AD, num_standard__eq_DM, num_standard__eq_SB, num_standard__eq_MT_acerto_clip, num_standard__eq_AD_acerto_diario, num_standard__eq_MT_acerto_diario, num_standard__eq_OI_acerto_diario, num_standard__eq_SB_acerto_diario, num_standard__eq_SP_acerto_diario, num_standard__eq_AD_acerto_total, num_standard__eq_MT_acerto_total, num_standard__eq_OI_acerto_total, num_standard__eq_SB_acerto_total, num_standard__eq_SP_acerto_total, num_standard__eq_AD_acerto_medio_diario_turma, num_standard__eq_AF_acerto_medio_diario_turma, num_standard__eq_DM_acerto_medio_diario_turma, num_standard__eq_MM_acerto_medio_diario_turma, num_standard__eq_MT_acerto_medio_diario_turma, num_standard__eq_OI_acerto_medio_diario_turma, num_standard__eq_SB_acerto_medio_diario_turma, num_standard__eq_SP_acerto_medio_diario_turma, num_standard__eq_AD_acerto_medio_total_turma, num_standard__eq_AF_acerto_medio_total_turma, num_standard__eq_DM_acerto_medio_total_turma, num_standard__eq_MM_acerto_medio_total_turma, num_standard__eq_MT_acerto_medio_total_turma, num_standard__eq_OI_acerto_medio_total_turma, num_standard__eq_SB_acerto_medio_total_turma, num_standard__eq_SP_acerto_medio_total_turma, num_standard__eq_OI_erro_diario, num_standard__eq_AD_erro_total, num_standard__eq_DV_erro_total, num_standard__eq_OI_erro_total, num_standard__eq_SB_erro_total, num_standard__eq_SP_erro_total, num_standard__eq_AD_erro_medio_diario_turma, num_standard__eq_DM_erro_medio_diario_turma, num_standard__eq_DV_erro_medio_diario_turma, num_standard__eq_MT_erro_medio_diario_turma, num_standard__eq_OI_erro_medio_diario_turma, num_standard__eq_SB_erro_medio_diario_turma, num_standard__eq_SP_erro_medio_diario_turma, num_standard__eq_AD_erro_medio_total_turma, num_standard__eq_DM_erro_medio_total_turma, num_standard__eq_DV_erro_medio_total_turma, num_standard__eq_MT_erro_medio_total_turma, num_standard__eq_OI_erro_medio_total_turma, num_standard__eq_SB_erro_medio_total_turma, num_standard__eq_SP_erro_medio_total_turma, num_standard__eq_MT_fator_clip, num_standard__eq_AD_fator_diario, num_standard__eq_MT_fator_diario, num_standard__eq_OI_fator_diario, num_standard__eq_SP_fator_diario, num_standard__eq_AD_fator_total, num_standard__eq_MT_fator_total, num_standard__eq_OI_fator_total, num_standard__eq_SB_fator_total, num_standard__eq_SP_fator_total, num_standard__eq_AD_fator_medio_diario_turma, num_standard__eq_DM_fator_medio_diario_turma, num_standard__eq_MM_fator_medio_diario_turma, num_standard__eq_MT_fator_medio_diario_turma, num_standard__eq_OI_fator_medio_diario_turma, num_standard__eq_SB_fator_medio_diario_turma, num_standard__eq_SP_fator_medio_diario_turma, num_standard__eq_AD_fator_medio_total_turma, num_standard__eq_DM_fator_medio_total_turma, num_standard__eq_MM_fator_medio_total_turma, num_standard__eq_MT_fator_medio_total_turma, num_standard__eq_OI_fator_medio_total_turma, num_standard__eq_SB_fator_medio_total_turma, num_standard__eq_SP_fator_medio_total_turma, num_standard__misc_EqPrim_Dv_Simp_diario, num_standard__misc_EqPrim_Ad_Sin_total, num_standard__misc_EqPrim_OpPrim_Ad_Num_Inc_total, num_standard__misc_OI_Ad_Ad_total, num_standard__misc_EqPrim_Ad_Num_total, num_standard__misc_EqPrim_Dv_Simp_total, num_standard__misc_EqPrim_Dv_Sin_total, num_standard__misc_EqPrim_Dv_Num_total, num_standard__misc_EqPrim_OpPrim_Sb_Num_Inc_total, num_standard__misc_OI_Mt_Minus_Sb_total, num_standard__misc_EqPrim_Mt_Sin_total, num_standard__misc_OI_Mt_Plus_Dv_Minus_total, num_standard__misc_OI_Dv_Minus_Dv_Plus_total, nom__verificado_com_teclado_1, nom__type_step_verification_1, nom__type_click_1, nom__type_typing_1, nom__type_mouse_stop_1, nom__type_user_idle_1, nom__cat_medio_1_1, nom__eq_AD_1, nom__eq_SB_1, nom__eq_SP_1, nom__misc_OI_Dv_Plus_Dv_Plus_total_1
+
+Selecionadas 144 features originais
+
+Cross-Validation Results:
+Average Score: -inf
+
+Train set class report:
+Class 0 - Precision: 0.4081521739130435, Recall: 0.5962683604605002, F1-Score: 0.4845942894015164, Support: 2519.0
+Class 1 - Precision: 0.7672168468981218, Recall: 0.5351329892814609, F1-Score: 0.6304957904583723, Support: 2519.0
+Class 2 - Precision: 0.6197339246119734, Recall: 0.22191345772131799, F1-Score: 0.326805027769658, Support: 2519.0
+Class 3 - Precision: 0.4809340821755838, Recall: 0.6458912266772528, F1-Score: 0.5513385293120976, Support: 2519.0
+Class 4 - Precision: 0.5704838148277063, Recall: 0.6506550218340611, F1-Score: 0.6079376854599406, Support: 2519.0
+
+Train set average metrics:
+Class weighted avg - Precision: 0.5693041684852859, Recall: 0.5299722111949187, F1-Score: 0.520234264480317, Support: 12595.0
+Balanced_accuracy: 0.5299722111949186
+Accuracy: 0.5299722111949187
+Class kappa - Precision: 0.41246526399364825, Recall: 0.41246526399364825, F1-Score: 0.41246526399364825, Support: 12595.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0         1502          112           83          522          300
+Actual 1          497         1348          195          422           57
+Actual 2          741          258          559          422          539
+Actual 3          470           33           51         1627          338
+Actual 4          470            6           14          390         1639
+
+Test set class report:
+Class 0 - Precision: 0.06787330316742081, Recall: 0.11627906976744186, F1-Score: 0.08571428571428572, Support: 129.0
+Class 1 - Precision: 0.4356060606060606, Recall: 0.6534090909090909, F1-Score: 0.5227272727272727, Support: 176.0
+Class 2 - Precision: 0.8780487804878049, Recall: 0.225, F1-Score: 0.3582089552238806, Support: 640.0
+Class 3 - Precision: 0.08333333333333333, Recall: 0.029411764705882353, F1-Score: 0.043478260869565216, Support: 34.0
+Class 4 - Precision: 0.24721603563474387, Recall: 0.8473282442748091, F1-Score: 0.38275862068965516, Support: 131.0
+
+Test set average metrics:
+Class weighted avg - Precision: 0.6149479065666161, Recall: 0.34774774774774775, F1-Score: 0.34588334628859135, Support: 1110.0
+Balanced_accuracy: 0.3742856339314448
+Accuracy: 0.34774774774774775
+Class kappa - Precision: 0.1906459604809959, Recall: 0.1906459604809959, F1-Score: 0.1906459604809959, Support: 1110.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0           15           19            0            1           94
+Actual 1           21          115           12            0           28
+Actual 2          168          123          144           10          195
+Actual 3            7            0            5            1           21
+Actual 4           10            7            3            0          111

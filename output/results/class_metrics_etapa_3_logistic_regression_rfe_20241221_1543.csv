@@ -1,0 +1,6 @@
+model;train_metrics;test_metrics
+Logistic Regression_rfe;{'precision': 0.6603272888102609, 'recall': 0.592695514092894, 'f1-score': 0.6246861924686192, 'support': 2519.0};{'precision': 0.17333333333333334, 'recall': 0.10077519379844961, 'f1-score': 0.12745098039215685, 'support': 129.0}
+Logistic Regression_rfe;{'precision': 0.7325319308790383, 'recall': 0.7741167129813418, 'f1-score': 0.7527504342790967, 'support': 2519.0};{'precision': 0.24468085106382978, 'recall': 0.39204545454545453, 'f1-score': 0.30131004366812225, 'support': 176.0}
+Logistic Regression_rfe;{'precision': 0.5964479526393686, 'recall': 0.4799523620484319, 'f1-score': 0.5318961724593049, 'support': 2519.0};{'precision': 0.6159695817490495, 'recall': 0.253125, 'f1-score': 0.3588039867109635, 'support': 640.0}
+Logistic Regression_rfe;{'precision': 0.7302471284371737, 'recall': 0.832870186581977, 'f1-score': 0.7781899109792285, 'support': 2519.0};{'precision': 0.06451612903225806, 'recall': 0.058823529411764705, 'f1-score': 0.06153846153846154, 'support': 34.0}
+Logistic Regression_rfe;{'precision': 0.7554112554112554, 'recall': 0.8312822548630409, 'f1-score': 0.7915327915327915, 'support': 2519.0};{'precision': 0.17429193899782136, 'recall': 0.6106870229007634, 'f1-score': 0.2711864406779661, 'support': 131.0}

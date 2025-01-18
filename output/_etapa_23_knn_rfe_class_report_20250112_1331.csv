@@ -1,0 +1,6 @@
+Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features
+0;1,000;1,000;1,000;2519,000;0,278;0,233;0,253;129,000;KNN_rfe;selector;48
+1;1,000;1,000;1,000;2519,000;0,223;0,261;0,241;176,000;KNN_rfe;selector;48
+2;1,000;1,000;1,000;2519,000;0,562;0,558;0,560;640,000;KNN_rfe;selector;48
+3;1,000;1,000;1,000;2519,000;0,091;0,235;0,131;34,000;KNN_rfe;selector;48
+4;1,000;1,000;1,000;2519,000;0,329;0,183;0,235;131,000;KNN_rfe;selector;48

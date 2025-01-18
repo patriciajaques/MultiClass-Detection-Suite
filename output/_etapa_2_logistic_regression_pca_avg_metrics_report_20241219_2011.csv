@@ -1,0 +1,2 @@
+Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
+Logistic Regression_pca;0,701;0,812;0,808;0,808;0,812;0,495;0,487;0,573;0,465

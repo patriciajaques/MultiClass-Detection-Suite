@@ -48,25 +48,50 @@ class ResultsManager:
         
         avg_metrics_df.to_csv(f"{self.base_path}avg_metrics_{stage_name}_{timestamp}.csv", 
                              index=False, sep=';')
-    
+
+
     def load_all_results(self):
-        training_files = [f for f in os.listdir(self.base_path) if f.startswith('training_results_')]
-        class_metrics_files = [f for f in os.listdir(self.base_path) if f.startswith('class_metrics_')]
-        avg_metrics_files = [f for f in os.listdir(self.base_path) if f.startswith('avg_metrics_')]
+        """
+        Carrega e combina todos os resultados salvos.
         
-        all_training_results = pd.concat([
-            pd.read_csv(os.path.join(self.base_path, f), sep=';') 
-            for f in training_files
-        ])
-        
-        all_class_metrics = pd.concat([
-            pd.read_csv(os.path.join(self.base_path, f), sep=';')
-            for f in class_metrics_files
-        ])
-        
-        all_avg_metrics = pd.concat([
-            pd.read_csv(os.path.join(self.base_path, f), sep=';')
-            for f in avg_metrics_files
-        ])
-        
-        return all_training_results, all_class_metrics, all_avg_metrics
+        Returns:
+            tuple: (class_metrics_dict, avg_metrics_dict) contendo os resultados combinados
+        """
+        try:
+            # Identificar arquivos
+            class_metrics_files = [f for f in os.listdir(self.base_path) if f.startswith('class_metrics_')]
+            avg_metrics_files = [f for f in os.listdir(self.base_path) if f.startswith('avg_metrics_')]
+            
+            if not class_metrics_files or not avg_metrics_files:
+                print("Aviso: Nenhum arquivo de métricas encontrado.")
+                return {}, {}
+
+            # Carregar e processar métricas por classe
+            class_metrics_dict = {}
+            for f in class_metrics_files:
+                df = pd.read_csv(os.path.join(self.base_path, f), sep=';')
+                for model in df['model'].unique():
+                    model_data = df[df['model'] == model]
+                    class_metrics_dict[model] = {
+                        'train_class_report': model_data['train_metrics'].to_frame(),
+                        'test_class_report': model_data['test_metrics'].to_frame()
+                    }
+
+            # Carregar e processar métricas médias
+            avg_metrics_dict = {}
+            for f in avg_metrics_files:
+                df = pd.read_csv(os.path.join(self.base_path, f), sep=';')
+                for _, row in df.iterrows():
+                    avg_metrics_dict[row['model']] = {
+                        'cv_report': row.get('cv_score', 0.0),
+                        'train_avg_metrics': pd.DataFrame(eval(row['train_metrics']) if isinstance(row.get('train_metrics'), str) else {}),
+                        'test_avg_metrics': pd.DataFrame(eval(row['test_metrics']) if isinstance(row.get('test_metrics'), str) else {}),
+                        'training_type': row.get('training_type', 'unknown'),
+                        'hyperparameters': eval(row['hyperparameters']) if isinstance(row.get('hyperparameters'), str) else {}
+                    }
+
+            return class_metrics_dict, avg_metrics_dict
+
+        except Exception as e:
+            print(f"Erro ao carregar resultados: {str(e)}")
+            return {}, {}

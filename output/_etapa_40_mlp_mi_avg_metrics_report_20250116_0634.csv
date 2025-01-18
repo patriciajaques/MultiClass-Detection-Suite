@@ -1,0 +1,2 @@
+Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
+MLP_mi;0,833;0,981;0,981;0,981;0,981;0,429;0,536;0,551;0,530

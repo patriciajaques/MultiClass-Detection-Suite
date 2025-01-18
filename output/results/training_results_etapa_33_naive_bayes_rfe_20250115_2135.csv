@@ -1,0 +1,2 @@
+model_name;hyperparameters;cv_score;training_type
+Naive Bayes_rfe;{'classifier__var_smoothing': 0.0001};-inf;Optuna

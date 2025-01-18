@@ -1,0 +1,2 @@
+model_name;hyperparameters;cv_score;training_type
+Naive Bayes_rf;{'classifier__var_smoothing': 0.001, 'feature_selection__max_features': 217, 'feature_selection__threshold': 'median'};0.5249649022955796;Optuna

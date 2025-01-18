@@ -1,0 +1,6 @@
+Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features;Total_Variance_Explained
+0;0,996;0,998;0,997;2519,000;0,000;0,000;0,000;129,000;XGBoost_pca;pca;98;0,989
+1;0,998;0,998;0,998;2519,000;0,591;0,074;0,131;176,000;XGBoost_pca;pca;98;0,989
+2;1,000;0,997;0,998;2519,000;0,583;0,984;0,732;640,000;XGBoost_pca;pca;98;0,989
+3;1,000;1,000;1,000;2519,000;0,000;0,000;0,000;34,000;XGBoost_pca;pca;98;0,989
+4;1,000;1,000;1,000;2519,000;0,857;0,046;0,087;131,000;XGBoost_pca;pca;98;0,989

@@ -1,0 +1,50 @@
+
+Evaluating Logistic Regression with none selector using Optuna:
+Hyperparameters: {'classifier__penalty': 'l2', 'classifier__C': 1.0, 'classifier__solver': 'lbfgs', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced'}
+
+Usando todas as 532 features originais
+
+Cross-Validation Results:
+Average Score: 1.0000
+
+Train set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 109.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 158.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 522.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 63.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 50.0
+
+Train set average metrics:
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 902.0
+Balanced_accuracy: 1.0
+Accuracy: 1.0
+Class kappa - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 902.0
+
+Train set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0          109            0            0            0            0
+Actual 1            0          158            0            0            0
+Actual 2            0            0          522            0            0
+Actual 3            0            0            0           63            0
+Actual 4            0            0            0            0           50
+
+Test set class report:
+Class 0 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 17.0
+Class 1 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 23.0
+Class 2 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 109.0
+Class 3 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 20.0
+Class 4 - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 26.0
+
+Test set average metrics:
+Class weighted avg - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 195.0
+Balanced_accuracy: 1.0
+Accuracy: 1.0
+Class kappa - Precision: 1.0, Recall: 1.0, F1-Score: 1.0, Support: 195.0
+
+Test set confusion matrix:
+          Predicted 0  Predicted 1  Predicted 2  Predicted 3  Predicted 4
+Actual 0           17            0            0            0            0
+Actual 1            0           23            0            0            0
+Actual 2            0            0          109            0            0
+Actual 3            0            0            0           20            0
+Actual 4            0            0            0            0           26

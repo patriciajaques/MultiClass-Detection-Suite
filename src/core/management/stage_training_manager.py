@@ -122,77 +122,84 @@ class StageTrainingManager:
             json.dump(progress, f)
     
     def execute_all_stages(self, training_manager, stages):
-            """
-            Executa um intervalo específico de etapas sequencialmente.
-            
-            Args:
-                training_manager: Instância do StageTrainingManager
-                stages: Lista de tuplas (stage_name, models, selectors)
-            """
-            # Determinar o intervalo de stages a executar
-            if self.stage_range:
-                start_idx, end_idx = self.stage_range
-                stages = stages[start_idx-1:end_idx]  # -1 porque os índices começam em 1
-                print(f"\nExecutando stages do {start_idx} ao {end_idx}")
-            
-            # Carregar progresso anterior
-            progress = training_manager._load_progress()
-            completed_stages = set(progress['completed_stages'])
+        """
+        Executa um intervalo específico de etapas sequencialmente.
         
-            print("\nVerificando progresso anterior...")
-            if completed_stages:
-                print(f"Stages já completados: {', '.join(completed_stages)}")
-            else:
-                print("Nenhum stage completado anteriormente. Iniciando do começo.")
-            
-            all_results = []
-            
-            for stage_num, (stage_name, models, selectors) in enumerate(stages, 1):
-                if stage_name in completed_stages:
-                    print(f"\nStage {stage_num} ({stage_name}) já foi completado. Pulando...")
-                    continue
-                    
-                print(f"\n{'='*50}")
-                print(f"Iniciando Stage {stage_num}: {stage_name}")
-                print(f"{'='*50}")
+        Args:
+            training_manager: Instância do StageTrainingManager
+            stages: Lista de tuplas (stage_name, models, selectors)
+        """
+        # Determinar o intervalo de stages a executar
+        if self.stage_range:
+            start_idx, end_idx = self.stage_range
+            stages = stages[start_idx-1:end_idx]  # -1 porque os índices começam em 1
+            print(f"\nExecutando stages do {start_idx} ao {end_idx}")
+        
+        # Carregar progresso anterior
+        progress = training_manager._load_progress()
+        completed_stages = set(progress['completed_stages'])
+
+        print("\nVerificando progresso anterior...")
+        if completed_stages:
+            print(f"Stages já completados: {', '.join(completed_stages)}")
+        else:
+            print("Nenhum stage completado anteriormente. Iniciando do começo.")
+        
+        all_results = []
+        
+        for stage_num, (stage_name, models, selectors) in enumerate(stages, 1):
+            if stage_name in completed_stages:
+                print(f"\nStage {stage_num} ({stage_name}) já foi completado. Pulando...")
+                continue
                 
-                try:
-                    # Salvar stage atual como "em progresso"
-                    training_manager._save_progress(list(completed_stages), stage_name)
-                    
-                    # Executar stage
-                    results = training_manager.execute_stage(stage_name, models, selectors)
-                    
-                    if results:
-                        trained_models, class_metrics, avg_metrics = results
-                        
-                        # Gerar relatórios para o stage atual
-                        print(f"\nGerando relatórios para {stage_name}...")
-                        metrics_reporter.generate_reports(
-                            class_metrics, 
-                            avg_metrics, 
-                            filename_prefix=f"_{stage_name}_"
-                        )
-                        
-                        all_results.append(results)
-                        
-                        # Marcar stage como completado
-                        completed_stages.add(stage_name)
-                        training_manager._save_progress(list(completed_stages))
-                        
-                        print(f"\nStage {stage_num} ({stage_name}) concluído com sucesso!")
-                    
-                except Exception as e:
-                    print(f"\nErro no Stage {stage_num} ({stage_name}): {str(e)}")
-                    print("O treinamento pode ser retomado deste ponto posteriormente.")
-                    raise
+            print(f"\n{'='*50}")
+            print(f"Iniciando Stage {stage_num}: {stage_name}")
+            print(f"{'='*50}")
             
-            if all_results or completed_stages:
-                print("\nGerando relatório final para o intervalo de stages...")
-                training_results, class_metrics, avg_metrics = training_manager.combine_results()
-                metrics_reporter.generate_reports(
-                    class_metrics, 
-                    avg_metrics, 
-                    filename_prefix=f"_Final_Combined_{self.stage_range[0]}_{self.stage_range[1]}_"
-                )
-                print("\nProcesso completo! Todos os stages do intervalo foram executados.")
+            try:
+                # Salvar stage atual como "em progresso"
+                training_manager._save_progress(list(completed_stages), stage_name)
+                
+                # Executar stage
+                results = training_manager.execute_stage(stage_name, models, selectors)
+                
+                if results:
+                    trained_models, class_metrics, avg_metrics = results
+                    
+                    # Gerar relatórios para o stage atual
+                    print(f"\nGerando relatórios para {stage_name}...")
+                    metrics_reporter.generate_reports(
+                        class_metrics, 
+                        avg_metrics, 
+                        filename_prefix=f"_{stage_name}_"
+                    )
+                    
+                    all_results.append(results)
+                    
+                    # Marcar stage como completado
+                    completed_stages.add(stage_name)
+                    training_manager._save_progress(list(completed_stages))
+                    
+                    print(f"\nStage {stage_num} ({stage_name}) concluído com sucesso!")
+                
+            except Exception as e:
+                print(f"\nErro no Stage {stage_num} ({stage_name}): {str(e)}")
+                print("O treinamento pode ser retomado deste ponto posteriormente.")
+                raise
+        
+        if all_results or completed_stages:
+            print("\nGerando relatório final para o intervalo de stages...")
+            class_metrics, avg_metrics = training_manager.combine_results()
+            
+            # Define o prefixo do arquivo baseado na presença do stage_range
+            if self.stage_range:
+                filename_prefix = f"_Final_Combined_{self.stage_range[0]}_{self.stage_range[1]}_"
+            else:
+                filename_prefix = "_Final_Combined_All_"
+                
+            metrics_reporter.generate_reports(
+                class_metrics, 
+                avg_metrics, 
+                filename_prefix=filename_prefix
+            )
+            print("\nProcesso completo! Todos os stages do intervalo foram executados.")

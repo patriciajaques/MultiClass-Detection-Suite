@@ -1,0 +1,2 @@
+model_name;hyperparameters;cv_score;training_type
+KNN_rfe;{'classifier__n_neighbors': 3, 'classifier__weights': 'distance', 'classifier__metric': 'manhattan', 'feature_selection__n_features_to_select': 48};0.8115060393347246;Optuna

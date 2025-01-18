@@ -38,7 +38,7 @@ class BehaviorDetectionPipeline:
         
         Args:
             base_path: Caminho base opcional para sobrescrever a detecção automática
-            
+                
         Returns:
             dict: Dicionário com os caminhos configurados
         """
@@ -56,18 +56,34 @@ class BehaviorDetectionPipeline:
             
             # Depois, tenta encontrar o diretório 'behavior-detection'
             else:
-                # Sobe nos diretórios até encontrar 'behavior-detection' ou chegar à raiz
-                current_path = current_file.parent
-                while current_path.name != 'behavior-detection' and current_path != current_path.parent:
-                    current_path = current_path.parent
+                # Primeiro encontra o diretório src
+                src_dir = current_file.parent.parent
                 
-                if current_path.name == 'behavior-detection':
-                    base_path = current_path
-                    print("Ambiente local detectado")
+                # Se o parent do src não é behavior-detection, procura pelo nome correto
+                if src_dir.parent.name != 'behavior-detection':
+                    print("Procurando diretório behavior-detection...")
+                    
+                    # Lista todos os diretórios pais até encontrar 'behavior-detection'
+                    current_path = src_dir
+                    found = False
+                    while current_path != current_path.parent and not found:
+                        for sibling in current_path.parent.iterdir():
+                            if sibling.name == 'behavior-detection' and sibling.is_dir():
+                                base_path = sibling
+                                found = True
+                                break
+                        if not found:
+                            current_path = current_path.parent
+                    
+                    if not found:
+                        # Se ainda não encontrou, usa um caminho absoluto
+                        base_path = Path('/Users/patricia/Documents/code/python-code/behavior-detection')
+                        print(f"Usando caminho absoluto: {base_path}")
                 else:
-                    # Se não encontrar, usa o diretório atual
-                    base_path = Path.cwd()
-                    print("Usando diretório atual como base")
+                    base_path = src_dir.parent
+                    print("Diretório behavior-detection encontrado diretamente")
+        
+        print(f"Diretório base selecionado: {base_path}")
         
         # Configura os caminhos relativos ao diretório base
         paths = {
@@ -79,7 +95,11 @@ class BehaviorDetectionPipeline:
         
         # Cria os diretórios se não existirem
         for path in paths.values():
-            path.mkdir(exist_ok=True)
+            try:
+                path.mkdir(exist_ok=True, parents=True)
+                print(f"Diretório criado/verificado: {path}")
+            except Exception as e:
+                print(f"Erro ao criar diretório {path}: {e}")
             
         print(f"\nCaminhos configurados:")
         for key, path in paths.items():
@@ -168,16 +188,13 @@ class BehaviorDetectionPipeline:
     def _get_training_stages(self):
         """Define todos os stages de treinamento."""
         models = ['Logistic Regression', 'Decision Tree', 'Random Forest', 
-                 'Gradient Boosting', 'SVM', 'KNN', 'XGBoost', 'Naive Bayes', 'MLP']
+                 'Gradient Boosting', 'KNN', 'XGBoost', 'Naive Bayes', 'MLP']
         selectors = ['none', 'pca', 'rfe', 'rf', 'mi']
         
         stages = []
         stage_num = 1
         
         for model in models:
-            if model == 'SVM':
-                print("SVM muito lento, pulando...")
-                continue
             for selector in selectors:
                 stage_name = f'etapa_{stage_num}_{model.lower().replace(" ", "_")}_{selector}'
                 stages.append((stage_name, [model], [selector]))

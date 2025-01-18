@@ -1,0 +1,2 @@
+model_name;hyperparameters;cv_score;training_type
+MLP_none;{'classifier__hidden_layer_sizes': (100, 50), 'classifier__activation': 'relu', 'classifier__alpha': 0.001, 'classifier__batch_size': 32, 'classifier__learning_rate': 'adaptive', 'classifier__max_iter': 2000, 'classifier__solver': 'adam', 'classifier__learning_rate_init': 0.001};0.8365234300891672;Optuna

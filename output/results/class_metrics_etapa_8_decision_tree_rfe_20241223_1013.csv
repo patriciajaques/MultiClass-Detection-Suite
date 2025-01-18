@@ -1,0 +1,6 @@
+model;train_metrics;test_metrics
+Decision Tree_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.08571428571428572, 'recall': 0.046511627906976744, 'f1-score': 0.06030150753768844, 'support': 129.0}
+Decision Tree_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.25203252032520324, 'recall': 0.17613636363636365, 'f1-score': 0.20735785953177258, 'support': 176.0}
+Decision Tree_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.6440677966101694, 'recall': 0.653125, 'f1-score': 0.6485647788983708, 'support': 640.0}
+Decision Tree_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.12692307692307692, 'recall': 0.9705882352941176, 'f1-score': 0.22448979591836735, 'support': 34.0}
+Decision Tree_rfe;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 131.0}

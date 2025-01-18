@@ -1,0 +1,6 @@
+Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features
+0;0,995;0,995;0,995;2519,000;0,000;0,000;0,000;129,000;Random Forest_mi;selector;473
+1;0,995;0,996;0,996;2519,000;0,621;0,102;0,176;176,000;Random Forest_mi;selector;473
+2;0,993;0,991;0,992;2519,000;0,570;0,931;0,707;640,000;Random Forest_mi;selector;473
+3;0,998;0,999;0,998;2519,000;0,000;0,000;0,000;34,000;Random Forest_mi;selector;473
+4;0,999;0,999;0,999;2519,000;0,000;0,000;0,000;131,000;Random Forest_mi;selector;473

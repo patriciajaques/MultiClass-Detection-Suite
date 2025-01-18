@@ -1,0 +1,2 @@
+model_name;hyperparameters;cv_score;training_type
+Random Forest_pca;{'classifier__n_estimators': 200, 'classifier__max_depth': None, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'sqrt', 'classifier__class_weight': 'balanced', 'classifier__bootstrap': True, 'classifier__criterion': 'gini', 'feature_selection__n_components': 0.9894193108125042};0.8442120407259848;Optuna

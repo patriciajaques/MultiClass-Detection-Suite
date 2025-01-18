@@ -1,0 +1,2 @@
+model_name;hyperparameters;cv_score;training_type
+Logistic Regression_none;{'classifier__penalty': 'l2', 'classifier__C': 10.0, 'classifier__solver': 'lbfgs', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced'};0.7537108708025043;Optuna

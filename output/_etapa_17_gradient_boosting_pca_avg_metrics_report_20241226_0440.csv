@@ -1,0 +1,2 @@
+Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
+Gradient Boosting_pca;0,857;0,999;0,999;0,999;0,999;0,219;0,453;0,467;0,583

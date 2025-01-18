@@ -1,0 +1,6 @@
+model;train_metrics;test_metrics
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 129.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.49230769230769234, 'recall': 0.18181818181818182, 'f1-score': 0.26556016597510373, 'support': 176.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.56153050672182, 'recall': 0.8484375, 'f1-score': 0.6757934038581207, 'support': 640.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.03773584905660377, 'recall': 0.058823529411764705, 'f1-score': 0.04597701149425287, 'support': 34.0}
+Random Forest_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.35714285714285715, 'recall': 0.03816793893129771, 'f1-score': 0.06896551724137931, 'support': 131.0}

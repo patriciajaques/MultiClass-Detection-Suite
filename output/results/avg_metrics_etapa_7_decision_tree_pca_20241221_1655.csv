@@ -1,0 +1,10 @@
+model;cv_report;train_avg_metrics;test_avg_metrics;training_type;hyperparameters
+Decision Tree_pca;0.8107082779991147;"                   precision  recall  f1-score  support
+weighted avg             1.0     1.0       1.0  12595.0
+balanced_accuracy        1.0     1.0       1.0  12595.0
+accuracy                 1.0     1.0       1.0  12595.0
+kappa                    1.0     1.0       1.0  12595.0";"                   precision    recall  f1-score  support
+weighted avg        0.403381  0.377477  0.387138   1110.0
+balanced_accuracy   0.193111  0.193111  0.193111   1110.0
+accuracy            0.377477  0.377477  0.377477   1110.0
+kappa               0.015797  0.015797  0.015797   1110.0";Optuna;{'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'sqrt', 'feature_selection__n_components': 0.9528448409219684}

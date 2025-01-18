@@ -50,12 +50,12 @@ class BehaviorModelParams(MulticlassModelParams):
         Parâmetros otimizados para SVM na classificação de comportamentos.
         """
         return [
-            {
-                'classifier__C': [0.1, 1.0, 10.0],
-                'classifier__kernel': ['rbf'],
-                'classifier__gamma': ['scale', 'auto', 0.1, 0.01],
-                'classifier__class_weight': ['balanced']
-            },
+            # {
+            #     'classifier__C': [0.1, 1.0, 10.0],
+            #     'classifier__kernel': ['rbf'],
+            #     'classifier__gamma': ['scale', 0.1],
+            #     'classifier__class_weight': ['balanced']
+            # },
             {
                 'classifier__C': [0.1, 1.0, 10.0],
                 'classifier__kernel': ['linear'],

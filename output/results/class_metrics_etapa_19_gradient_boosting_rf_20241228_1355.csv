@@ -1,0 +1,6 @@
+model;train_metrics;test_metrics
+Gradient Boosting_rf;{'precision': 0.9984139571768438, 'recall': 0.999603017070266, 'f1-score': 0.9990081333068835, 'support': 2519.0};{'precision': 0.28846153846153844, 'recall': 0.11627906976744186, 'f1-score': 0.16574585635359115, 'support': 129.0}
+Gradient Boosting_rf;{'precision': 0.9992057188244639, 'recall': 0.9988090512107979, 'f1-score': 0.9990073456422474, 'support': 2519.0};{'precision': 0.5648148148148148, 'recall': 0.3465909090909091, 'f1-score': 0.4295774647887324, 'support': 176.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 0.999206034140532, 'f1-score': 0.9996028594122319, 'support': 2519.0};{'precision': 0.6061899679829242, 'recall': 0.8875, 'f1-score': 0.7203551046290425, 'support': 640.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.07692307692307693, 'recall': 0.029411764705882353, 'f1-score': 0.0425531914893617, 'support': 34.0}
+Gradient Boosting_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 131.0}

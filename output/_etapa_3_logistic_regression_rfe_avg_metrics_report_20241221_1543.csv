@@ -1,0 +1,2 @@
+Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
+Logistic Regression_rfe;0,627;0,702;0,696;0,695;0,702;0,283;0,303;0,437;0,294

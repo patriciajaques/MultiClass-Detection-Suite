@@ -110,14 +110,16 @@ class MulticlassModelParams(BaseModelParams):
         Parâmetros padrão para SVM em problemas multiclasse.
         """
         return [
+            # {
+            #     'classifier__C': [0.1, 1.0, 10.0],
+            #     'classifier__kernel': ['rbf'],
+            #     'classifier__gamma': ['scale', 0.1],
+            #     'classifier__class_weight': ['balanced']
+            # },
             {
                 'classifier__C': [0.1, 1.0, 10.0],
-                'classifier__kernel': ['rbf'],
-                'classifier__gamma': ['scale', 'auto']
-            },
-            {
-                'classifier__C': [0.1, 1.0, 10.0],
-                'classifier__kernel': ['linear']
+                'classifier__kernel': ['linear'],
+                'classifier__class_weight': ['balanced']
             }
         ]
 
@@ -148,7 +150,7 @@ class MulticlassModelParams(BaseModelParams):
         Parâmetros padrão para Naive Bayes em problemas multiclasse.
         """
         return {
-            'classifier__var_smoothing': [1e-9, 1e-8, 1e-7]
+            'classifier__var_smoothing': [1e-5, 1e-4, 1e-3]  # Valores ajustados para maior estabilidade
         }
 
     def _get_mlp_space(self):

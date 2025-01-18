@@ -1,0 +1,6 @@
+Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features
+0;1,000;1,000;1,000;2519,000;0,086;0,047;0,060;129,000;Decision Tree_rfe;selector;29
+1;1,000;1,000;1,000;2519,000;0,252;0,176;0,207;176,000;Decision Tree_rfe;selector;29
+2;1,000;1,000;1,000;2519,000;0,644;0,653;0,649;640,000;Decision Tree_rfe;selector;29
+3;1,000;1,000;1,000;2519,000;0,127;0,971;0,224;34,000;Decision Tree_rfe;selector;29
+4;1,000;1,000;1,000;2519,000;0,000;0,000;0,000;131,000;Decision Tree_rfe;selector;29

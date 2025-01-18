@@ -1,0 +1,6 @@
+model;train_metrics;test_metrics
+Decision Tree_mi;{'precision': 0.9972288202692003, 'recall': 1.0, 'f1-score': 0.9986124876114966, 'support': 2519.0};{'precision': 0.1319796954314721, 'recall': 0.20155038759689922, 'f1-score': 0.15950920245398773, 'support': 129.0}
+Decision Tree_mi;{'precision': 0.9992035045798486, 'recall': 0.9960301707026598, 'f1-score': 0.9976143141153081, 'support': 2519.0};{'precision': 0.12974683544303797, 'recall': 0.23295454545454544, 'f1-score': 0.16666666666666666, 'support': 176.0}
+Decision Tree_mi;{'precision': 0.9976181024215959, 'recall': 0.9976181024215959, 'f1-score': 0.9976181024215959, 'support': 2519.0};{'precision': 0.6699266503667481, 'recall': 0.428125, 'f1-score': 0.5224022878932316, 'support': 640.0}
+Decision Tree_mi;{'precision': 0.9996031746031746, 'recall': 1.0, 'f1-score': 0.9998015479261758, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 34.0}
+Decision Tree_mi;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 1.0, 'recall': 0.007633587786259542, 'f1-score': 0.015151515151515152, 'support': 131.0}

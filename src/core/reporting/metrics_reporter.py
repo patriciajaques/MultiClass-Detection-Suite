@@ -9,7 +9,26 @@ def evaluate_models(trained_models, X_train, y_train, X_test, y_test):
 
 @staticmethod
 def generate_reports(class_metrics_results, avg_metrics_results, directory="../output/", filename_prefix=""):
-    if not class_metrics_results or not avg_metrics_results:
+    """
+    Gera relatórios a partir dos resultados da avaliação dos modelos.
+    
+    Args:
+        class_metrics_results: Resultados das métricas por classe
+        avg_metrics_results: Resultados das métricas médias
+        directory: Diretório para salvar os relatórios
+        filename_prefix: Prefixo para os nomes dos arquivos
+    """
+    # Verifica se os resultados são vazios ou None
+    if class_metrics_results is None or avg_metrics_results is None:
+        print("Aviso: Não há resultados para gerar relatórios.")
+        return
+        
+    # Verifica se são dicionários vazios
+    if not isinstance(class_metrics_results, dict) or not isinstance(avg_metrics_results, dict):
+        print("Aviso: Formato inválido dos resultados.")
+        return
+        
+    if len(class_metrics_results) == 0 or len(avg_metrics_results) == 0:
         print("Aviso: Não há resultados para gerar relatórios.")
         return
 

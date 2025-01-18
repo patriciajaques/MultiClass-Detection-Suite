@@ -1,0 +1,6 @@
+model;train_metrics;test_metrics
+Logistic Regression_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 109.0};{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 17.0}
+Logistic Regression_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 158.0};{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 23.0}
+Logistic Regression_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 522.0};{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 109.0}
+Logistic Regression_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 63.0};{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 20.0}
+Logistic Regression_none;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 50.0};{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 26.0}

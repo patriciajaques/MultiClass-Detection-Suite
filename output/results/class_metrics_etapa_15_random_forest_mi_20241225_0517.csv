@@ -1,0 +1,6 @@
+model;train_metrics;test_metrics
+Random Forest_mi;{'precision': 0.9948392219134577, 'recall': 0.9948392219134577, 'f1-score': 0.9948392219134577, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 129.0}
+Random Forest_mi;{'precision': 0.9952399841332804, 'recall': 0.9960301707026598, 'f1-score': 0.9956349206349207, 'support': 2519.0};{'precision': 0.6206896551724138, 'recall': 0.10227272727272728, 'f1-score': 0.17560975609756097, 'support': 176.0}
+Random Forest_mi;{'precision': 0.9932378679395386, 'recall': 0.9912663755458515, 'f1-score': 0.9922511424597655, 'support': 2519.0};{'precision': 0.5697896749521989, 'recall': 0.93125, 'f1-score': 0.7069988137603797, 'support': 640.0}
+Random Forest_mi;{'precision': 0.9980166600555335, 'recall': 0.9988090512107979, 'f1-score': 0.9984126984126984, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 34.0}
+Random Forest_mi;{'precision': 0.9988095238095238, 'recall': 0.999206034140532, 'f1-score': 0.9990077396308792, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 131.0}

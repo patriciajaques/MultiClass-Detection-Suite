@@ -1,0 +1,2 @@
+model_name;hyperparameters;cv_score;training_type
+KNN_none;{'classifier__n_neighbors': 3, 'classifier__weights': 'distance', 'classifier__metric': 'euclidean'};0.8183317523556568;Optuna

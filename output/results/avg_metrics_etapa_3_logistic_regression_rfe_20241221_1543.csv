@@ -1,0 +1,10 @@
+model;cv_report;train_avg_metrics;test_avg_metrics;training_type;hyperparameters
+Logistic Regression_rfe;0.6274685385442357;"                   precision    recall  f1-score  support
+weighted avg        0.694993  0.702183  0.695811  12595.0
+balanced_accuracy   0.702183  0.702183  0.702183  12595.0
+accuracy            0.702183  0.702183  0.702183  12595.0
+kappa               0.627729  0.627729  0.627729  12595.0";"                   precision    recall  f1-score  support
+weighted avg        0.436640  0.293694  0.303355   1110.0
+balanced_accuracy   0.283091  0.283091  0.283091   1110.0
+accuracy            0.293694  0.293694  0.293694   1110.0
+kappa               0.077442  0.077442  0.077442   1110.0";Optuna;{'classifier__penalty': 'l2', 'classifier__C': 10.0, 'classifier__solver': 'newton-cg', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced', 'feature_selection__n_features_to_select': 50}
