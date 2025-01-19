@@ -2,6 +2,7 @@ from pathlib import Path
 
 from behavior.data.behavior_data_loader import BehaviorDataLoader
 from core.preprocessors.data_cleaner import DataCleaner
+from core.preprocessors.data_imputer import DataImputer
 from core.preprocessors.data_splitter import DataSplitter
 from behavior.data.behavior_data_encoder import BehaviorDataEncoder
 from core.preprocessors.data_balancer import DataBalancer
@@ -99,17 +100,6 @@ class BehaviorDetectionPipeline:
         columns_to_remove = self._get_columns_to_remove()
         cleaned_data = DataCleaner.remove_columns(data, columns_to_remove)
 
-        # Handle missing values
-        numeric_columns = cleaned_data.select_dtypes(
-            include=['float64', 'int64']).columns
-        categorical_columns = cleaned_data.select_dtypes(
-            exclude=['float64', 'int64']).columns
-
-        cleaned_data[numeric_columns] = cleaned_data[numeric_columns].fillna(
-            cleaned_data[numeric_columns].median())
-        cleaned_data[categorical_columns] = cleaned_data[categorical_columns].fillna(
-            'missing')
-
         return cleaned_data
 
     def _get_columns_to_remove(self):
@@ -138,14 +128,15 @@ class BehaviorDetectionPipeline:
 
     def prepare_data(self, data):
         """Prepara os dados para treinamento, incluindo divisão e codificação."""
+        print("\nIniciando preparação dos dados...")
 
-        # Primeiro, codificar o target. geralmente, nao necessario para o y
+        # 1. Encode target (generally, not needed for most models)
         encoder = BehaviorDataEncoder(num_classes=5)
         y = data['comportamento']
         y_encoded = encoder.fit_transform_y(y)
         data['comportamento'] = y_encoded
 
-        # Divide os dados por alunos mantendo a proporção das classes
+        # 2. Divide the data into train and test sets stratified by student ID and target
         train_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
             test_size=self.test_size,
@@ -153,23 +144,38 @@ class BehaviorDetectionPipeline:
             target_column='comportamento'
         )
 
-        # Remove student ID column
+        # 3. Remove student ID column
         train_data = DataCleaner.remove_columns(train_data, ['aluno'])
         test_data = DataCleaner.remove_columns(test_data, ['aluno'])
 
-        # Split features and target
+        # 4. Split features and target
         X_train, y_train = DataSplitter.split_into_x_y(
             train_data, 'comportamento')
         X_test, y_test = DataSplitter.split_into_x_y(
             test_data, 'comportamento')
+        
+        # 5. Impute missing values
+        print("\nRealizando imputação de valores faltantes...")
+        imputer = DataImputer(
+            numerical_strategy='knn',
+            categorical_strategy='most_frequent',
+            knn_neighbors=5
+        )
 
-        # Encode features
+        # Importante: fit apenas no treino, transform em ambos
+        print("Ajustando imputador nos dados de treino...")
+        X_train_imputed = imputer.fit_transform(X_train)
+        print("Aplicando imputação nos dados de teste...")
+        X_test_imputed = imputer.transform(X_test)
+
+        # 6. Encode features
+        print("\nRealizando encoding das features...")
         X_encoder = BehaviorDataEncoder(num_classes=5)
         X_encoder.fit(X_train)
-        X_train = X_encoder.transform(X_train)
-        X_test = X_encoder.transform(X_test)
+        X_train_encoded = X_encoder.transform(X_train_imputed)
+        X_test_encoded = X_encoder.transform(X_test_imputed)
 
-        return X_train, X_test, y_train, y_test
+        return X_train_encoded, X_test_encoded, y_train, y_test
 
     def balance_data(self, X_train, y_train):
         """Aplica SMOTE para balancear o dataset."""
