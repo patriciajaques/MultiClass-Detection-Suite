@@ -152,39 +152,70 @@ class BehaviorDetectionPipeline:
             'ultimo_comportamento_indefinido'
         ]
         return columns_to_remove_ids + columns_to_remove_emotions + columns_to_remove_personality + columns_to_remove_behaviors
-    
+
+    # src/mnist/mnist_detection_pipeline.py
+
+
     def prepare_data(self, data):
-        """Prepara os dados para treinamento, incluindo divisão e codificação."""
-        # Split by student level
-        train_data, test_data = DataSplitter.split_by_student_level(
-            data, test_size=self.test_size, column_name='aluno'
+        print("Preparando dados...")
+
+        # Split data
+        print("Dividindo dados em treino e teste...")
+        train_data, test_data = DataSplitter.split_data_stratified(
+            data, test_size=self.test_size, target_column='target'
         )
-        
-        # Remove student ID column
-        train_data = DataCleaner.remove_columns(train_data, ['aluno'])
-        test_data = DataCleaner.remove_columns(test_data, ['aluno'])
-        
+
         # Split features and target
-        X_train, y_train = DataSplitter.split_into_x_y(train_data, 'comportamento')
-        X_test, y_test = DataSplitter.split_into_x_y(test_data, 'comportamento')
-        
-        # Encode target variables
-        y_train = BehaviorDataEncoder.encode_y(y_train)
-        y_test = BehaviorDataEncoder.encode_y(y_test)
-        
-        # Encode features
-        X_encoder = BehaviorDataEncoder(num_classes=5)
-        X_encoder.fit(X_train)
-        X_train = X_encoder.transform(X_train)
-        X_test = X_encoder.transform(X_test)
-        
-        return X_train, X_test, y_train, y_test
+        print("Separando features e target...")
+        X_train, y_train = DataSplitter.split_into_x_y(train_data, 'target')
+        X_test, y_test = DataSplitter.split_into_x_y(test_data, 'target')
+
+        print(f"X_train shape antes da normalização: {X_train.shape}")
+        print(f"Colunas em X_train: {list(X_train.columns)[:5]}...")
+
+        # Scale features usando StandardScaler diretamente
+        print("Normalizando features...")
+        from sklearn.preprocessing import StandardScaler
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Converter arrays numpy de volta para DataFrames com os nomes das colunas originais
+        X_train_scaled = pd.DataFrame(
+            X_train_scaled, columns=X_train.columns, index=X_train.index)
+        X_test_scaled = pd.DataFrame(
+            X_test_scaled, columns=X_test.columns, index=X_test.index)
+
+        print(f"X_train shape após normalização: {X_train_scaled.shape}")
+        print(
+            f"Colunas em X_train após normalização: {list(X_train_scaled.columns)[:5]}...")
+
+        return X_train_scaled, X_test_scaled, y_train, y_test
     
+
     def balance_data(self, X_train, y_train):
-        """Aplica SMOTE para balancear o dataset."""
+        print("\nIniciando balanceamento de dados...")
+        print(f"Shape de X_train antes do balanceamento: {X_train.shape}")
+        print(f"Número de features: {len(X_train.columns)}")
+        print(f"Primeiras 5 colunas: {list(X_train.columns)[:5]}")
+        print(
+            f"Distribuição de classes antes do balanceamento:\n{y_train.value_counts()}")
+
         data_balancer = DataBalancer()
-        return data_balancer.apply_smote(X_train, y_train)
-    
+        X_resampled, y_resampled = data_balancer.apply_smote(X_train, y_train)
+
+        # Garantir que o resultado está em DataFrame/Series
+        if not isinstance(X_resampled, pd.DataFrame):
+            X_resampled = pd.DataFrame(X_resampled, columns=X_train.columns)
+        if not isinstance(y_resampled, pd.Series):
+            y_resampled = pd.Series(y_resampled, name='target')
+
+        print(f"Shape de X_train após balanceamento: {X_resampled.shape}")
+        print(
+            f"Distribuição de classes após balanceamento:\n{y_resampled.value_counts()}")
+
+        return X_resampled, y_resampled
+
     def _get_training_stages(self):
         """Define todos os stages de treinamento."""
         models = ['Logistic Regression', 'Decision Tree', 'Random Forest', 
