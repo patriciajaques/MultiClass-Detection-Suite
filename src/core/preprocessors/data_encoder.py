@@ -1,21 +1,25 @@
+import warnings
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, MinMaxScaler, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
 from core.preprocessors.column_selector import ColumnSelector
 
 class DataEncoder():
-    def __init__(self, num_classes: int, scaling_strategy: str = 'standard', select_numerical: bool = False, select_nominal: bool = False, select_ordinal: bool = False):
+    def __init__(self, num_classes: int, scaling_strategy: str = 'standard', select_numerical: bool = True, select_nominal: bool = True, select_ordinal: bool = True):
         self.num_classes = num_classes
         self.scaling_strategy = scaling_strategy
+        self.select_numerical = select_numerical
+        self.select_nominal = select_nominal
+        self.select_ordinal = select_ordinal
+        self.label_encoder = LabelEncoder()
+        self._is_fitted = False
         self.column_selector = None
         self.column_transformer = None
         self.numerical_columns = None
         self.nominal_columns = None
         self.ordinal_columns = None
         self.ordinal_categories = None
-        self.select_numerical = select_numerical
-        self.select_nominal = select_nominal
-        self.select_ordinal = select_ordinal
 
     def initialize_encoder(self):
         transformers = []
@@ -67,7 +71,7 @@ class DataEncoder():
             self.ordinal_columns = None
             self.ordinal_categories = None
 
-    def fit(self, X: pd.DataFrame, y=None):
+    def fit(self, X: pd.DataFrame):
         self.select_columns(X)
         self.initialize_encoder()
         self.column_transformer.fit(X)
@@ -81,10 +85,50 @@ class DataEncoder():
         return pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
 
     def fit_transform(self, X: pd.DataFrame, y=None) -> pd.DataFrame:
-        self.fit(X, y)
+        self.fit(X)
         return self.transform(X)
-    
-    @staticmethod
-    def encode_y(y):
-        y_encoded = LabelEncoder().fit_transform(y)
+
+    def fit_transform_y(self, y):
+        """
+        Fit e transforma o target.
+        
+        Args:
+            y: array-like de shape (n_samples,)
+            
+        Returns:
+            array-like: Target codificado
+        """
+        # Validação
+        if y is None:
+            raise ValueError("y não pode ser None")
+
+        if self._is_fitted:
+            warnings.warn(
+                "LabelEncoder já foi ajustado. Usando fit_transform novamente.")
+
+        # Encoding
+        y_encoded = self.label_encoder.fit_transform(y)
+        self._is_fitted = True
+
+        # Validação pós-encoding
+        unique_encoded = np.unique(y_encoded)
+        if len(unique_encoded) > self.num_classes:
+            raise ValueError(
+                f"Número de classes ({len(unique_encoded)}) maior que o esperado ({self.num_classes})"
+            )
+
         return y_encoded
+
+    def transform_y(self, y):
+        """Transforma novos dados usando o encoding aprendido"""
+        if not self._is_fitted:
+            raise RuntimeError(
+                "Encoder não foi ajustado. Use fit_transform_y primeiro.")
+        return self.label_encoder.transform(y)
+
+    def inverse_transform_y(self, y_encoded):
+        """Recupera labels originais"""
+        if not self._is_fitted:
+            raise RuntimeError(
+                "Encoder não foi ajustado. Use fit_transform_y primeiro.")
+        return self.label_encoder.inverse_transform(y_encoded)

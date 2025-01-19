@@ -1,2 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-XGBoost_pca;{'classifier__n_estimators': 300, 'classifier__max_depth': 5, 'classifier__learning_rate': 0.1, 'classifier__subsample': 1.0, 'classifier__colsample_bytree': 1.0, 'classifier__min_child_weight': 3, 'classifier__gamma': 0.1, 'feature_selection__n_components': 0.9891782674495322};0.85796338455701;Optuna

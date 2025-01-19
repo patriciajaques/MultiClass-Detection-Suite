@@ -1,6 +1,0 @@
-Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features;Total_Variance_Explained
-0;1,000;1,000;1,000;2519,000;0,000;0,000;0,000;129,000;Random Forest_pca;pca;99;0,990
-1;1,000;1,000;1,000;2519,000;0,721;0,176;0,283;176,000;Random Forest_pca;pca;99;0,990
-2;1,000;1,000;1,000;2519,000;0,590;0,983;0,737;640,000;Random Forest_pca;pca;99;0,990
-3;1,000;1,000;1,000;2519,000;0,000;0,000;0,000;34,000;Random Forest_pca;pca;99;0,990
-4;1,000;1,000;1,000;2519,000;0,000;0,000;0,000;131,000;Random Forest_pca;pca;99;0,990

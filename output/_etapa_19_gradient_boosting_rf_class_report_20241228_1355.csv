@@ -1,6 +1,0 @@
-Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features
-0;0,998;1,000;0,999;2519,000;0,288;0,116;0,166;129,000;Gradient Boosting_rf;selector;214
-1;0,999;0,999;0,999;2519,000;0,565;0,347;0,430;176,000;Gradient Boosting_rf;selector;214
-2;1,000;0,999;1,000;2519,000;0,606;0,887;0,720;640,000;Gradient Boosting_rf;selector;214
-3;1,000;1,000;1,000;2519,000;0,077;0,029;0,043;34,000;Gradient Boosting_rf;selector;214
-4;1,000;1,000;1,000;2519,000;0,000;0,000;0,000;131,000;Gradient Boosting_rf;selector;214

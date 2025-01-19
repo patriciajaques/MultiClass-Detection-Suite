@@ -1,2 +1,0 @@
-Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
-Decision Tree_rf;0,801;0,990;0,990;0,991;0,990;0,191;0,385;0,427;0,360

@@ -1,2 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-Logistic Regression_rf;{'classifier__penalty': 'l2', 'classifier__C': 1.0, 'classifier__solver': 'newton-cg', 'classifier__max_iter': 5000, 'classifier__class_weight': 'balanced', 'feature_selection__max_features': 469, 'feature_selection__threshold': 'median'};0.7406870928982483;Optuna

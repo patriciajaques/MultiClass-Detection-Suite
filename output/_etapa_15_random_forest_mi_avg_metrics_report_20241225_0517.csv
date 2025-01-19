@@ -1,2 +1,0 @@
-Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
-Random Forest_mi;0,807;0,996;0,996;0,996;0,996;0,207;0,435;0,427;0,553

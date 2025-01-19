@@ -1,2 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-KNN_rf;{'classifier__n_neighbors': 5, 'classifier__weights': 'distance', 'classifier__metric': 'euclidean', 'feature_selection__max_features': 47, 'feature_selection__threshold': 'median'};0.8169022323404793;Optuna

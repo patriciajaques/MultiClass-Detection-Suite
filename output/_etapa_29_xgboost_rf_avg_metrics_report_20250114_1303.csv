@@ -1,2 +1,0 @@
-Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
-XGBoost_rf;0,823;0,999;0,999;0,999;0,999;0,305;0,494;0,478;0,571

@@ -1,6 +1,0 @@
-Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features
-0;0,660;0,593;0,625;2519,000;0,173;0,101;0,127;129,000;Logistic Regression_rfe;selector;50
-1;0,733;0,774;0,753;2519,000;0,245;0,392;0,301;176,000;Logistic Regression_rfe;selector;50
-2;0,596;0,480;0,532;2519,000;0,616;0,253;0,359;640,000;Logistic Regression_rfe;selector;50
-3;0,730;0,833;0,778;2519,000;0,065;0,059;0,062;34,000;Logistic Regression_rfe;selector;50
-4;0,755;0,831;0,792;2519,000;0,174;0,611;0,271;131,000;Logistic Regression_rfe;selector;50

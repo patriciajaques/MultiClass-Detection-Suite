@@ -1,2 +1,0 @@
-Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
-Gradient Boosting_mi;0,825;1,000;1,000;1,000;1,000;0,242;0,474;0,432;0,568

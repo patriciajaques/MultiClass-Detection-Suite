@@ -1,40 +1,97 @@
-from typing import Tuple
+from sklearn.model_selection import GroupShuffleSplit, StratifiedGroupKFold, StratifiedShuffleSplit
 import pandas as pd
-from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
+from typing import Tuple, Optional
+
 
 class DataSplitter:
     @staticmethod
-    def split_by_student_level(data, test_size=0.2, column_name='aluno'):
-        unique_students = data[column_name].unique()
-        train_students, test_students = train_test_split(unique_students, test_size=test_size, random_state=42)
-        train_data = data[data[column_name].isin(train_students)]
-        test_data = data[data[column_name].isin(test_students)]
-        return train_data, test_data
+    def split_by_groups(data: pd.DataFrame,
+                        group_column: str,
+                        test_size: float = 0.2,
+                        random_state: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Divide os dados mantendo todas as instâncias de um mesmo grupo juntas.
+        Útil para dados agrupados como: estudantes, pacientes, empresas, sensores, etc.
+
+        Args:
+            data: DataFrame com os dados
+            group_column: Nome da coluna que identifica os grupos
+            test_size: Proporção dos dados para teste
+            random_state: Semente aleatória para reprodutibilidade
+
+        Returns:
+            Tuple contendo (dados_treino, dados_teste)
+        """
+        splitter = GroupShuffleSplit(
+            n_splits=1, test_size=test_size, random_state=random_state)
+        train_idx, test_idx = next(
+            splitter.split(data, groups=data[group_column]))
+        return data.iloc[train_idx], data.iloc[test_idx]
 
     @staticmethod
-    def split_by_stratified_student_level(data, test_size=0.2, column_name='aluno', target_column='comportamento', n_splits=10):
-        unique_students = data[column_name].unique()
-        stratified_split = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=42)
-        y = data.groupby(column_name)[target_column].first().loc[unique_students]
-        for train_index, test_index in stratified_split.split(unique_students, y):
-            train_students = unique_students[train_index]
-            test_students = unique_students[test_index]
-            break
-        train_data = data[data[column_name].isin(train_students)]
-        test_data = data[data[column_name].isin(test_students)]
-        return train_data, test_data
+    def split_stratified_by_groups(data: pd.DataFrame,
+                                   group_column: str,
+                                   target_column: str,
+                                   test_size: float = 0.2,
+                                   random_state: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Divide os dados estratificadamente mantendo grupos juntos.
+        Mantém a proporção das classes enquanto preserva a integridade dos grupos.
+
+        Args:
+            data: DataFrame com os dados
+            group_column: Nome da coluna que identifica os grupos
+            target_column: Nome da coluna target para estratificação
+            test_size: Proporção dos dados para teste
+            random_state: Semente aleatória para reprodutibilidade
+
+        Returns:
+            Tuple contendo (dados_treino, dados_teste)
+        """
+        n_splits = int(1/test_size)
+        splitter = StratifiedGroupKFold(
+            n_splits=n_splits, shuffle=True, random_state=random_state)
+        train_idx, test_idx = next(splitter.split(
+            data, y=data[target_column], groups=data[group_column]
+        ))
+        return data.iloc[train_idx], data.iloc[test_idx]
 
     @staticmethod
-    def split_data_stratified(data, test_size=0.2, target_column='comportamento', n_splits=1, random_state=42):
-        stratified_split = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
-        for train_index, test_index in stratified_split.split(data, data[target_column]):
-            train_data = data.iloc[train_index]
-            test_data = data.iloc[test_index]
-            break
-        return train_data, test_data
+    def split_data_stratified(data: pd.DataFrame,
+                              target_column: str,
+                              test_size: float = 0.2,
+                              random_state: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Divide os dados mantendo a proporção das classes.
+        Ideal para problemas de classificação como MNIST, onde não há grupos.
+
+        Args:
+            data: DataFrame com os dados
+            target_column: Nome da coluna target para estratificação
+            test_size: Proporção dos dados para teste
+            random_state: Semente aleatória para reprodutibilidade
+
+        Returns:
+            Tuple contendo (dados_treino, dados_teste)
+        """
+        splitter = StratifiedShuffleSplit(
+            n_splits=1, test_size=test_size, random_state=random_state)
+        train_idx, test_idx = next(splitter.split(data, data[target_column]))
+        return data.iloc[train_idx], data.iloc[test_idx]
 
     @staticmethod
-    def split_into_x_y(data: pd.DataFrame, target_column: str) -> Tuple[pd.DataFrame, pd.Series]:
+    def split_into_x_y(data: pd.DataFrame,
+                       target_column: str) -> Tuple[pd.DataFrame, pd.Series]:
+        """
+        Separa features e target.
+
+        Args:
+            data: DataFrame com os dados
+            target_column: Nome da coluna target
+
+        Returns:
+            Tuple contendo (X, y) onde X são as features e y é o target
+        """
         X = data.drop(columns=[target_column])
         y = data[target_column]
         return X, y

@@ -1,6 +1,0 @@
-model;train_metrics;test_metrics
-Logistic Regression_pca;{'precision': 0.7544303797468355, 'recall': 0.7098054783644303, 'f1-score': 0.7314379218654121, 'support': 2519.0};{'precision': 0.1258741258741259, 'recall': 0.13953488372093023, 'f1-score': 0.1323529411764706, 'support': 129.0}
-Logistic Regression_pca;{'precision': 0.8387850467289719, 'recall': 0.8551012306470822, 'f1-score': 0.8468645567131905, 'support': 2519.0};{'precision': 0.5080645161290323, 'recall': 0.7159090909090909, 'f1-score': 0.5943396226415094, 'support': 176.0}
-Logistic Regression_pca;{'precision': 0.7273550724637681, 'recall': 0.6375545851528385, 'f1-score': 0.6795007404273323, 'support': 2519.0};{'precision': 0.7552631578947369, 'recall': 0.4484375, 'f1-score': 0.5627450980392157, 'support': 640.0}
-Logistic Regression_pca;{'precision': 0.8544514222386406, 'recall': 0.9182215164747916, 'f1-score': 0.8851894374282434, 'support': 2519.0};{'precision': 0.16216216216216217, 'recall': 0.7058823529411765, 'f1-score': 0.26373626373626374, 'support': 34.0}
-Logistic Regression_pca;{'precision': 0.862509117432531, 'recall': 0.9388646288209607, 'f1-score': 0.8990686181334347, 'support': 2519.0};{'precision': 0.3193717277486911, 'recall': 0.46564885496183206, 'f1-score': 0.37888198757763975, 'support': 131.0}

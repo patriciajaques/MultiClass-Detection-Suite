@@ -1,2 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-Naive Bayes_mi;{'classifier__var_smoothing': 0.001, 'feature_selection__k': 'all'};0.5047236451021312;Optuna

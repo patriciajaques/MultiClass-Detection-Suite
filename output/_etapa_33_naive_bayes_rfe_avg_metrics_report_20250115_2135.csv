@@ -1,2 +1,0 @@
-Model;CV Score;balanced_accuracy-train;f1-score-train;precision-train;recall-train;balanced_accuracy-test;f1-score-test;precision-test;recall-test
-Naive Bayes_rfe;-inf;0,530;0,520;0,569;0,530;0,374;0,346;0,615;0,348

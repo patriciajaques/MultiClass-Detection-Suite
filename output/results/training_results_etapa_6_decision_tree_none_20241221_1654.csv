@@ -1,2 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-Decision Tree_none;{'classifier__criterion': 'gini', 'classifier__max_depth': None, 'classifier__min_samples_split': 2, 'classifier__min_samples_leaf': 1, 'classifier__max_features': 'sqrt'};0.792297476759628;Optuna

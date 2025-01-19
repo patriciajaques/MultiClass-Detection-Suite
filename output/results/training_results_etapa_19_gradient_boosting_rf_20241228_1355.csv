@@ -1,2 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-Gradient Boosting_rf;{'classifier__n_estimators': 200, 'classifier__learning_rate': 0.05, 'classifier__max_depth': 7, 'classifier__min_samples_split': 5, 'classifier__min_samples_leaf': 2, 'classifier__subsample': 1.0, 'feature_selection__max_features': 214, 'feature_selection__threshold': 'median'};0.8239748940744956;Optuna

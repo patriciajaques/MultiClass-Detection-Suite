@@ -1,6 +1,0 @@
-model;train_metrics;test_metrics
-KNN_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.27388535031847133, 'recall': 0.3333333333333333, 'f1-score': 0.3006993006993007, 'support': 129.0}
-KNN_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.36257309941520466, 'recall': 0.3522727272727273, 'f1-score': 0.3573487031700288, 'support': 176.0}
-KNN_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.6167315175097277, 'recall': 0.4953125, 'f1-score': 0.5493934142114385, 'support': 640.0}
-KNN_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.09467455621301775, 'recall': 0.47058823529411764, 'f1-score': 0.15763546798029557, 'support': 34.0}
-KNN_rf;{'precision': 1.0, 'recall': 1.0, 'f1-score': 1.0, 'support': 2519.0};{'precision': 0.1717171717171717, 'recall': 0.1297709923664122, 'f1-score': 0.14782608695652175, 'support': 131.0}

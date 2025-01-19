@@ -1,2 +1,0 @@
-model_name;hyperparameters;cv_score;training_type
-Naive Bayes_pca;{'classifier__var_smoothing': 1e-08, 'feature_selection__n_components': 0.988749315483125};0.4975671915512553;Optuna

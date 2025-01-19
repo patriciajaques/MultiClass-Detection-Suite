@@ -1,6 +1,0 @@
-Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features
-0;1,000;1,000;1,000;2519,000;0,127;0,496;0,203;129,000;KNN_none;original;473
-1;1,000;1,000;1,000;2519,000;0,652;0,330;0,438;176,000;KNN_none;original;473
-2;1,000;1,000;1,000;2519,000;0,664;0,464;0,546;640,000;KNN_none;original;473
-3;1,000;1,000;1,000;2519,000;0,152;0,147;0,149;34,000;KNN_none;original;473
-4;1,000;1,000;1,000;2519,000;0,105;0,031;0,047;131,000;KNN_none;original;473

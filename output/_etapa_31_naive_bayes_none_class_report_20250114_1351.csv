@@ -1,6 +1,0 @@
-Metric;precision-train;recall-train;f1-score-train;support-train;precision-test;recall-test;f1-score-test;support-test;Model;Feature_Selection_Type;N_Features
-0;0,341;0,360;0,351;2519,000;0,084;0,155;0,109;129,000;Naive Bayes_none;original;473
-1;0,685;0,621;0,651;2519,000;0,476;0,562;0,516;176,000;Naive Bayes_none;original;473
-2;0,878;0,054;0,102;2519,000;0,434;0,173;0,248;640,000;Naive Bayes_none;original;473
-3;0,627;0,218;0,323;2519,000;0,100;0,294;0,149;34,000;Naive Bayes_none;original;473
-4;0,379;0,995;0,549;2519,000;0,291;0,687;0,409;131,000;Naive Bayes_none;original;473

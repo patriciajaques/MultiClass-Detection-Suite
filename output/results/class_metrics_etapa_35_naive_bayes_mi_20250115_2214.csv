@@ -1,6 +1,0 @@
-model;train_metrics;test_metrics
-Naive Bayes_mi;{'precision': 0.41897770527460576, 'recall': 0.611750694720127, 'f1-score': 0.49733742133290304, 'support': 2519.0};{'precision': 0.2689295039164491, 'recall': 0.7984496124031008, 'f1-score': 0.40234375, 'support': 129.0}
-Naive Bayes_mi;{'precision': 0.6521573119511264, 'recall': 0.6780468439857086, 'f1-score': 0.6648501362397821, 'support': 2519.0};{'precision': 0.4254545454545455, 'recall': 0.6647727272727273, 'f1-score': 0.5188470066518847, 'support': 176.0}
-Naive Bayes_mi;{'precision': 0.7841191066997518, 'recall': 0.12544660579595077, 'f1-score': 0.216290212183436, 'support': 2519.0};{'precision': 0.8117154811715481, 'recall': 0.303125, 'f1-score': 0.44141069397042093, 'support': 640.0}
-Naive Bayes_mi;{'precision': 0.5423387096774194, 'recall': 0.42715363239380705, 'f1-score': 0.4779036198090162, 'support': 2519.0};{'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 34.0}
-Naive Bayes_mi;{'precision': 0.5343901815392482, 'recall': 0.8296943231441049, 'f1-score': 0.6500777604976672, 'support': 2519.0};{'precision': 0.3018867924528302, 'recall': 0.48854961832061067, 'f1-score': 0.37317784256559766, 'support': 131.0}
