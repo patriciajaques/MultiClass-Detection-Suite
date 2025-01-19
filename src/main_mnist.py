@@ -64,3 +64,5 @@ except Exception as e:
     print("Traceback completo:")
     traceback.print_exc()
     sys.exit(1)
+
+#  /opt/anaconda3/envs/behavior_detection/bin/python /Users/patricia/Documents/code/python-code/behavior-detection/src/main_mnist.py --start-stage 6 --end-stage 6

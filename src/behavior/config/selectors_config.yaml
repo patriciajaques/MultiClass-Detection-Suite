@@ -1,0 +1,13 @@
+selectors_config:
+  available_selectors:
+    - none
+    - pca
+    - rfe
+    - rf
+    - mi
+  
+  default_parameters:
+    pca:
+      n_components: 0.95
+    rfe:
+      min_features_to_select: 10

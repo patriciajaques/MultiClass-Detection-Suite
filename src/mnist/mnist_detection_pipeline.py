@@ -74,7 +74,9 @@ class MNISTDetectionPipeline:
         encoder = DataEncoder(
             num_classes=10,
             scaling_strategy='standard',
-            select_numerical=True  # Adicionar este parâmetro
+            select_numerical=True,
+            select_nominal=False,  # Modificação aqui: não selecionar colunas nominais
+            select_ordinal=False   # Modificação aqui: não selecionar colunas ordinais
         )
         X_train = encoder.fit_transform(X_train)
         X_test = encoder.transform(X_test)
@@ -145,9 +147,8 @@ class MNISTDetectionPipeline:
         print("\nPipeline concluído!")
 
     def _get_training_stages(self):
-        models = ['Logistic Regression', 'Decision Tree', 'Random Forest',
-                  'Gradient Boosting', 'KNN', 'XGBoost', 'Naive Bayes', 'MLP']
-        selectors = ['none', 'pca', 'rfe', 'rf', 'mi']
+        models = ['Naive Bayes'] # ['Logistic Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting', 'KNN', 'XGBoost', 'Naive Bayes', 'MLP']
+        selectors = ['none'] #['none', 'pca', 'rfe', 'rf', 'mi']
 
         stages = []
         stage_num = 1

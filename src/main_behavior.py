@@ -36,4 +36,4 @@ if __name__ == "__main__":
 # python src/main.py --start-stage 51 --end-stage 75
 
 # /opt/anaconda3/envs/behavior_detection/bin/python /Users/patricia/Documents/code/python-code/behavior-detection/src/main_behavior.py
-# /opt/anaconda3/envs/behavior_detection/bin/python /Users/patricia/Documents/code/python-code/behavior-detection/src/main_behavior.py --start-stage 6 --end-stage 15
+# /opt/anaconda3/envs/behavior_detection/bin/python /Users/patricia/Documents/code/python-code/behavior-detection/src/main_behavior.py --start-stage 21 --end-stage 22

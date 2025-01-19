@@ -9,6 +9,7 @@ from core.preprocessors.data_balancer import DataBalancer
 from core.models.multiclass.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
 
+
 class BehaviorDetectionPipeline:
     def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None):
         """
@@ -153,7 +154,7 @@ class BehaviorDetectionPipeline:
             train_data, 'comportamento')
         X_test, y_test = DataSplitter.split_into_x_y(
             test_data, 'comportamento')
-        
+
         # 5. Impute missing values
         print("\nRealizando imputação de valores faltantes...")
         imputer = DataImputer(
@@ -184,10 +185,10 @@ class BehaviorDetectionPipeline:
 
     def _get_training_stages(self):
         """Define todos os stages de treinamento."""
-        models = ['Logistic Regression', 'Decision Tree', 'Random Forest', 'XGBoost'
-                  'Gradient Boosting', 'KNN', 'Naive Bayes', 'MLP']
-        # sempre inserir 'rfe' por ultimo pois é muito lento
-        selectors = ['none', 'pca',  'rf'] #rfe, mi
+        # models = ['Logistic Regression', 'Decision Tree', 'Random Forest', 'XGBoost',  'Gradient Boosting', 'KNN', 'Naive Bayes', 'MLP']
+        # selectors = ['none', 'pca',  'rf', 'mi', 'rfe']
+        models = ['Naive Bayes']
+        selectors = ['none', 'pca']
 
         stages = []
         stage_num = 1
