@@ -1,49 +1,26 @@
 from sklearn.datasets import load_digits
-from pathlib import Path
 import pandas as pd
-import numpy as np
 
-from core.preprocessors.data_cleaner import DataCleaner
+from core.pipeline.base_pipeline import BasePipeline
 from core.preprocessors.data_splitter import DataSplitter
 from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.data_balancer import DataBalancer
 from core.models.multiclass.digits_model_params import DigitsModelParams
 from core.management.stage_training_manager import StageTrainingManager
-from core.reporting import metrics_reporter
 
 
-class MNISTDetectionPipeline:
+class MNISTDetectionPipeline(BasePipeline):
     def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None):
-        self.n_iter = n_iter
-        self.n_jobs = n_jobs
-        self.test_size = test_size
-        self.stage_range = stage_range
-        self.base_path = base_path
-        self.paths = self._setup_paths(base_path)
-        self.model_params = DigitsModelParams()
+        super().__init__(n_iter=n_iter, n_jobs=n_jobs, test_size=test_size,
+                         base_path=base_path, stage_range=stage_range)
 
-    def _setup_paths(self, base_path=None):
-        if base_path:
-            base_path = Path(base_path)
-        else:
-            current_file = Path(__file__).resolve()
-            if Path('/app').exists():
-                base_path = Path('/app')
-            else:
-                src_dir = current_file.parent.parent
-                base_path = src_dir.parent
+    def _get_model_params(self):
+        """Implementação do método abstrato para obter parâmetros do modelo."""
+        return DigitsModelParams()
 
-        paths = {
-            'data': base_path / 'data',
-            'output': base_path / 'output',
-            'models': base_path / 'models',
-            'src': base_path / 'src'
-        }
-
-        for path in paths.values():
-            path.mkdir(exist_ok=True, parents=True)
-
-        return paths
+    def load_and_clean_data(self):
+        """Implementação do método abstrato para carregar e limpar dados."""
+        return self.load_and_prepare_data()  # Reusa o método existente
 
     def load_and_prepare_data(self):
         # Carregar dataset MNIST
@@ -54,7 +31,6 @@ class MNISTDetectionPipeline:
 
         print(f"Dataset shape: {data.shape}")
         return data
-
 
     def prepare_data(self, data):
         print("Preparando dados...")
@@ -145,18 +121,3 @@ class MNISTDetectionPipeline:
         training_manager.execute_all_stages(training_manager, stages)
 
         print("\nPipeline concluído!")
-
-    def _get_training_stages(self):
-        models = ['Naive Bayes'] # ['Logistic Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting', 'KNN', 'XGBoost', 'Naive Bayes', 'MLP']
-        selectors = ['none'] #['none', 'pca', 'rfe', 'rf', 'mi']
-
-        stages = []
-        stage_num = 1
-
-        for model in models:
-            for selector in selectors:
-                stage_name = f'etapa_{stage_num}_{model.lower().replace(" ", "_")}_{selector}'
-                stages.append((stage_name, [model], [selector]))
-                stage_num += 1
-
-        return stages

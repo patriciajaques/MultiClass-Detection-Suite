@@ -5,91 +5,23 @@ from core.preprocessors.data_cleaner import DataCleaner
 from core.preprocessors.data_imputer import DataImputer
 from core.preprocessors.data_splitter import DataSplitter
 from behavior.data.behavior_data_encoder import BehaviorDataEncoder
-from core.preprocessors.data_balancer import DataBalancer
 from core.models.multiclass.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
-from core.config.config_manager import ConfigManager
 
 
-class BehaviorDetectionPipeline:
-    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None, config_dir='src/behavior/config'):
-        """
-        Inicializa o pipeline de detecção de comportamentos.
+from core.pipeline.base_pipeline import BasePipeline
+from core.models.multiclass.behavior_model_params import BehaviorModelParams
 
-        Args:
-            n_iter (int): Número de iterações para otimização
-            n_jobs (int): Número de jobs paralelos
-            test_size (float): Tamanho do conjunto de teste
-            base_path (str): Caminho base para os arquivos
-            stage_range (tuple): Intervalo de stages a executar (inicio, fim)
-        """
-        self.n_iter = n_iter
-        self.n_jobs = n_jobs
-        self.test_size = test_size
-        self.stage_range = stage_range
-        self.base_path = base_path
-        self.paths = self._setup_paths(base_path)
-        self.model_params = BehaviorModelParams()
-        self.config = ConfigManager(config_dir)
-        # Inicializar DataCleaner com ConfigManager
+
+class BehaviorDetectionPipeline(BasePipeline):
+    def __init__(self, **kwargs):
+        super().__init__(config_dir='src/behavior/config', **kwargs)
         self.data_cleaner = DataCleaner(config_manager=self.config)
 
-    def _setup_paths(self, base_path=None):
-        """
-        Configura os caminhos do projeto flexivelmente para qualquer ambiente.
-
-        Args:
-            base_path: Caminho base opcional para sobrescrever a detecção automática
-
-        Returns:
-            dict: Dicionário com os caminhos configurados
-        """
-        # Se um caminho base foi fornecido, use-o
-        if base_path:
-            base_path = Path(base_path)
-        else:
-            # Tenta encontrar o diretório base do projeto
-            current_file = Path(__file__).resolve()
-
-            # Primeiro, tenta encontrar /app (Docker)
-            if Path('/app').exists():
-                base_path = Path('/app')
-                print("Ambiente Docker detectado")
-            else:
-                # Navega para cima na hierarquia até encontrar 'behavior-detection'
-                current_path = current_file.parent
-                while current_path.name != 'behavior-detection' and current_path != current_path.parent:
-                    current_path = current_path.parent
-
-                if current_path.name == 'behavior-detection':
-                    base_path = current_path
-                    print(
-                        f"Diretório behavior-detection encontrado: {base_path}")
-                else:
-                    # Se não encontrar, usa o diretório pai do arquivo atual
-                    base_path = current_file.parent.parent.parent
-                    print(f"Usando diretório pai como base: {base_path}")
-
-        print(f"Diretório base selecionado: {base_path}")
-
-        # Configura os caminhos relativos ao diretório base
-        paths = {
-            'data': base_path / 'data',
-            'output': base_path / 'output',
-            'models': base_path / 'models',
-            'src': base_path / 'src'
-        }
-
-        # Cria os diretórios se não existirem
-        for path in paths.values():
-            try:
-                path.mkdir(exist_ok=True, parents=True)
-                print(f"Diretório criado/verificado: {path}")
-            except Exception as e:
-                print(f"Erro ao criar diretório {path}: {e}")
-
-        return paths
-
+    def _get_model_params(self):
+        """Obtém os parâmetros do modelo de comportamento."""
+        return BehaviorModelParams()
+    
     def load_and_clean_data(self):
         """Carrega e limpa o dataset."""
         # Load data
@@ -159,29 +91,6 @@ class BehaviorDetectionPipeline:
         X_test_encoded = X_encoder.transform(X_test_imputed)
 
         return X_train_encoded, X_test_encoded, y_train, y_test
-
-    def balance_data(self, X_train, y_train):
-        """Aplica SMOTE para balancear o dataset."""
-        data_balancer = DataBalancer()
-        return data_balancer.apply_smote(X_train, y_train)
-
-    def _get_training_stages(self):
-        """Define todos os stages de treinamento."""
-        # models = ['Logistic Regression', 'Decision Tree', 'Random Forest', 'XGBoost',  'Gradient Boosting', 'KNN', 'Naive Bayes', 'MLP']
-        # selectors = ['none', 'pca',  'rf', 'mi', 'rfe']
-        models = ['Naive Bayes']
-        selectors = ['none', 'pca']
-
-        stages = []
-        stage_num = 1
-
-        for model in models:
-            for selector in selectors:
-                stage_name = f'etapa_{stage_num}_{model.lower().replace(" ", "_")}_{selector}'
-                stages.append((stage_name, [model], [selector]))
-                stage_num += 1
-
-        return stages
 
     def run(self):
         """Executa o pipeline completo de detecção de comportamentos."""
