@@ -33,12 +33,51 @@ class ConfigManager:
             with open(config_file, 'r') as f:
                 self._config.append(yaml.safe_load(f))
 
-    def get_config(self, config_key: str) -> dict:
-        for config_dict in self._config:
-            if config_key in config_dict:
-                return config_dict[config_key]
-        raise KeyError(f"Chave de configuração não encontrada: {config_key}")
 
+    def get_config(self, config_key: str) -> dict:
+        """
+        Retorna configuração específica com fallback para configurações padrão
+        
+        Args:
+            config_key (str): Chave da configuração desejada
+            
+        Returns:
+            dict: Configuração solicitada ou configuração padrão
+        """
+        try:
+            # Tenta encontrar a configuração nos arquivos carregados
+            for config_dict in self._config:
+                if config_key in config_dict:
+                    return config_dict[config_key]
+
+            # Se não encontrar, retorna configuração padrão
+            return self._get_default_config(config_key)
+        except Exception as e:
+            print(f"Aviso: Erro ao carregar configuração '{config_key}': {str(e)}")
+            return self._get_default_config(config_key)
+
+
+    def _get_default_config(self, config_key: str) -> dict:
+        """
+        Retorna configurações padrão para diferentes chaves
+        """
+        defaults = {
+            'training_settings': {
+                'models': ['Naive Bayes'],  # Começamos com modelo mais simples
+                'selectors': ['none']       # Sem seleção de features inicialmente
+            },
+            'columns_to_remove': {
+                'redundant': ['id_log'],
+                'irrelevant': ['grupo']
+            }
+        }
+
+        if config_key in defaults:
+            print(f"Usando configuração padrão para '{config_key}'")
+            return defaults[config_key]
+
+        raise KeyError(
+            f"Configuração '{config_key}' não encontrada e não há padrão definido")
 
     def get_all_configs(self) -> Dict:
         """Retorna todas as configurações carregadas."""

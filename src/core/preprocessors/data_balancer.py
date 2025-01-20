@@ -10,39 +10,41 @@ class DataBalancer:
 
     def apply_smote(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
         print("\nIniciando SMOTE...")
-        print(f"Tipo de X: {type(X)}")
-        print(f"Tipo de y: {type(y)}")
+        print(f"Distribuição original das classes:")
+        print(y.value_counts())
 
+        # Convertendo dados para numpy se necessário
         if isinstance(X, pd.DataFrame):
-            print("Convertendo X de DataFrame para array...")
             X = X.values
         if isinstance(y, pd.Series):
-            print("Convertendo y de Series para array...")
             y = y.values
 
-        print(f"Shape de X após conversão: {X.shape}")
-        print(f"Shape de y após conversão: {y.shape}")
+        # Calculando a estratégia de balanceamento
+        class_counts = np.bincount(y)
+        majority_class_count = np.max(class_counts)
 
-        # Verificar se há valores nulos
-        if np.isnan(X).any():
-            print("AVISO: Valores nulos encontrados em X!")
-            X = np.nan_to_num(X)
+        # Definindo o objetivo para cada classe minoritária como 75% da classe majoritária
+        target_count = int(majority_class_count * 0.75)
 
-        smote = SMOTE(random_state=self.random_state)
-        try:
-            X_resampled, y_resampled = smote.fit_resample(X, y)
-            print("SMOTE concluído com sucesso!")
-            print(
-                f"Shape após SMOTE - X: {X_resampled.shape}, y: {y_resampled.shape}")
-        except Exception as e:
-            print(f"Erro durante SMOTE: {str(e)}")
-            print(f"Valores únicos em y: {np.unique(y)}")
-            raise
+        # Criando dicionário de estratégia
+        strategy = {
+            i: min(target_count, count) if count < majority_class_count else count
+            for i, count in enumerate(class_counts)
+        }
 
-        # Verifique se y é um pandas.Series ou numpy.ndarray
-        if isinstance(y, pd.Series):
-            y_name = y.name
-        else:
-            y_name = "target"
+        print(f"\nEstratégia de balanceamento:")
+        print(f"Contagens alvo por classe: {strategy}")
 
-        return pd.DataFrame(X_resampled, columns=range(X.shape[1])), pd.Series(y_resampled, name=y_name)
+        # Aplicando SMOTE com a estratégia personalizada
+        smote = SMOTE(sampling_strategy=strategy,
+                      random_state=self.random_state,
+                      k_neighbors=min(5, min(class_counts) - 1))
+
+        X_resampled, y_resampled = smote.fit_resample(X, y)
+
+        print("\nDistribuição após SMOTE:")
+        print(pd.Series(y_resampled).value_counts())
+        print(
+            f"Shape após SMOTE - X: {X_resampled.shape}, y: {y_resampled.shape}")
+
+        return pd.DataFrame(X_resampled, columns=range(X.shape[1])), pd.Series(y_resampled, name="target")

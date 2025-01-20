@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pandas as pd
+
 from behavior.data.behavior_data_loader import BehaviorDataLoader
 from core.preprocessors.data_cleaner import DataCleaner
 from core.preprocessors.data_imputer import DataImputer
@@ -36,6 +38,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Remove unnecessary columns usando configuração
         cleaned_data = self.data_cleaner.remove_columns(
             data, use_config=True)
+
 
         return cleaned_data
 
@@ -120,6 +123,28 @@ class BehaviorDetectionPipeline(BasePipeline):
             f"Shape final - X_train: {X_train_encoded.shape}, X_test: {X_test_encoded.shape}")
 
         return X_train_encoded, X_test_encoded, y_train, y_test
+    
+    def _log_dataset_changes(self, stage: str, data: pd.DataFrame):
+        """Registra mudanças no dataset"""
+        print(f"\nDataset {stage} - Shape: {data.shape}")
+        print("Tipos de dados:")
+        print(data.dtypes.value_counts())
+
+
+    def _log_removed_items(self, item_type: str, items: list):
+        """Registra itens removidos"""
+        if items:
+            print(f"\nRemovidos {len(items)} {item_type}:")
+            print(items)
+
+
+    def _log_class_distribution(self, stage: str, y: pd.Series):
+        """Registra distribuição das classes"""
+        print(f"\nDistribuição no conjunto de {stage}:")
+        dist = y.value_counts()
+        print(dist)
+        print("\nPorcentagens:")
+        print((dist/len(y)*100).round(2))
 
     def _validate_split_columns(self, data):
         """

@@ -184,7 +184,7 @@ class Evaluation:
             ]
 
         return {
-            'class_report': class_report.drop(['accuracy', 'macro avg', 'weighted avg']),
+            'class_report': class_report.drop(['macro avg', 'weighted avg']),
             'conf_matrix': conf_matrix,
             'avg_metrics': metrics_df
         }
