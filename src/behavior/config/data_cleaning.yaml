@@ -1,17 +1,18 @@
 columns_to_remove:
+  # "Colunas de identificação que não contribuem para a detecção de comportamentos"
   identifiers:
     - id_log
     - grupo
     - num_dia
     - num_log
-    description: "Colunas de identificação que não contribuem para a detecção de comportamentos"
-    
+
+  # "Estados emocionais que podem ser redundantes ou não relevantes"
   emotions:
     - estado_afetivo
     - estado_engajamento_concentrado
     - estado_confusao
     - estado_frustracao
-    - estado_tedio 
+    - estado_tedio
     - estado_indefinido
     - ultimo_estado_afetivo
     - ultimo_engajamento_concentrado
@@ -19,8 +20,8 @@ columns_to_remove:
     - ultimo_frustracao
     - ultimo_tedio
     - ultimo_estado_indefinido
-    description: "Estados emocionais que podem ser redundantes ou não relevantes"
-    
+
+  # "Traços de personalidade que podem não ser relevantes para o comportamento imediato"
   personality:
     - traco_amabilidade_fator
     - traco_extrovercao_fator
@@ -32,8 +33,8 @@ columns_to_remove:
     - traco_conscienciosidade_cat
     - traco_abertura_cat
     - traco_neuroticismo_cat
-    description: "Traços de personalidade que podem não ser relevantes para o comportamento imediato"
-    
+
+  # "Comportamentos derivados ou redundantes"
   behaviors:
     - comportamento_on_task
     - comportamento_on_task_conversation
@@ -48,4 +49,3 @@ columns_to_remove:
     - ultimo_comportamento_off_task
     - ultimo_comportamento_on_system
     - ultimo_comportamento_indefinido
-    description: "Comportamentos derivados ou redundantes"

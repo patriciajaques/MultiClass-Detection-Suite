@@ -8,10 +8,11 @@ from behavior.data.behavior_data_encoder import BehaviorDataEncoder
 from core.preprocessors.data_balancer import DataBalancer
 from core.models.multiclass.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
+from core.config.config_manager import ConfigManager
 
 
 class BehaviorDetectionPipeline:
-    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None):
+    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None, config_dir='src/behavior/config'):
         """
         Inicializa o pipeline de detecção de comportamentos.
 
@@ -29,6 +30,9 @@ class BehaviorDetectionPipeline:
         self.base_path = base_path
         self.paths = self._setup_paths(base_path)
         self.model_params = BehaviorModelParams()
+        self.config = ConfigManager(config_dir)
+        # Inicializar DataCleaner com ConfigManager
+        self.data_cleaner = DataCleaner(config_manager=self.config)
 
     def _setup_paths(self, base_path=None):
         """
@@ -94,38 +98,14 @@ class BehaviorDetectionPipeline:
         print(f"Dataset inicial shape: {data.shape}")
 
         # Remove undefined behaviors
-        data = DataCleaner.remove_instances_with_value(
+        data = self.data_cleaner.remove_instances_with_value(
             data, 'comportamento', '?')
 
-        # Remove unnecessary columns
-        columns_to_remove = self._get_columns_to_remove()
-        cleaned_data = DataCleaner.remove_columns(data, columns_to_remove)
+        # Remove unnecessary columns usando configuração
+        cleaned_data = self.data_cleaner.remove_columns(
+            data, use_config=True)
 
         return cleaned_data
-
-    def _get_columns_to_remove(self):
-        """Define as colunas a serem removidas do dataset."""
-        columns_to_remove_ids = ['id_log', 'grupo', 'num_dia', 'num_log']
-        columns_to_remove_emotions = [
-            'estado_afetivo', 'estado_engajamento_concentrado',
-            'estado_confusao', 'estado_frustracao', 'estado_tedio', 'estado_indefinido',
-            'ultimo_estado_afetivo', 'ultimo_engajamento_concentrado', 'ultimo_confusao',
-            'ultimo_frustracao', 'ultimo_tedio', 'ultimo_estado_indefinido'
-        ]
-        columns_to_remove_personality = [
-            'traco_amabilidade_fator', 'traco_extrovercao_fator', 'traco_conscienciosidade_fator',
-            'traco_abertura_fator', 'traco_neuroticismo_fator', 'traco_amabilidade_cat',
-            'traco_extrovercao_cat', 'traco_conscienciosidade_cat', 'traco_abertura_cat',
-            'traco_neuroticismo_cat'
-        ]
-        columns_to_remove_behaviors = [
-            'comportamento_on_task', 'comportamento_on_task_conversation', 'comportamento_on_task_out',
-            'comportamento_off_task', 'comportamento_on_system', 'comportamento_indefinido',
-            'ultimo_comportamento', 'ultimo_comportamento_on_task', 'ultimo_comportamento_on_task_conversation',
-            'ultimo_comportamento_on_task_out', 'ultimo_comportamento_off_task', 'ultimo_comportamento_on_system',
-            'ultimo_comportamento_indefinido'
-        ]
-        return columns_to_remove_ids + columns_to_remove_emotions + columns_to_remove_personality + columns_to_remove_behaviors
 
     def prepare_data(self, data):
         """Prepara os dados para treinamento, incluindo divisão e codificação."""
@@ -146,8 +126,10 @@ class BehaviorDetectionPipeline:
         )
 
         # 3. Remove student ID column
-        train_data = DataCleaner.remove_columns(train_data, ['aluno'])
-        test_data = DataCleaner.remove_columns(test_data, ['aluno'])
+        train_data = self.data_cleaner.remove_columns(
+            train_data, columns=['aluno'])
+
+        test_data = self.data_cleaner.remove_columns(test_data, columns=['aluno'])
 
         # 4. Split features and target
         X_train, y_train = DataSplitter.split_into_x_y(
