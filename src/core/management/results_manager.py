@@ -46,7 +46,7 @@ class ResultsManager:
         for model_name, metrics in avg_metrics.items():
             avg_metrics_rows.append({
                 'Model': model_name,
-                'CV_Score': metrics.get('cv_report', 0.0),
+                'CV_Score': metrics.get('cv_result', metrics.get('cv_report', 0.0)),
                 'Training_Type': metrics.get('training_type', 'unknown'),
                 'Train_Avg_Metrics': metrics.get('train_avg_metrics').to_dict('index') if isinstance(metrics.get('train_avg_metrics'), pd.DataFrame) else {},
                 'Test_Avg_Metrics': metrics.get('test_avg_metrics').to_dict('index') if isinstance(metrics.get('test_avg_metrics'), pd.DataFrame) else {}

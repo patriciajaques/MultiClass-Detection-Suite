@@ -1,6 +1,8 @@
 # src/core/pipeline/base_pipeline.py
 from abc import ABC, abstractmethod
 from pathlib import Path
+
+import pandas as pd
 from core.config.config_manager import ConfigManager
 from core.management.stage_training_manager import StageTrainingManager
 from core.preprocessors.data_balancer import DataBalancer
@@ -111,10 +113,28 @@ class BasePipeline(ABC):
             diff = abs(train_dist[behavior] - test_dist[behavior])
             assert diff < 0.1, f"Diferença grande na distribuição do comportamento {behavior}"
 
-    def balance_data(self, X_train, y_train):
-        """Aplica balanceamento nos dados de treino."""
+    def balance_data(self, X_train, y_train, strategy='auto'):
+        print("\nIniciando balanceamento de dados...")
+        print(f"Tipo de X_train: {type(X_train)}")
+        print(f"Tipo de y_train: {type(y_train)}")
+        print(f"Shape de X_train antes do balanceamento: {X_train.shape}")
+        print(f"Distribuição de classes antes do balanceamento:")
+        print(y_train.value_counts())
+
+        # Garantir que os dados estão no formato correto
+        if isinstance(X_train, pd.DataFrame):
+            X_train = X_train.values
+        if isinstance(y_train, pd.Series):
+            y_train = y_train.values
+
         data_balancer = DataBalancer()
-        return data_balancer.apply_smote(X_train, y_train)
+        X_resampled, y_resampled = data_balancer.apply_smote(X_train, y_train)
+
+        print(f"Shape de X_train após balanceamento: {X_resampled.shape}")
+        print(f"Distribuição de classes após balanceamento:")
+        print(pd.Series(y_resampled).value_counts())
+
+        return X_resampled, y_resampled
 
     def run(self):
         """Executa o pipeline completo."""
@@ -130,7 +150,7 @@ class BasePipeline(ABC):
 
         # Balance data
         print("\n3. Balanceando dados de treino...")
-        X_train, y_train = self.balance_data(X_train, y_train)
+        X_train, y_train = self.balance_data(X_train, y_train, strategy='auto')
 
         # Train models
         print("\n4. Iniciando treinamento dos modelos...")

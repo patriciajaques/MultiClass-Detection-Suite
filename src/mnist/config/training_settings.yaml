@@ -1,6 +1,5 @@
-training:
+training_settings:
   models:
-    active:
       - Naive Bayes
       # - Logistic Regression
       # - Decision Tree
@@ -9,8 +8,7 @@ training:
       # - KNN
       # - XGBoost
       # - MLP
-  feature_selection:
-    active:
+  selectors:
       - none
       - pca
       # - rfe

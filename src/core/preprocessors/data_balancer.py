@@ -1,50 +1,94 @@
 import pandas as pd
 import numpy as np
 from imblearn.over_sampling import SMOTE
-from typing import Tuple
+from typing import Tuple, Optional, Union, Dict
 
 
 class DataBalancer:
     def __init__(self, random_state: int = 42):
         self.random_state = random_state
 
-    def apply_smote(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
+    def apply_smote(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        strategy: Union[str, float, Dict] = 'auto',
+        target_ratio: float = 1.0
+    ) -> Tuple[pd.DataFrame, pd.Series]:
+        """
+        Applies SMOTE balancing with flexible strategies.
+
+        Args:
+            X: Features DataFrame
+            y: Target Series
+            strategy: Strategy for resampling:
+                     - 'auto': Balances all classes to match the majority class
+                     - 'minority': Balances only minority classes
+                     - float: Proportion of the majority class to aim for (e.g., 0.75)
+                     - dict: Specific number of samples for each class
+            target_ratio: Target ratio for minority classes (default 1.0 means equal to majority)
+
+        Returns:
+            Tuple containing balanced (X, y)
+        """
         print("\nIniciando SMOTE...")
         print(f"Distribuição original das classes:")
-        print(y.value_counts())
 
-        # Convertendo dados para numpy se necessário
-        if isinstance(X, pd.DataFrame):
-            X = X.values
+        # Antes de converter para numpy, mostramos as distribuições usando pandas
         if isinstance(y, pd.Series):
-            y = y.values
+            print(y.value_counts())
+        else:
+            unique, counts = np.unique(y, return_counts=True)
+            print(pd.Series(counts, index=unique))
 
-        # Calculando a estratégia de balanceamento
-        class_counts = np.bincount(y)
+        # Convert data to numpy if needed
+        X_array = X.values if isinstance(X, pd.DataFrame) else X
+        y_array = y.values if isinstance(y, pd.Series) else y
+
+        # Calculate class distribution
+        class_counts = np.bincount(y_array)
         majority_class_count = np.max(class_counts)
 
-        # Definindo o objetivo para cada classe minoritária como 75% da classe majoritária
-        target_count = int(majority_class_count * 0.75)
+        # Determine sampling strategy
+        if isinstance(strategy, dict):
+            sampling_strategy = strategy
+        elif isinstance(strategy, float):
+            target_count = int(majority_class_count * strategy)
+            sampling_strategy = {
+                i: min(target_count, count) if count < majority_class_count else count
+                for i, count in enumerate(class_counts)
+            }
+        elif strategy == 'minority':
+            sampling_strategy = {
+                i: int(majority_class_count * target_ratio)
+                for i, count in enumerate(class_counts)
+                if count < majority_class_count
+            }
+        else:  # 'auto' ou qualquer outra string
+            sampling_strategy = 'auto'
 
-        # Criando dicionário de estratégia
-        strategy = {
-            i: min(target_count, count) if count < majority_class_count else count
-            for i, count in enumerate(class_counts)
-        }
+        # Configure SMOTE
+        k_neighbors = min(5, min(class_counts) - 1)
+        smote = SMOTE(
+            sampling_strategy=sampling_strategy,
+            random_state=self.random_state,
+            k_neighbors=k_neighbors
+        )
 
-        print(f"\nEstratégia de balanceamento:")
-        print(f"Contagens alvo por classe: {strategy}")
-
-        # Aplicando SMOTE com a estratégia personalizada
-        smote = SMOTE(sampling_strategy=strategy,
-                      random_state=self.random_state,
-                      k_neighbors=min(5, min(class_counts) - 1))
-
-        X_resampled, y_resampled = smote.fit_resample(X, y)
+        # Apply SMOTE
+        X_resampled, y_resampled = smote.fit_resample(X_array, y_array)
 
         print("\nDistribuição após SMOTE:")
-        print(pd.Series(y_resampled).value_counts())
+        # Converter para Series para mostrar a distribuição
+        y_series = pd.Series(y_resampled)
+        print(y_series.value_counts())
         print(
             f"Shape após SMOTE - X: {X_resampled.shape}, y: {y_resampled.shape}")
 
-        return pd.DataFrame(X_resampled, columns=range(X.shape[1])), pd.Series(y_resampled, name="target")
+        # Retornar como DataFrame/Series mantendo os nomes das colunas originais
+        if isinstance(X, pd.DataFrame):
+            X_resampled = pd.DataFrame(X_resampled, columns=X.columns)
+        if isinstance(y, pd.Series):
+            y_resampled = pd.Series(y_resampled, name=y.name)
+
+        return X_resampled, y_resampled

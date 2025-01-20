@@ -3,8 +3,8 @@ columns_to_remove:
   identifiers:
     - id_log
     - grupo
-    - num_dia
-    - num_log
+    # - num_dia
+    # - num_log
 
   # "Estados emocionais que podem ser redundantes ou não relevantes"
   emotions:

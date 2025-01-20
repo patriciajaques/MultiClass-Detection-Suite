@@ -1,17 +1,18 @@
 training_settings:
   models:
-    - "Logistic Regression"
-    - "Decision Tree"
-    - "Random Forest"
+    # - "Logistic Regression"
+    # - "Decision Tree"
+    # - "Random Forest"
     # - "Gradient Boosting"
     # - "SVM"
     - "KNN"
-    - "XGBoost"
+    # - "XGBoost"
     - "Naive Bayes"
     # - "MLP"
+
   selectors:
     - "none"
     - "pca"
     # - "rfe"
-    - "rf"
+    # - "rf"
     # - "mi"

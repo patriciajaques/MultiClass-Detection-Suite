@@ -12,7 +12,7 @@ from core.management.stage_training_manager import StageTrainingManager
 class MNISTDetectionPipeline(BasePipeline):
     def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None):
         super().__init__(n_iter=n_iter, n_jobs=n_jobs, test_size=test_size,
-                         base_path=base_path, stage_range=stage_range)
+                         base_path=base_path, stage_range=stage_range, config_dir='src/mnist/config')
 
     def _get_model_params(self):
         """Implementação do método abstrato para obter parâmetros do modelo."""
@@ -20,9 +20,6 @@ class MNISTDetectionPipeline(BasePipeline):
 
     def load_and_clean_data(self):
         """Implementação do método abstrato para carregar e limpar dados."""
-        return self.load_and_prepare_data()  # Reusa o método existente
-
-    def load_and_prepare_data(self):
         # Carregar dataset MNIST
         print("Carregando dataset MNIST...")
         digits = load_digits()
@@ -59,35 +56,12 @@ class MNISTDetectionPipeline(BasePipeline):
 
         return X_train, X_test, y_train, y_test
 
-    def balance_data(self, X_train, y_train):
-        print("\nIniciando balanceamento de dados...")
-        print(f"Tipo de X_train: {type(X_train)}")
-        print(f"Tipo de y_train: {type(y_train)}")
-        print(f"Shape de X_train antes do balanceamento: {X_train.shape}")
-        print(f"Distribuição de classes antes do balanceamento:")
-        print(y_train.value_counts())
-
-        # Garantir que os dados estão no formato correto
-        if isinstance(X_train, pd.DataFrame):
-            X_train = X_train.values
-        if isinstance(y_train, pd.Series):
-            y_train = y_train.values
-
-        data_balancer = DataBalancer()
-        X_resampled, y_resampled = data_balancer.apply_smote(X_train, y_train)
-
-        print(f"Shape de X_train após balanceamento: {X_resampled.shape}")
-        print(f"Distribuição de classes após balanceamento:")
-        print(pd.Series(y_resampled).value_counts())
-
-        return X_resampled, y_resampled
-
     def run(self):
         print("Iniciando pipeline de detecção MNIST...")
 
         # Load and prepare data
         print("\n1. Carregando e preparando dados...")
-        data = self.load_and_prepare_data()
+        data = self.load_and_clean_data()
 
         # Prepare data
         print("\n2. Preparando dados para treinamento...")
@@ -95,7 +69,7 @@ class MNISTDetectionPipeline(BasePipeline):
 
         # Balance data
         print("\n3. Balanceando dados de treino...")
-        X_train, y_train = self.balance_data(X_train, y_train)
+        X_train, y_train = self.balance_data(X_train, y_train, strategy='auto')
 
         # Train models
         print("\n4. Iniciando treinamento dos modelos...")

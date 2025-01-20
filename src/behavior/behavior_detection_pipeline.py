@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 from behavior.data.behavior_data_loader import BehaviorDataLoader
+from behavior.temporal_features_processor import TemporalFeaturesProcessor
 from core.preprocessors.data_cleaner import DataCleaner
 from core.preprocessors.data_imputer import DataImputer
 from core.preprocessors.data_splitter import DataSplitter
@@ -60,7 +61,13 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Validação inicial das colunas necessárias
         self._validate_split_columns(data)
 
-        # 1. Encode target (generally, not needed for most models)
+        # 1. Criar features temporais [NOVO]
+        # print("\nCriando features temporais...")
+        # temporal_processor = TemporalFeaturesProcessor()
+        # data = temporal_processor.fit_transform(data)
+        # print(f"Shape após features temporais: {data.shape}")
+
+        # 2. Encode target (generally, not needed for most models)
         encoder = BehaviorDataEncoder(num_classes=5)
         y = data['comportamento']
         y_encoded = encoder.fit_transform_y(y)
@@ -68,7 +75,8 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         print(
             f"Distribuição original das classes:\n{data['comportamento'].value_counts()}")
-        # 2. Divide the data into train and test sets stratified by student ID and target
+        
+        # 3. Divide the data into train and test sets stratified by student ID and target
         train_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
             test_size=self.test_size,
@@ -83,20 +91,20 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Verifica a qualidade do split aqui, logo após a divisão
         self._verify_split_quality(train_data, test_data)
 
-        # 3. Remove student ID column
+        # 4. Remove student ID column
         train_data = self.data_cleaner.remove_columns(
             train_data, columns=['aluno'])
 
         test_data = self.data_cleaner.remove_columns(
             test_data, columns=['aluno'])
 
-        # 4. Split features and target
+        # 5. Split features and target
         X_train, y_train = DataSplitter.split_into_x_y(
             train_data, 'comportamento')
         X_test, y_test = DataSplitter.split_into_x_y(
             test_data, 'comportamento')
 
-        # 5. Impute missing values
+        # 6. Impute missing values
         print("\nRealizando imputação de valores faltantes...")
         imputer = DataImputer(
             numerical_strategy='knn',
@@ -188,7 +196,7 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         # Balance data
         print("\n3. Balanceando dados de treino...")
-        X_train, y_train = self.balance_data(X_train, y_train)
+        X_train, y_train = self.balance_data(X_train, y_train, strategy=0.75)
 
         # Train models
         print("\n4. Iniciando treinamento dos modelos...")
