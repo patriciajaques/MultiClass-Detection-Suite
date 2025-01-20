@@ -37,7 +37,7 @@ class ReportFormatter:
             report += f"\n{feature_info['description']}\n"
 
         report += "\nCross-Validation Results:\n"
-        report += f"Average Score: {avg_info.get('cv_report', 0.0):.4f}\n"
+        report += f"Average Score: {avg_info.get('cv_result', 0.0):.4f}\n"
         
         report += ReportFormatter._format_set_report("Train", model_info, avg_info)
         report += ReportFormatter._format_set_report("Test", model_info, avg_info)
@@ -169,7 +169,7 @@ class ReportFormatter:
                 row = {'Model': model_name}
                 
                 # Adicionar score da cross-validation
-                row['CV Score'] = model_info.get('cv_report', 0.0)
+                row['CV Score'] = model_info.get('cv_result', 0.0)
                 
                 # Função auxiliar para extrair métricas com segurança
                 def get_metric_safely(metrics_df, metric_name, column_name='f1-score'):

@@ -126,7 +126,7 @@ class ResultsManager:
                     df = pd.read_csv(os.path.join(self.base_path, f), sep=';')
                     column_mapping = {
                         'model': 'Model',
-                        'cv_report': 'CV_Score',
+                        'cv_score': 'CV_Score',
                         'train_avg_metrics': 'Train_Avg_Metrics',
                         'test_avg_metrics': 'Test_Avg_Metrics',
                         'training_type': 'Training_Type',
@@ -157,7 +157,7 @@ class ResultsManager:
                                 test_df = pd.DataFrame()
 
                             avg_metrics_dict[model_name] = {
-                                'cv_report': float(row.get('CV_Score', 0.0)),
+                                'cv_result': float(row.get('CV_Score', 0.0)),
                                 'train_avg_metrics': train_df,
                                 'test_avg_metrics': test_df,
                                 'training_type': row.get('Training_Type', 'unknown')
