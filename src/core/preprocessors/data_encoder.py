@@ -21,24 +21,39 @@ class DataEncoder():
         self.ordinal_columns = None
         self.ordinal_categories = None
 
+
     def initialize_encoder(self):
+        """Inicializa os transformadores para cada tipo de coluna."""
         transformers = []
 
         if self.numerical_columns is not None:
+            print(
+                f"\nConfigurando transformação para {len(self.numerical_columns)} colunas numéricas")
             if self.scaling_strategy == 'standard':
-                transformers.append(('num_standard', StandardScaler(), self.numerical_columns))
+                transformers.append(
+                    ('num_standard', StandardScaler(), self.numerical_columns))
             elif self.scaling_strategy == 'minmax':
-                transformers.append(('num_minmax', MinMaxScaler(), self.numerical_columns))
+                transformers.append(
+                    ('num_minmax', MinMaxScaler(), self.numerical_columns))
             elif self.scaling_strategy == 'both':
-                transformers.append(('num_standard', StandardScaler(), self.numerical_columns))
-                transformers.append(('num_minmax', MinMaxScaler(), self.numerical_columns))
+                transformers.append(
+                    ('num_standard', StandardScaler(), self.numerical_columns))
+                transformers.append(
+                    ('num_minmax', MinMaxScaler(), self.numerical_columns))
 
         if self.nominal_columns is not None:
-            transformers.append(('nom', OneHotEncoder(sparse_output=False, handle_unknown='ignore', drop='first'), self.nominal_columns))
+            print(
+                f"\nConfigurando transformação para {len(self.nominal_columns)} colunas nominais")
+            transformers.append(('nom', OneHotEncoder(sparse_output=False, handle_unknown='ignore', drop='first'),
+                                self.nominal_columns))
 
         if self.ordinal_columns is not None:
-            categories = [self.ordinal_categories[col] for col in self.ordinal_columns]
-            transformers.append(('ord', OrdinalEncoder(categories=categories), self.ordinal_columns))
+            print(
+                f"\nConfigurando transformação para {len(self.ordinal_columns)} colunas ordinais")
+            categories = [self.ordinal_categories[col]
+                        for col in self.ordinal_columns]
+            transformers.append(('ord', OrdinalEncoder(
+                categories=categories), self.ordinal_columns))
 
         self.column_transformer = ColumnTransformer(transformers=transformers)
 
@@ -77,12 +92,32 @@ class DataEncoder():
         self.column_transformer.fit(X)
         return self
 
+
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        X_transformed = self.column_transformer.transform(X)
-        feature_names = self.column_transformer.get_feature_names_out()
-        if X_transformed.shape[1] != len(feature_names):
-            raise ValueError(f"DataEncoder: Shape of transformed data is {X_transformed.shape}, but got {len(feature_names)} feature names.")
-        return pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
+        print(f"\nInicio da transformação - Shape entrada: {X.shape}")
+
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input deve ser um pandas DataFrame")
+
+        try:
+            X_transformed = self.column_transformer.transform(X)
+            feature_names = self.column_transformer.get_feature_names_out()
+
+            print(f"Fim da transformação - Shape saída: {X_transformed.shape}")
+            print(f"Total de features após transformação: {len(feature_names)}")
+            print("Distribuição por tipo:")
+            print(
+                f"- Features numéricas transformadas: {sum(1 for name in feature_names if 'num_' in name)}")
+            print(
+                f"- Features nominais transformadas: {sum(1 for name in feature_names if 'nom_' in name)}")
+            print(
+                f"- Features ordinais transformadas: {sum(1 for name in feature_names if 'ord_' in name)}")
+
+            return pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
+
+        except Exception as e:
+            print(f"Erro durante transformação: {e}")
+            raise
 
     def fit_transform(self, X: pd.DataFrame, y=None) -> pd.DataFrame:
         self.fit(X)

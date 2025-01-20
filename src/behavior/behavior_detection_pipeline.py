@@ -21,7 +21,7 @@ class BehaviorDetectionPipeline(BasePipeline):
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
         return BehaviorModelParams()
-    
+
     def load_and_clean_data(self):
         """Carrega e limpa o dataset."""
         # Load data
@@ -40,8 +40,22 @@ class BehaviorDetectionPipeline(BasePipeline):
         return cleaned_data
 
     def prepare_data(self, data):
-        """Prepara os dados para treinamento, incluindo divisão e codificação."""
+        """
+        Prepara os dados para treinamento
+
+        Note:
+            - Mantém 'aluno' e 'comportamento' originais até após o split
+            - Split é estratificado por aluno E comportamento
+            - Remoção de colunas e transformações só após o split
+        """
+
         print("\nIniciando preparação dos dados...")
+        print(f"Dataset inicial - Shape: {data.shape}")
+        print("Tipos de dados:")
+        print(data.dtypes.value_counts())
+
+        # Validação inicial das colunas necessárias
+        self._validate_split_columns(data)
 
         # 1. Encode target (generally, not needed for most models)
         encoder = BehaviorDataEncoder(num_classes=5)
@@ -49,6 +63,8 @@ class BehaviorDetectionPipeline(BasePipeline):
         y_encoded = encoder.fit_transform_y(y)
         data['comportamento'] = y_encoded
 
+        print(
+            f"Distribuição original das classes:\n{data['comportamento'].value_counts()}")
         # 2. Divide the data into train and test sets stratified by student ID and target
         train_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
@@ -56,12 +72,20 @@ class BehaviorDetectionPipeline(BasePipeline):
             group_column='aluno',
             target_column='comportamento'
         )
+        print(
+            f"Distribuição no conjunto de treino:\n{train_data['comportamento'].value_counts()}")
+        print(
+            f"Distribuição no conjunto de teste:\n{test_data['comportamento'].value_counts()}")
+
+        # Verifica a qualidade do split aqui, logo após a divisão
+        self._verify_split_quality(train_data, test_data)
 
         # 3. Remove student ID column
         train_data = self.data_cleaner.remove_columns(
             train_data, columns=['aluno'])
 
-        test_data = self.data_cleaner.remove_columns(test_data, columns=['aluno'])
+        test_data = self.data_cleaner.remove_columns(
+            test_data, columns=['aluno'])
 
         # 4. Split features and target
         X_train, y_train = DataSplitter.split_into_x_y(
@@ -90,7 +114,40 @@ class BehaviorDetectionPipeline(BasePipeline):
         X_train_encoded = X_encoder.transform(X_train_imputed)
         X_test_encoded = X_encoder.transform(X_test_imputed)
 
+        # Após todas as transformações
+        print("\nResumo final do pré-processamento:")
+        print(
+            f"Shape final - X_train: {X_train_encoded.shape}, X_test: {X_test_encoded.shape}")
+
         return X_train_encoded, X_test_encoded, y_train, y_test
+
+    def _validate_split_columns(self, data):
+        """
+        Valida se todas as colunas necessárias existem antes do split.
+
+        Args:
+            data (pd.DataFrame): Dados a serem validados
+
+        Raises:
+            ValueError: Se alguma coluna necessária estiver faltando
+            ValueError: Se houver valores nulos nas colunas críticas
+        """
+        # Verifica presença das colunas
+        required_columns = ['aluno', 'comportamento']
+        missing_columns = [
+            col for col in required_columns if col not in data.columns]
+
+        if missing_columns:
+            raise ValueError(
+                f"Colunas necessárias ausentes: {missing_columns}")
+
+        # Verifica valores nulos em colunas críticas
+        null_counts = data[required_columns].isnull().sum()
+        columns_with_nulls = null_counts[null_counts > 0]
+
+        if not columns_with_nulls.empty:
+            raise ValueError(
+                f"Valores nulos encontrados em colunas críticas:\n{columns_with_nulls}")
 
     def run(self):
         """Executa o pipeline completo de detecção de comportamentos."""

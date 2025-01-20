@@ -93,6 +93,24 @@ class BasePipeline(ABC):
         """Prepara os dados para treinamento."""
         pass
 
+    def _verify_split_quality(self, train_data, test_data):
+        """
+        Verifica se o split manteve as proporções desejadas
+        """
+        # Verifica se todos os alunos estão em apenas um conjunto
+        train_students = set(train_data['aluno'])
+        test_students = set(test_data['aluno'])
+        overlap = train_students & test_students
+        assert len(overlap) == 0, f"Alunos presentes em ambos conjuntos: {overlap}"
+
+        # Verifica proporções das classes
+        train_dist = train_data['comportamento'].value_counts(normalize=True)
+        test_dist = test_data['comportamento'].value_counts(normalize=True)
+
+        for behavior in train_dist.index:
+            diff = abs(train_dist[behavior] - test_dist[behavior])
+            assert diff < 0.1, f"Diferença grande na distribuição do comportamento {behavior}"
+
     def balance_data(self, X_train, y_train):
         """Aplica balanceamento nos dados de treino."""
         data_balancer = DataBalancer()
