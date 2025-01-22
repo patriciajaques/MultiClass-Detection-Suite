@@ -4,9 +4,21 @@ from sklearn.preprocessing import LabelEncoder
 from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.sequence_handler import SequenceHandler
 
-
 class BehaviorDataEncoder(DataEncoder):
+    """
+    Encoder para dados comportamentais que unifica os comportamentos 
+    'on-task-resource' e 'on-task-conversation' em 'on-task-out',
+    resultando em 4 classes finais:
+    - on-task
+    - on-task-out (unificação de on-task-resource e on-task-conversation)
+    - on-system
+    - off-task
+    """
+
     def __init__(self, num_classes=4, create_sequence_id=True):
+        if num_classes != 4:
+            raise ValueError(
+                "BehaviorDataEncoder suporta apenas 4 classes após unificação")
         super().__init__(
             num_classes=num_classes,
             scaling_strategy='standard',

@@ -8,18 +8,19 @@ from core.preprocessors.data_cleaner import DataCleaner
 from core.preprocessors.data_imputer import DataImputer
 from core.preprocessors.data_splitter import DataSplitter
 from behavior.data.behavior_data_encoder import BehaviorDataEncoder
-from core.models.multiclass.behavior_model_params import BehaviorModelParams
+from behavior.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
 
 
 from core.pipeline.base_pipeline import BasePipeline
-from core.models.multiclass.behavior_model_params import BehaviorModelParams
+from behavior.behavior_model_params import BehaviorModelParams
 
 
 class BehaviorDetectionPipeline(BasePipeline):
     def __init__(self, **kwargs):
         super().__init__(config_dir='src/behavior/config', **kwargs)
         self.data_cleaner = DataCleaner(config_manager=self.config)
+        self.num_classes = 4
 
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
@@ -39,7 +40,6 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Remove unnecessary columns usando configuração
         cleaned_data = self.data_cleaner.remove_columns(
             data, use_config=True)
-
 
         return cleaned_data
 
@@ -68,14 +68,14 @@ class BehaviorDetectionPipeline(BasePipeline):
         # print(f"Shape após features temporais: {data.shape}")
 
         # 2. Encode target (generally, not needed for most models)
-        encoder = BehaviorDataEncoder(num_classes=5)
+        encoder = BehaviorDataEncoder(num_classes=self.num_classes)
         y = data['comportamento']
         y_encoded = encoder.fit_transform_y(y)
         data['comportamento'] = y_encoded
 
         print(
             f"Distribuição original das classes:\n{data['comportamento'].value_counts()}")
-        
+
         # 3. Divide the data into train and test sets stratified by student ID and target
         # Criar identificador único aluno-turma
         data['student_group'] = data['aluno'].astype(
@@ -103,7 +103,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         # 4. Remove student ID column
         # train_data = self.data_cleaner.remove_columns(
         #     train_data, columns=['aluno'])
-   
+
         # test_data = self.data_cleaner.remove_columns(
         #     test_data, columns=['aluno'])
 
@@ -129,7 +129,7 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         # 6. Encode features
         print("\nRealizando encoding das features...")
-        X_encoder = BehaviorDataEncoder(num_classes=5)
+        X_encoder = BehaviorDataEncoder(num_classes=self.num_classes)
         X_encoder.fit(X_train)
         X_train_encoded = X_encoder.transform(X_train_imputed)
         X_test_encoded = X_encoder.transform(X_test_imputed)
@@ -140,20 +140,18 @@ class BehaviorDetectionPipeline(BasePipeline):
             f"Shape final - X_train: {X_train_encoded.shape}, X_test: {X_test_encoded.shape}")
 
         return X_train_encoded, X_test_encoded, y_train, y_test
-    
+
     def _log_dataset_changes(self, stage: str, data: pd.DataFrame):
         """Registra mudanças no dataset"""
         print(f"\nDataset {stage} - Shape: {data.shape}")
         print("Tipos de dados:")
         print(data.dtypes.value_counts())
 
-
     def _log_removed_items(self, item_type: str, items: list):
         """Registra itens removidos"""
         if items:
             print(f"\nRemovidos {len(items)} {item_type}:")
             print(items)
-
 
     def _log_class_distribution(self, stage: str, y: pd.Series):
         """Registra distribuição das classes"""

@@ -32,19 +32,6 @@ class BehaviorModelParams(MulticlassModelParams):
             'classifier__criterion': ['gini', 'entropy']  # Ambos critérios podem ser úteis
         }
 
-    def _get_gradient_boosting_space(self):
-        """
-        Parâmetros otimizados para Gradient Boosting na classificação de comportamentos.
-        """
-        return {
-            'classifier__n_estimators': [100, 200, 300],
-            'classifier__learning_rate': [0.01, 0.05, 0.1],  # Taxas menores para melhor generalização
-            'classifier__max_depth': [3, 5, 7],
-            'classifier__min_samples_split': [2, 5, 10],
-            'classifier__min_samples_leaf': [1, 2, 4],
-            'classifier__subsample': [0.8, 0.9, 1.0]  # Adiciona subamostragem para reduzir overfitting
-        }
-
     def _get_svm_space(self):
         """
         Parâmetros otimizados para SVM na classificação de comportamentos.
@@ -64,32 +51,44 @@ class BehaviorModelParams(MulticlassModelParams):
         ]
 
     def _get_mlp_space(self):
-        """
-        Parâmetros otimizados para MLP na classificação de comportamentos.
-        """
-        return [
-            {
-                'classifier__hidden_layer_sizes': [(50,), (100,), (50, 25), (100, 50)],
-                'classifier__activation': ['relu', 'tanh'],
-                'classifier__alpha': [0.0001, 0.001, 0.01],
-                'classifier__batch_size': [32, 64],
-                'classifier__learning_rate': ['adaptive'],
-                'classifier__max_iter': [2000],
-                'classifier__solver': ['adam'],
-                'classifier__learning_rate_init': [0.001, 0.01]
-            }
-        ]
+        return [{
+            'classifier__hidden_layer_sizes': [(50,), (100,), (50, 25), (100, 50)],
+            'classifier__activation': ['relu', 'tanh'],
+            'classifier__alpha': [0.0001, 0.001, 0.01],
+            'classifier__batch_size': [32, 64],
+            'classifier__learning_rate': ['adaptive'],
+            'classifier__max_iter': [2000],
+            'classifier__early_stopping': [True],  # Adicionar
+            'classifier__validation_fraction': [0.1],  # Adicionar
+            'classifier__n_iter_no_change': [10],  # Adicionar
+            'classifier__solver': ['adam'],
+            'classifier__learning_rate_init': [0.001, 0.01]
+        }]
+
 
     def _get_xgboost_space(self):
-        """
-        Parâmetros otimizados para XGBoost na classificação de comportamentos.
-        """
         return {
-            'classifier__n_estimators': [100, 200, 300],
+            'classifier__n_estimators': [300],  # Aumentar máximo
             'classifier__max_depth': [3, 5, 7],
             'classifier__learning_rate': [0.01, 0.05, 0.1],
             'classifier__subsample': [0.8, 0.9, 1.0],
             'classifier__colsample_bytree': [0.8, 0.9, 1.0],
             'classifier__min_child_weight': [1, 3, 5],
-            'classifier__gamma': [0, 0.1, 0.2]
+            'classifier__gamma': [0, 0.1, 0.2],
+            'classifier__early_stopping_rounds': [10],  # Adicionar
+            'classifier__eval_metric': ['mlogloss']  # Adicionar
+        }
+
+
+    def _get_gradient_boosting_space(self):
+        return {
+            'classifier__n_estimators': [300],  # Aumentar máximo
+            'classifier__learning_rate': [0.01, 0.05, 0.1],
+            'classifier__max_depth': [3, 5, 7],
+            'classifier__min_samples_split': [2, 5, 10],
+            'classifier__min_samples_leaf': [1, 2, 4],
+            'classifier__subsample': [0.8, 0.9, 1.0],
+            'classifier__validation_fraction': [0.1],  # Adicionar
+            'classifier__n_iter_no_change': [10],  # Adicionar
+            'classifier__tol': [1e-4]  # Adicionar
         }

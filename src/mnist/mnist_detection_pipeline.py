@@ -5,7 +5,7 @@ from core.pipeline.base_pipeline import BasePipeline
 from core.preprocessors.data_splitter import DataSplitter
 from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.data_balancer import DataBalancer
-from core.models.multiclass.digits_model_params import DigitsModelParams
+from mnist.digits_model_params import DigitsModelParams
 from core.management.stage_training_manager import StageTrainingManager
 
 
