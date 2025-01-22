@@ -2,7 +2,7 @@ columns_to_remove:
   # "Colunas de identificação que não contribuem para a detecção de comportamentos"
   identifiers:
     - id_log
-    - grupo
+    # - grupo
     # - num_dia
     # - num_log
 

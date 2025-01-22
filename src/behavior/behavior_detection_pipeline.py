@@ -77,12 +77,21 @@ class BehaviorDetectionPipeline(BasePipeline):
             f"Distribuição original das classes:\n{data['comportamento'].value_counts()}")
         
         # 3. Divide the data into train and test sets stratified by student ID and target
+        # Criar identificador único aluno-turma
+        data['student_group'] = data['aluno'].astype(
+            str) + '_' + data['grupo'].astype(str)
+
+        # Split estratificado usando novo identificador
         train_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
             test_size=self.test_size,
-            group_column='aluno',
+            group_column='student_group',
             target_column='comportamento'
         )
+
+        # Remover coluna temporária após split
+        train_data = train_data.drop('student_group', axis=1)
+        test_data = test_data.drop('student_group', axis=1)
         print(
             f"Distribuição no conjunto de treino:\n{train_data['comportamento'].value_counts()}")
         print(
@@ -92,11 +101,11 @@ class BehaviorDetectionPipeline(BasePipeline):
         self._verify_split_quality(train_data, test_data)
 
         # 4. Remove student ID column
-        train_data = self.data_cleaner.remove_columns(
-            train_data, columns=['aluno'])
-
-        test_data = self.data_cleaner.remove_columns(
-            test_data, columns=['aluno'])
+        # train_data = self.data_cleaner.remove_columns(
+        #     train_data, columns=['aluno'])
+   
+        # test_data = self.data_cleaner.remove_columns(
+        #     test_data, columns=['aluno'])
 
         # 5. Split features and target
         X_train, y_train = DataSplitter.split_into_x_y(
