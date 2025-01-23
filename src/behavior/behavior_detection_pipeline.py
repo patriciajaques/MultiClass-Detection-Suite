@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from behavior.data.behavior_data_loader import BehaviorDataLoader
@@ -38,6 +39,9 @@ class BehaviorDetectionPipeline(BasePipeline):
         # exibindo a quantidade de classes em comportamento
         print(f"Classes de comportamento: {data['comportamento'].unique()}")
 
+        # Cria id único de sequencias
+        data['sequence_id'] = self._create_sequence_ids(data)
+
         # Remove unnecessary columns usando configuração
         cleaned_data = self.data_cleaner.remove_columns(
             data, use_config=True)
@@ -50,6 +54,11 @@ class BehaviorDetectionPipeline(BasePipeline):
 
 
         return cleaned_data
+    
+    def _create_sequence_ids(self, X: pd.DataFrame) -> np.ndarray:
+        return (X['aluno'].astype(int) * 10000 +
+                X['num_dia'].astype(int) * 1000 +
+                X['num_log'].astype(int))
 
     def prepare_data(self, data):
         """
@@ -70,10 +79,10 @@ class BehaviorDetectionPipeline(BasePipeline):
         self._validate_split_columns(data)
 
         # 1. Criar features temporais [NOVO]
-        # print("\nCriando features temporais...")
-        # temporal_processor = TemporalFeaturesProcessor()
-        # data = temporal_processor.fit_transform(data)
-        # print(f"Shape após features temporais: {data.shape}")
+        print("\nCriando features temporais...")
+        temporal_processor = TemporalFeaturesProcessor()
+        data = temporal_processor.fit_transform(data)
+        print(f"Shape após features temporais: {data.shape}")
 
     
         # 2. Encode target (generally, not needed for most models)
@@ -87,21 +96,16 @@ class BehaviorDetectionPipeline(BasePipeline):
             f"Distribuição original das classes:\n{data['comportamento'].value_counts()}")
 
         # 3. Divide the data into train and test sets stratified by student ID and target
-        # Criar identificador único aluno-turma
-        data['student_group'] = data['aluno'].astype(
-            str) + '_' + data['grupo'].astype(str)
 
         # Split estratificado usando novo identificador
         train_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
             test_size=self.test_size,
-            group_column='student_group',
+            group_column='aluno',
             target_column='comportamento'
         )
 
         # Remover coluna temporária após split
-        train_data = train_data.drop('student_group', axis=1)
-        test_data = test_data.drop('student_group', axis=1)
         print(
             f"Distribuição no conjunto de treino:\n{train_data['comportamento'].value_counts()}")
         print(
@@ -207,13 +211,25 @@ class BehaviorDetectionPipeline(BasePipeline):
         print("\n1. Carregando e limpando dados...")
         data = self.load_and_clean_data()
 
+        print("Inspecionando os dados após limpeza:")
+        print("Dados de treino:")
+        data.info()
+        print("\nDescriptive Statistics:")
+        print(data.describe(include='all'))
+
         # Prepare data
         print("\n2. Preparando dados para treinamento...")
         X_train, X_test, y_train, y_test = self.prepare_data(data)
 
+        print("Inspecionando os dados após limpeza e pre-processamento:")
+        print("Dados de treino:")
+        X_train.info()
+        print("\nDescriptive Statistics:")
+        print(X_train.describe(include='all'))
+
         # Balance data
-        print("\n3. Balanceando dados de treino...")
-        X_train, y_train = self.balance_data(X_train, y_train, strategy=0.75)
+        # print("\n3. Balanceando dados de treino...")
+        # X_train, y_train = self.balance_data(X_train, y_train, strategy=0.75)
 
         # Train models
         print("\n4. Iniciando treinamento dos modelos...")

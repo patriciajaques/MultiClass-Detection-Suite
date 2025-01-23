@@ -187,3 +187,11 @@ class TemporalFeaturesProcessor(BaseEstimator, TransformerMixin):
         df_clean[numeric_cols] = df_clean[numeric_cols].clip(-1e308, 1e308)
 
         return df_clean
+
+    def _safe_division(self, a, b, fill_value=0):
+        """Realiza divisão segura evitando divisões por zero."""
+        if isinstance(b, (int, float)):
+            mask = b != 0
+        else:
+            mask = b.astype(bool)
+        return np.where(mask, a / np.where(mask, b, 1), fill_value)
