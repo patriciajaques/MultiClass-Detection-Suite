@@ -20,7 +20,6 @@ class BehaviorDetectionPipeline(BasePipeline):
     def __init__(self, **kwargs):
         super().__init__(config_dir='src/behavior/config', **kwargs)
         self.data_cleaner = DataCleaner(config_manager=self.config)
-        self.num_classes = 4
 
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
@@ -36,10 +35,19 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Remove undefined behaviors
         data = self.data_cleaner.remove_instances_with_value(
             data, 'comportamento', '?')
+        # exibindo a quantidade de classes em comportamento
+        print(f"Classes de comportamento: {data['comportamento'].unique()}")
 
         # Remove unnecessary columns usando configuração
         cleaned_data = self.data_cleaner.remove_columns(
             data, use_config=True)
+        
+        # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
+        cleaned_data['comportamento'] = cleaned_data['comportamento'].replace(
+            ['ON TASK OUT', 'ON TASK CONVERSATION'], 'ON TASK OUT')
+        # exibindo a quantidade de classes em comportamento
+        print(f"Classes de comportamento: {data['comportamento'].unique()}")
+
 
         return cleaned_data
 
@@ -67,9 +75,11 @@ class BehaviorDetectionPipeline(BasePipeline):
         # data = temporal_processor.fit_transform(data)
         # print(f"Shape após features temporais: {data.shape}")
 
+    
         # 2. Encode target (generally, not needed for most models)
-        encoder = BehaviorDataEncoder(num_classes=self.num_classes)
         y = data['comportamento']
+        
+        encoder = BehaviorDataEncoder()
         y_encoded = encoder.fit_transform_y(y)
         data['comportamento'] = y_encoded
 
@@ -129,7 +139,7 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         # 6. Encode features
         print("\nRealizando encoding das features...")
-        X_encoder = BehaviorDataEncoder(num_classes=self.num_classes)
+        X_encoder = BehaviorDataEncoder()
         X_encoder.fit(X_train)
         X_train_encoded = X_encoder.transform(X_train_imputed)
         X_test_encoded = X_encoder.transform(X_test_imputed)

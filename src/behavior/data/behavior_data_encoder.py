@@ -5,15 +5,6 @@ from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.sequence_handler import SequenceHandler
 
 class BehaviorDataEncoder(DataEncoder):
-    """
-    Encoder para dados comportamentais que unifica os comportamentos 
-    'on-task-resource' e 'on-task-conversation' em 'on-task-out',
-    resultando em 4 classes finais:
-    - on-task
-    - on-task-out (unificação de on-task-resource e on-task-conversation)
-    - on-system
-    - off-task
-    """
 
     def __init__(self, num_classes=4, create_sequence_id=True):
         if num_classes != 4:
@@ -28,7 +19,7 @@ class BehaviorDataEncoder(DataEncoder):
         )
         self.create_sequence_id = create_sequence_id
         self.sequence_handler = SequenceHandler() if create_sequence_id else None
-        self.sequence_columns = ['aluno', 'grupo', 'num_dia', 'num_log']
+        self.sequence_columns = ['aluno', 'num_log']
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         """
@@ -108,18 +99,11 @@ class BehaviorDataEncoder(DataEncoder):
         """
         Unifica comportamentos 3 e 4 antes de fazer o encoding.
         """
-        # Substitui comportamentos on-task-resource e on-task-conversation por on-task-out
-        y = y.replace(
-            ['on-task-resource', 'on-task-conversation'], 'on-task-out')
-
-        # Faz o encoding após a unificação
         y_encoded = self.label_encoder.fit_transform(y)
         self._is_fitted = True
         return y_encoded
 
     def transform_y(self, y):
-        y = y.replace(
-            ['on-task-resource', 'on-task-conversation'], 'on-task-out')
         return self.label_encoder.transform(y)
 
     def inverse_transform_y(self, y_encoded):
