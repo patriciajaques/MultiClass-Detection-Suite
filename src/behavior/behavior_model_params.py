@@ -2,7 +2,6 @@ from typing import Dict
 
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
-from core.feature_selection.lstm_sequence_processor import LSTMSequenceProcessor
 from core.models.multiclass.multiclass_model_params import MulticlassModelParams
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -20,19 +19,8 @@ class BehaviorModelParams(MulticlassModelParams):
     """
 
     def _create_base_models(self) -> Dict[str, BaseEstimator]:
-        return {
-            'Logistic Regression': LogisticRegression(max_iter=5000),
-            'Decision Tree': DecisionTreeClassifier(),
-            'Random Forest': RandomForestClassifier(),
-            'Gradient Boosting': GradientBoostingClassifier(),
-            'SVM': SVC(probability=True),
-            'KNN': KNeighborsClassifier(),
-            'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss'),
-            'Naive Bayes': GaussianNB(),
-            'MLP': MLPClassifier(max_iter=1000),
-            # Adicionar esta linha
-            'LSTM': Pipeline([('sequence_processor', LSTMSequenceProcessor())])
-        }
+        models = super()._create_base_models()
+        return models
 
     def _get_logistic_regression_params(self):
         """

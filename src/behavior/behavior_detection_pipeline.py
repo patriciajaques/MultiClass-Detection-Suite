@@ -11,7 +11,6 @@ from core.preprocessors.data_splitter import DataSplitter
 from behavior.data.behavior_data_encoder import BehaviorDataEncoder
 from behavior.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
-from behavior.lstm_behavior_model_params import LSTMBehaviorModelParams
 
 
 
@@ -26,7 +25,7 @@ class BehaviorDetectionPipeline(BasePipeline):
 
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
-        return LSTMBehaviorModelParams()
+        return BehaviorModelParams()
 
     def load_and_clean_data(self):
         """Carrega e limpa o dataset."""

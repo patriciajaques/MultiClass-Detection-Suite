@@ -5,11 +5,10 @@ training_settings:
     - "Random Forest"
     # - "Gradient Boosting"
     # - "SVM"
-    - "KNN"
+    # - "KNN"
     - "XGBoost"
     - "Naive Bayes"
     # - "MLP"
-    - "LSTM"
 
   selectors:
     - "none"
