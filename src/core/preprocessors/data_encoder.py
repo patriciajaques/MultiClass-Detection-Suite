@@ -6,8 +6,8 @@ from sklearn.compose import ColumnTransformer
 from core.preprocessors.column_selector import ColumnSelector
 
 class DataEncoder():
-    def __init__(self, num_classes: int, scaling_strategy: str = 'standard', select_numerical: bool = True, select_nominal: bool = True, select_ordinal: bool = True):
-        self.num_classes = num_classes
+    def __init__(self, categorical_threshold: int, scaling_strategy: str = 'standard', select_numerical: bool = True, select_nominal: bool = True, select_ordinal: bool = True):
+        self.categorical_threshold = categorical_threshold
         self.scaling_strategy = scaling_strategy
         self.select_numerical = select_numerical
         self.select_nominal = select_nominal
@@ -67,7 +67,7 @@ class DataEncoder():
             select_nominal (bool): Se True, seleciona colunas nominais.
             select_ordinal (bool): Se True, seleciona colunas ordinais.
         """
-        self.column_selector = ColumnSelector(X, self.num_classes)
+        self.column_selector = ColumnSelector(X, self.categorical_threshold)
         
         if self.select_numerical:
             self.numerical_columns = self.column_selector.get_numerical_columns()
@@ -147,9 +147,9 @@ class DataEncoder():
 
         # Validação pós-encoding
         unique_encoded = np.unique(y_encoded)
-        if len(unique_encoded) > self.num_classes:
+        if len(unique_encoded) > self.categorical_threshold:
             raise ValueError(
-                f"Número de classes ({len(unique_encoded)}) maior que o esperado ({self.num_classes})"
+                f"Número de classes ({len(unique_encoded)}) maior que o esperado ({self.categorical_threshold})"
             )
 
         return y_encoded

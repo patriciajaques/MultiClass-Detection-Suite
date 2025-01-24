@@ -6,12 +6,12 @@ from core.preprocessors.data_encoder import DataEncoder
 
 class BehaviorDataEncoder(DataEncoder):
 
-    def __init__(self, num_classes=4, create_sequence_id=True):
-        if num_classes != 4:
+    def __init__(self, categorical_threshold=4, create_sequence_id=True):
+        if categorical_threshold != 4:
             raise ValueError(
                 "BehaviorDataEncoder suporta apenas 4 classes após unificação")
         super().__init__(
-            num_classes=num_classes,
+            categorical_threshold=categorical_threshold,
             scaling_strategy='standard',
             select_numerical=True,
             select_nominal=True,

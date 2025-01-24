@@ -45,7 +45,7 @@ class MNISTDetectionPipeline(BasePipeline):
         # Scale features
         print("Normalizando features...")
         encoder = DataEncoder(
-            num_classes=10,
+            categorical_threshold=10,
             scaling_strategy='standard',
             select_numerical=True,
             select_nominal=False,  # Modificação aqui: não selecionar colunas nominais
@@ -69,7 +69,7 @@ class MNISTDetectionPipeline(BasePipeline):
 
         # Balance data
         print("\n3. Balanceando dados de treino...")
-        X_train, y_train = self.balance_data(X_train, y_train, strategy='auto')
+        # X_train, y_train = self.balance_data(X_train, y_train, strategy='auto')
 
         # Train models
         print("\n4. Iniciando treinamento dos modelos...")
