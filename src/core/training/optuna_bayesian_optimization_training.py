@@ -61,17 +61,8 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
         # Configurar com os melhores hiperparâmetros
         best_pipeline.set_params(**study.best_trial.params)
 
-        # Criar validação interna para early stopping
-        X_train_main, X_valid, y_train_main, y_valid = train_test_split(
-            X_train, y_train, test_size=0.2, random_state=42
-        )
         # Treinar o pipeline final com todos os dados de treinamento
-        best_pipeline.fit(
-            X_train_main, y_train_main,
-            eval_set=[(X_valid, y_valid)],
-            early_stopping_rounds=10,
-            eval_metric='mlogloss'
-        )
+        best_pipeline.fit(X_train, y_train)
 
         # Log the results using the overridden method
         self.log_search_results(self.logger, study, model_name, selector_name)

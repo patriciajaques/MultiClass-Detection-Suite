@@ -26,3 +26,4 @@ node_modules/
 
 # Ignorar arquivos compilados Python
 *.pyc
+src/dataset_report.html
