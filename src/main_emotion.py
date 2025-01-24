@@ -1,7 +1,5 @@
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
 from behavior.data.behavior_data_loader import BehaviorDataLoader
-from core.preprocessors.data_cleaner import DataCleaner
-import pandas as pd
 
 
 class EmotionDetectionPipeline(BehaviorDetectionPipeline):
@@ -15,7 +13,8 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
             self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
         print(f"Dataset inicial shape: {data.shape}")
 
-        # Remove undefined emotions
+        # Remove undefined emotions e NaN
+        data = data[data['estado_afetivo'].notna()]
         data = self.data_cleaner.remove_instances_with_value(
             data, 'estado_afetivo', '?')
 
@@ -34,14 +33,39 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
         """Prepara os dados para treinamento focando em emoções."""
         print(f"\nIniciando preparação dos dados para detecção de emoções...")
 
-        # Validação inicial das colunas necessárias
-        self._validate_split_columns(data)
+        # Converte o target para estado_afetivo
+        data = data.copy()
+        data['comportamento'] = data['estado_afetivo']
 
-        # Substituir 'comportamento' por 'estado_afetivo' como target
-        data['target'] = data['estado_afetivo']
+        print(
+            f"Distribuição de emoções:\n{data['comportamento'].value_counts()}")
 
-        # Reutilizar o método prepare_data da classe pai
+        # Reutiliza o método prepare_data da classe pai
         return super().prepare_data(data)
+
+    def _verify_split_quality(self, train_data, test_data):
+        """
+        Sobrescreve o método de verificação de qualidade do split para trabalhar com strings de emoções.
+        """
+        # Verifica se todos os alunos estão em apenas um conjunto
+        train_students = set(train_data['aluno'])
+        test_students = set(test_data['aluno'])
+        overlap = train_students & test_students
+        assert len(
+            overlap) == 0, f"Alunos presentes em ambos conjuntos: {overlap}"
+
+        # Verifica proporções das classes com tolerância maior
+        train_dist = train_data['comportamento'].value_counts(normalize=True)
+        test_dist = test_data['comportamento'].value_counts(normalize=True)
+
+        # Itera sobre todas as emoções presentes em ambos os conjuntos
+        for emotion in set(train_dist.index) | set(test_dist.index):
+            train_prop = train_dist.get(emotion, 0)
+            test_prop = test_dist.get(emotion, 0)
+            diff = abs(train_prop - test_prop)
+            if diff >= 0.15:  # 15% de tolerância
+                print(
+                    f"Aviso: Diferença de {diff:.2%} na distribuição da emoção {emotion}")
 
 
 def main():
