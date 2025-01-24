@@ -130,7 +130,11 @@ class BasePipeline(ABC):
             y_train = y_train.values
 
         data_balancer = DataBalancer()
-        X_resampled, y_resampled = data_balancer.apply_smote(X_train, y_train)
+
+        # Na função balance_data do BasePipeline
+        strategy = 0.75  # Gera 75% do número de amostras da classe majoritária
+        X_resampled, y_resampled = data_balancer.apply_smote(
+            X_train, y_train, strategy=strategy)
 
         print(f"Shape de X_train após balanceamento: {X_resampled.shape}")
         print(f"Distribuição de classes após balanceamento:")

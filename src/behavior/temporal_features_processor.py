@@ -81,11 +81,25 @@ class TemporalFeaturesProcessor(BaseEstimator, TransformerMixin):
         df['relative_idle_time'] = df['idle_time_acumulado'] / df['tempo_equacao']
 
         # Velocidade de resolução
+        # Novas features com janelas deslizantes
         for window in self.sequence_windows:
+            # Tempo por passo (existente)
             df[f'avg_step_time_{window}'] = (df.groupby('aluno')['tempo_passo']
-                                             .rolling(window=window)
-                                             .mean()
-                                             .reset_index(0, drop=True))
+                                            .rolling(window=window)
+                                            .mean()
+                                            .reset_index(0, drop=True))
+
+            # Soma de tempo idle
+            df[f'idle_time_sum_{window}'] = (df.groupby('aluno')['idle_time_acumulado']
+                                            .rolling(window=window)
+                                            .sum()
+                                            .reset_index(0, drop=True))
+
+            # Soma de cliques
+            df[f'clicks_sum_{window}'] = (df.groupby('aluno')['num_click_acumulado']
+                                        .rolling(window=window)
+                                        .sum()
+                                        .reset_index(0, drop=True))
 
     def _add_behavior_pattern_features(self, df: pd.DataFrame) -> None:
         """Adiciona features relacionadas a padrões de comportamento."""
@@ -126,10 +140,9 @@ class TemporalFeaturesProcessor(BaseEstimator, TransformerMixin):
         df['error_rate'] = 1 - df['efetividade_passos_eq']
 
     def get_feature_names(self) -> List[str]:
-        """Retorna os nomes das features temporais criadas."""
         feature_names = []
 
-        # Features de sequência
+        # Features existentes
         for i in range(1, self.include_last_n_steps + 1):
             feature_names.extend([
                 f'prev_step_correct_{i}',
@@ -137,39 +150,23 @@ class TemporalFeaturesProcessor(BaseEstimator, TransformerMixin):
                 f'prev_eq_step_verification_{i}'
             ])
 
-        # Features de janela
         for window in self.sequence_windows:
             feature_names.extend([
                 f'success_rate_{window}',
                 f'avg_step_time_{window}',
-                f'verification_rate_{window}'
+                f'verification_rate_{window}',
+                f'idle_time_sum_{window}',
+                f'clicks_sum_{window}',
+                f'behavior_changes_{window}'
             ])
 
-        # Features de tempo e eficiência
         feature_names.extend([
             'time_vs_mean',
             'step_efficiency',
             'relative_idle_time'
         ])
 
-        # Features de comportamento
-        feature_names.extend([
-            'behavior_changed',
-            'step_verifications',
-            'time_between_verifications'
-        ])
-
-        # Features de progresso
-        feature_names.extend([
-            'steps_in_equation',
-            'step_position',
-            'relative_position',
-            'progress_effectiveness',
-            'error_rate'
-        ])
-
         return feature_names
-
 
     def _validate_and_clean_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Validação e limpeza completa das features temporais"""

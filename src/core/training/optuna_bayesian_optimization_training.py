@@ -7,6 +7,7 @@ from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.optuna_param_converter import OptunaParamConverter
 from core.logging.logger_config import with_logging
 from time import time
+from sklearn.model_selection import train_test_split
 import pandas as pd
 
 @with_logging('optuna_training')
@@ -59,10 +60,18 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
 
         # Configurar com os melhores hiperparâmetros
         best_pipeline.set_params(**study.best_trial.params)
-        
-        # Treinar o pipeline final com todos os dados
-        best_pipeline.fit(X_train, y_train)
 
+        # Criar validação interna para early stopping
+        X_train_main, X_valid, y_train_main, y_valid = train_test_split(
+            X_train, y_train, test_size=0.2, random_state=42
+        )
+        # Treinar o pipeline final com todos os dados de treinamento
+        best_pipeline.fit(
+            X_train_main, y_train_main,
+            eval_set=[(X_valid, y_valid)],
+            early_stopping_rounds=10,
+            eval_metric='mlogloss'
+        )
 
         # Log the results using the overridden method
         self.log_search_results(self.logger, study, model_name, selector_name)

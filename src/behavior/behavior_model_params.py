@@ -1,10 +1,39 @@
+from typing import Dict
+
+from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
+from core.feature_selection.lstm_sequence_processor import LSTMSequenceProcessor
 from core.models.multiclass.multiclass_model_params import MulticlassModelParams
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
+import xgboost as xgb
 
 class BehaviorModelParams(MulticlassModelParams):
     """
     Classe especializada para parâmetros de modelos específicos para a classificação
     de comportamentos de aprendizagem em Sistemas Tutores Inteligentes.
     """
+
+    def _create_base_models(self) -> Dict[str, BaseEstimator]:
+        return {
+            'Logistic Regression': LogisticRegression(max_iter=5000),
+            'Decision Tree': DecisionTreeClassifier(),
+            'Random Forest': RandomForestClassifier(),
+            'Gradient Boosting': GradientBoostingClassifier(),
+            'SVM': SVC(probability=True),
+            'KNN': KNeighborsClassifier(),
+            'XGBoost': xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss'),
+            'Naive Bayes': GaussianNB(),
+            'MLP': MLPClassifier(max_iter=1000),
+            # Adicionar esta linha
+            'LSTM': Pipeline([('sequence_processor', LSTMSequenceProcessor())])
+        }
+
     def _get_logistic_regression_params(self):
         """
         Parâmetros otimizados para Regressão Logística na classificação de comportamentos.
@@ -68,15 +97,14 @@ class BehaviorModelParams(MulticlassModelParams):
 
     def _get_xgboost_space(self):
         return {
-            'classifier__n_estimators': [300],  # Aumentar máximo
-            'classifier__max_depth': [3, 5, 7],
-            'classifier__learning_rate': [0.01, 0.05, 0.1],
+            'classifier__n_estimators': [100, 200, 300],
+            'classifier__max_depth': [3, 6, 9],
+            'classifier__learning_rate': [0.01, 0.1, 0.3],
             'classifier__subsample': [0.8, 0.9, 1.0],
             'classifier__colsample_bytree': [0.8, 0.9, 1.0],
-            'classifier__min_child_weight': [1, 3, 5],
-            'classifier__gamma': [0, 0.1, 0.2],
-            'classifier__early_stopping_rounds': [10],  # Adicionar
-            'classifier__eval_metric': ['mlogloss']  # Adicionar
+            # Remover parâmetros problemáticos
+            # 'classifier__early_stopping_rounds': [10],
+            # 'classifier__eval_metric': ['mlogloss']
         }
 
 

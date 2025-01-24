@@ -11,6 +11,8 @@ from core.preprocessors.data_splitter import DataSplitter
 from behavior.data.behavior_data_encoder import BehaviorDataEncoder
 from behavior.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
+from behavior.lstm_behavior_model_params import LSTMBehaviorModelParams
+
 
 
 from core.pipeline.base_pipeline import BasePipeline
@@ -24,7 +26,7 @@ class BehaviorDetectionPipeline(BasePipeline):
 
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
-        return BehaviorModelParams()
+        return LSTMBehaviorModelParams()
 
     def load_and_clean_data(self):
         """Carrega e limpa o dataset."""
@@ -105,7 +107,6 @@ class BehaviorDetectionPipeline(BasePipeline):
             target_column='comportamento'
         )
 
-        # Remover coluna temporária após split
         print(
             f"Distribuição no conjunto de treino:\n{train_data['comportamento'].value_counts()}")
         print(
@@ -114,12 +115,6 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Verifica a qualidade do split aqui, logo após a divisão
         self._verify_split_quality(train_data, test_data)
 
-        # 4. Remove student ID column
-        # train_data = self.data_cleaner.remove_columns(
-        #     train_data, columns=['aluno'])
-
-        # test_data = self.data_cleaner.remove_columns(
-        #     test_data, columns=['aluno'])
 
         # 5. Split features and target
         X_train, y_train = DataSplitter.split_into_x_y(
@@ -228,8 +223,10 @@ class BehaviorDetectionPipeline(BasePipeline):
         print(X_train.describe(include='all'))
 
         # Balance data
-        # print("\n3. Balanceando dados de treino...")
-        # X_train, y_train = self.balance_data(X_train, y_train, strategy=0.75)
+        print("\n3. Balanceando dados de treino...")
+        X_train, y_train = self.balance_data(X_train, y_train, strategy=0.75)
+
+        print(f"Modelos disponíveis: {self.model_params.get_models().keys()}")
 
         # Train models
         print("\n4. Iniciando treinamento dos modelos...")

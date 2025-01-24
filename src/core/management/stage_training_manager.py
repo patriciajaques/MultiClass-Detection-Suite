@@ -49,6 +49,11 @@ class StageTrainingManager:
 
     def train_models(self, selected_models, selected_selectors):
         """Executa o treinamento dos modelos selecionados."""
+
+        print(f"Training models: {selected_models}")
+        print(f"Model params type: {type(self.model_params)}")
+        print(f"Available models: {self.model_params.get_models().keys()}")
+
         training = OptunaBayesianOptimizationTraining()
         trained_models = training.train_model(
             X_train=self.X_train,
@@ -133,6 +138,11 @@ class StageTrainingManager:
         """
         Executa um intervalo específico de etapas sequencialmente.
         """
+
+        print("\nOrdem de execução dos stages:")
+        for i, (stage_name, models, selectors) in enumerate(stages, 1):
+            print(f"{i}. {stage_name}: {models}")
+
         if self.stage_range:
             start_idx, end_idx = self.stage_range
             stages = stages[start_idx-1:end_idx]
