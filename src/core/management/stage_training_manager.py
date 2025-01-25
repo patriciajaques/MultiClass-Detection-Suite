@@ -3,6 +3,7 @@
 from datetime import datetime
 import json
 import os
+from core.evaluation.evaluation import Evaluation
 from core.management.checkpoint_manager import CheckpointManager
 from core.management.results_manager import ResultsManager
 from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
@@ -67,7 +68,7 @@ class StageTrainingManager:
             n_jobs=self.n_jobs
         )
         
-        class_metrics, avg_metrics = metrics_reporter.evaluate_models(
+        class_metrics, avg_metrics = Evaluation.evaluate_all_models(
             trained_models, self.X_train, self.y_train, 
             self.X_test, self.y_test
         )

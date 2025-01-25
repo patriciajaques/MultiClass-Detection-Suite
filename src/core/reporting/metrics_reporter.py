@@ -1,13 +1,6 @@
 import os
-from core.evaluation.evaluation import Evaluation
 from core.models.model_manager import ModelManager
 from core.reporting.report_formatter import ReportFormatter
-from core.logging.file_utils import FileUtils
-
-
-@staticmethod
-def evaluate_models(trained_models, X_train, y_train, X_test, y_test):
-    return Evaluation.evaluate_all_models(trained_models, X_train, y_train, X_test, y_test)
 
 
 @staticmethod
@@ -73,6 +66,19 @@ def generate_reports(class_metrics_results, avg_metrics_results, directory="../o
         print(f"\nErro ao gerar relatórios: {str(e)}")
         import traceback
         print(traceback.format_exc())
+
+    try:
+        confusion_matrix_file = os.path.join(
+            directory, f"{filename_prefix}confusion_matrices.txt")
+        confusion_matrix_report = ReportFormatter.generate_confusion_matrix_report(
+            class_metrics_results)
+        with open(confusion_matrix_file, 'w') as f:
+            f.write(confusion_matrix_report)
+        print(
+            f"Relatório de matrizes de confusão gerado: {confusion_matrix_file}")
+
+    except Exception as e:
+        print(f"\nErro ao gerar relatório de matrizes de confusão: {str(e)}")
 
 
 @staticmethod

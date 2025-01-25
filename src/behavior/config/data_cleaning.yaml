@@ -49,3 +49,65 @@ columns_to_remove:
     - ultimo_comportamento_off_task
     - ultimo_comportamento_on_system
     - ultimo_comportamento_indefinido
+
+  # Colunas que possuem valor constante (mesmo valor para todas as instâncias)
+  constants:
+    - type_window_resize
+    - type_start_out_of_sinc_server_time
+    - type_user_log_out
+    - click_atalhos
+    - click_bugs
+    - click_indefinidos
+    - cat_facil_2
+    - cat_dificil_4
+    - eq_DV
+    - eq_DV_acerto_clip
+    - eq_DV_acerto_diario
+    - eq_DV_acerto_total
+    - eq_DV_acerto_medio_diario_turma
+    - eq_DV_acerto_medio_total_turma
+    - eq_AF_erro_clip
+    - eq_MF_erro_clip
+    - eq_MM_erro_clip
+    - eq_AF_erro_diario
+    - eq_MF_erro_diario
+    - eq_AF_erro_total
+    - eq_MF_erro_total
+    - eq_AF_erro_medio_diario_turma
+    - eq_MF_erro_medio_diario_turma
+    - eq_AF_erro_medio_total_turma
+    - eq_MF_erro_medio_total_turma
+    - eq_DV_fator_clip
+    - eq_DV_fator_diario
+    - eq_DV_fator_total
+    - eq_DV_fator_medio_diario_turma
+    - eq_DV_fator_medio_total_turma
+    - misc_EqPrim_Ad_Inc_clip
+    - misc_OI_Dv_Plus_Dv_Minus_clip
+    - misc_OI_Mt_Minus_Ad_clip
+    - misc_OI_Mt_Plus_Mt_Plus_clip
+    - misc_OI_Dv_Plus_Dv_Plus_clip
+    - misc_OI_Mt_Plus_Dv_Minus_clip
+    - misc_OI_Mt_Plus_Ad_clip
+    - misc_OI_Dv_Minus_Dv_Plus_clip
+    - misc_OI_Mt_Plus_Sb_clip
+    - misc_OI_Mt_Minus_Mt_Plus_clip
+    - misc_OI_Mt_Minus_Mt_Minus_clip
+    - misc_OI_Dv_Plus_Ad_clip
+    - misc_EqPrim_Mt_Inc_clip
+    - misc_EqPrim_Dv_Inc_clip
+    - misc_OI_Dv_Minus_Dv_Minus_clip
+    - misc_EqSec_OpFrac_MMC_MtNumerador_clip
+    - misc_EqPrim_Ad_Inc_diario
+    - misc_OI_Mt_Minus_Ad_diario
+    - misc_OI_Mt_Plus_Mt_Plus_diario
+    - misc_OI_Mt_Plus_Dv_Minus_diario
+    - misc_OI_Mt_Plus_Ad_diario
+    - misc_OI_Mt_Plus_Sb_diario
+    - misc_OI_Mt_Minus_Mt_Plus_diario
+    - misc_OI_Mt_Minus_Mt_Minus_diario
+    - misc_OI_Dv_Plus_Ad_diario
+    - misc_OI_Dv_Minus_Dv_Minus_diario
+    - misc_OI_Mt_Minus_Mt_Plus_total
+    - misc_OI_Mt_Minus_Mt_Minus_total
+    - misc_OI_Dv_Minus_Dv_Minus_total

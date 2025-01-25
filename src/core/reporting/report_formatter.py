@@ -258,3 +258,23 @@ class ReportFormatter:
         combined_report = train_metrics.join(test_metrics)
         combined_report['Model'] = model_name
         return combined_report.reset_index().rename(columns={'index': 'Metric'})
+    
+    @staticmethod
+    def generate_confusion_matrix_report(class_metrics_results):
+        """
+        Gera relatório formatado das matrizes de confusão do conjunto de teste.
+        """
+        report = ""
+        for model_name, metrics in class_metrics_results.items():
+            model_parts = model_name.split('_')
+            base_model = model_parts[0]
+            selector = model_parts[1] if len(model_parts) > 1 else 'none'
+
+            report += f"\nModel: {base_model} with {selector}\n"
+            test_matrix = metrics['test_conf_matrix']
+            report += "\nTest Confusion Matrix:\n"
+            report += "Predicted →\nActual ↓\n"
+            report += test_matrix.to_string()
+            report += "\n" + "="*50 + "\n"
+
+        return report
