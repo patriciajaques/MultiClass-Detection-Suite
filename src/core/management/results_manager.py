@@ -10,25 +10,10 @@ class ResultsManager:
     Gerencia o salvamento e carregamento de resultados de treinamento e avaliação.
     Resultados são salvos em output/results/{module_name}/
     """
+    def __init__(self):
 
-    def __init__(self, results_dir: str = None):
-        """
-        Inicializa o gerenciador de resultados.
-        
-        Args:
-            results_dir: Diretório opcional para resultados.
-                        Se None, usa output/results/{module_name}
-        """
-        if results_dir:
-            self.results_dir = Path(results_dir)
-        else:
-            # Cria um subdiretório 'results' dentro do diretório output
-            self.results_dir = PathManager.get_path('output') / 'results'
-
-        # Cria o diretório se não existir
+        self.results_dir = PathManager.get_path('output') / 'results'
         self.results_dir.mkdir(parents=True, exist_ok=True)
-
-        # Cria subdiretórios para diferentes tipos de resultados
         self.training_dir = self.results_dir / 'training'
         self.metrics_dir = self.results_dir / 'metrics'
         self.training_dir.mkdir(exist_ok=True)

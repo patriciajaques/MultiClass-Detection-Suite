@@ -10,7 +10,7 @@ class CheckpointManager:
     Checkpoints são salvos em output/checkpoints/{module_name}/
     """
 
-    def __init__(self, checkpoint_dir: str = None):
+    def __init__(self):
         """
         Inicializa o gerenciador de checkpoints.
         
@@ -18,12 +18,10 @@ class CheckpointManager:
             checkpoint_dir: Diretório opcional para checkpoints.
                           Se None, usa output/checkpoints/{module_name}
         """
-        if checkpoint_dir:
-            self.checkpoint_dir = Path(checkpoint_dir)
-        else:
-            # Cria um subdiretório 'checkpoints' dentro do diretório output
-            self.checkpoint_dir = PathManager.get_path(
-                'output') / 'checkpoints'
+
+        # Cria um subdiretório 'checkpoints' dentro do diretório output
+        self.checkpoint_dir = PathManager.get_path(
+            'output') / 'checkpoints'
 
         # Cria o diretório se não existir
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)

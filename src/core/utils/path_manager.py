@@ -15,37 +15,41 @@ class PathManager:
             cls._instance._initialize()
         return cls._instance
 
-    def _find_project_root(self) -> Path:
-        """Find project root by looking for common project markers."""
-        current_path = Path.cwd()
-        print(f"Starting search at: {current_path}")
+    # core/utils/path_manager.py
 
+
+    def _find_project_root(self) -> Path:
+        """Find project root by looking for project markers."""
+        current_path = Path.cwd()
+
+        # Lista de marcadores do projeto em ordem de prioridade
         root_markers = [
-            'pyproject.toml',
-            'setup.py',
+            'behavior-detection.code-workspace',  # Marcador específico do projeto
+            'requirements.txt',
             'src',
             '.git'
         ]
 
         while True:
-            print(f"Checking directory: {current_path}")
-
-            # Lista quais marcadores foram encontrados
-            found_markers = [marker for marker in root_markers if (
-                current_path / marker).exists()]
-            if found_markers:
-                print(f"Found markers: {found_markers}")
+            # Verifica primeiro o marcador específico do projeto
+            if (current_path / 'behavior-detection.code-workspace').exists():
                 return current_path
 
+            # Verifica outros marcadores
+            for marker in root_markers[1:]:
+                if (current_path / marker).exists():
+                    # Validação adicional: verifica se é realmente o diretório behavior-detection
+                    if current_path.name == 'behavior-detection':
+                        return current_path
+                    elif (current_path / 'behavior-detection').exists():
+                        return current_path / 'behavior-detection'
+
             if current_path.parent == current_path:
-                print("Reached filesystem root")
-                break
+                raise ValueError(
+                    "Não foi possível encontrar o diretório raiz do projeto")
 
             current_path = current_path.parent
-            print(f"Moving up to: {current_path}")
 
-        print(f"No markers found, using current directory: {Path.cwd()}")
-        return Path.cwd()
 
     def _initialize(self) -> None:
         """Initialize base path and standard project directories."""
@@ -56,15 +60,22 @@ class PathManager:
             self._paths = {
                 'root': self._base_path,
                 'data': self._base_path / 'data',
-                'output': self._base_path / 'output',
+                'output': self._base_path / 'output',  # Garante path consistente
                 'models': self._base_path / 'models',
                 'src': self._base_path / 'src',
                 'config': self._base_path / 'src' / self._module_name / 'config'
             }
 
-            # Create directories if they don't exist
-            for path in self._paths.values():
-                path.mkdir(parents=True, exist_ok=True)
+            # Validação dos diretórios críticos
+            required_dirs = ['data', 'src']
+            for dir_name in required_dirs:
+                if not self._paths[dir_name].exists():
+                    raise ValueError(
+                        f"Diretório {dir_name} não encontrado em {self._base_path}")
+
+            # Criação dos diretórios de output
+            for path in ['output', 'models']:
+                self._paths[path].mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def set_module(cls, module_name: str) -> None:

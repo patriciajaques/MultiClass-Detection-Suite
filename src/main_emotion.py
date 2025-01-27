@@ -64,8 +64,8 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
             overlap) == 0, f"Alunos presentes em ambos conjuntos: {overlap}"
 
         # Verifica proporções das classes com tolerância maior
-        train_dist = train_data['comportamento'].value_counts(normalize=True)
-        test_dist = test_data['comportamento'].value_counts(normalize=True)
+        train_dist = train_data[self.target_column].value_counts(normalize=True)
+        test_dist = test_data[self.target_column].value_counts(normalize=True)
 
         # Itera sobre todas as emoções presentes em ambos os conjuntos
         for emotion in set(train_dist.index) | set(test_dist.index):

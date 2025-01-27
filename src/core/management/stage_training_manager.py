@@ -8,6 +8,7 @@ from core.management.checkpoint_manager import CheckpointManager
 from core.management.results_manager import ResultsManager
 from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
 from core.reporting import metrics_reporter
+from core.utils.path_manager import PathManager
 
 
 class StageTrainingManager:
@@ -15,10 +16,7 @@ class StageTrainingManager:
                 n_iter=50,
                 cv=5,
                 scoring='balanced_accuracy',
-                n_jobs=-1,
-                checkpoint_path='../output/checkpoints/',
-                results_path='../output/results/',
-                progress_file='../output/progress.json'
+                n_jobs=-1
                 ):
         """
         Inicializa o gerenciador de treinamento.
@@ -46,10 +44,10 @@ class StageTrainingManager:
         self.cv = cv
         self.scoring = scoring
         self.n_jobs = n_jobs
-        self.progress_file = progress_file
+        self.progress_file = PathManager.get_path('output') / 'progress.json'
         # Inicializar handlers
-        self.checkpoint_handler = CheckpointManager(checkpoint_path)
-        self.results_handler = ResultsManager(results_path)
+        self.checkpoint_handler = CheckpointManager()
+        self.results_handler = ResultsManager()
 
     def train_models(self, selected_models, selected_selectors):
         """Executa o treinamento dos modelos selecionados."""
