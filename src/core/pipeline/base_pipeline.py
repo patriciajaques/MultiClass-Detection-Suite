@@ -1,18 +1,16 @@
 # src/core/pipeline/base_pipeline.py
 from abc import ABC, abstractmethod
-from pathlib import Path
-
 import pandas as pd
+
 from core.config.config_manager import ConfigManager
 from core.management.stage_training_manager import StageTrainingManager
 from core.preprocessors.data_balancer import DataBalancer
-
+from core.utils.path_manager import PathManager
 
 class BasePipeline(ABC):
     """Classe base abstrata para pipelines de detecção."""
 
-    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None,
-                 config_dir=None):
+    def __init__(self, target_column: str, n_iter=50, n_jobs=6, test_size=0.2):
         """
         Inicializa o pipeline base.
         
@@ -20,40 +18,20 @@ class BasePipeline(ABC):
             n_iter (int): Número de iterações para otimização
             n_jobs (int): Número de jobs paralelos
             test_size (float): Tamanho do conjunto de teste
-            base_path (str): Caminho base para os arquivos
             config_dir (str): Diretório de configurações
         """
+        self.target_column = target_column
         self.n_iter = n_iter
         self.n_jobs = n_jobs
         self.test_size = test_size
-        self.base_path = base_path
-        self.paths = self._setup_paths(base_path)
-        self.config = ConfigManager(config_dir) if config_dir else None
-        self.model_params = self._get_model_params()
-
-
-    def _setup_paths(self, base_path=None):
-        """Configura os caminhos do projeto."""
-        if base_path:
-            base_path = Path(base_path)
-        else:
-            current_file = Path(__file__).resolve()
-            # Navega até encontrar o diretório raiz do projeto
-            while current_file.parent.name != 'behavior-detection' and current_file.parent != current_file.parent.parent:
-                current_file = current_file.parent
-            base_path = current_file.parent
-
-        paths = {
-            'data': base_path / 'data',
-            'output': base_path / 'output',
-            'models': base_path / 'models',
-            'src': base_path / 'src'
+        self.paths = {
+            'data': PathManager.get_path('data'),
+            'output': PathManager.get_path('output'),
+            'models': PathManager.get_path('models'),
+            'src': PathManager.get_path('src')
         }
-
-        for path in paths.values():
-            path.mkdir(exist_ok=True, parents=True)
-
-        return paths
+        self.config = ConfigManager() 
+        self.model_params = self._get_model_params()
 
     def _get_training_stages(self):
         """Define os stages de treinamento usando configuração."""
@@ -104,8 +82,9 @@ class BasePipeline(ABC):
         assert len(overlap) == 0, f"Alunos presentes em ambos conjuntos: {overlap}"
 
         # Verifica proporções das classes com tolerância maior
-        train_dist = train_data['comportamento'].value_counts(normalize=True)
-        test_dist = test_data['comportamento'].value_counts(normalize=True)
+        train_dist = train_data[self.target_column].value_counts(
+            normalize=True)
+        test_dist = test_data[self.target_column].value_counts(normalize=True)
 
         for behavior in train_dist.index:
             diff = abs(train_dist[behavior] - test_dist[behavior])

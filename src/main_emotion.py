@@ -1,10 +1,30 @@
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
 from behavior.data.behavior_data_loader import BehaviorDataLoader
+from core.utils.path_manager import PathManager
 
 
 class EmotionDetectionPipeline(BehaviorDetectionPipeline):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2):
+        """
+        Inicializa o pipeline de detecção de emoções.
+
+        Args:
+            target_column (str): Nome da coluna alvo
+            n_iter (int): Número de iterações para otimização de hiperparâmetros
+            n_jobs (int): Número de jobs paralelos para processamento
+            test_size (float): Proporção dos dados para conjunto de teste
+            
+        Note:
+            Esta classe estende BehaviorDetectionPipeline para realizar detecção
+            de emoções ao invés de comportamentos, mantendo a mesma estrutura
+            de pipeline e parâmetros.
+        """
+        super().__init__(
+            target_column='estado_afetivo',
+            n_iter=n_iter,
+            n_jobs=n_jobs,
+            test_size=test_size,
+        )
 
     def load_and_clean_data(self):
         """Carrega e limpa o dataset focando nas emoções."""
@@ -77,6 +97,9 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
 
 def main():
     """Main function to run the emotion detection pipeline."""
+    
+    PathManager.set_module('emotion')
+    
     pipeline = EmotionDetectionPipeline(
         n_iter=50,
         n_jobs=6,

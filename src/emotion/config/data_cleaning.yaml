@@ -1,0 +1,192 @@
+columns_to_remove:
+  # "Colunas de identificação que não contribuem para a detecção de comportamentos"
+  identifiers:
+    - id_log
+    - grupo
+    # - num_dia
+    # - num_log
+
+  # "Estados emocionais que podem ser redundantes ou não relevantes"
+  emotions:
+    # - estado_afetivo
+    - estado_engajamento_concentrado
+    - estado_confusao
+    - estado_frustracao
+    - estado_tedio
+    - estado_indefinido
+    - ultimo_estado_afetivo
+    - ultimo_engajamento_concentrado
+    - ultimo_confusao
+    - ultimo_frustracao
+    - ultimo_tedio
+    - ultimo_estado_indefinido
+
+  # "Traços de personalidade que podem não ser relevantes para o comportamento imediato"
+  personality:
+    - traco_amabilidade_fator
+    - traco_extrovercao_fator
+    - traco_conscienciosidade_fator
+    - traco_abertura_fator
+    - traco_neuroticismo_fator
+    - traco_amabilidade_cat
+    - traco_extrovercao_cat
+    - traco_conscienciosidade_cat
+    - traco_abertura_cat
+    - traco_neuroticismo_cat
+
+  # "Comportamentos derivados ou redundantes"
+  behaviors:
+    - comportamento_on_task
+    - comportamento_on_task_conversation
+    - comportamento_on_task_out
+    - comportamento_off_task
+    - comportamento_on_system
+    - comportamento_indefinido
+    - ultimo_comportamento
+    - ultimo_comportamento_on_task
+    - ultimo_comportamento_on_task_conversation
+    - ultimo_comportamento_on_task_out
+    - ultimo_comportamento_off_task
+    - ultimo_comportamento_on_system
+    - ultimo_comportamento_indefinido
+
+  # Colunas que possuem valor constante (mesmo valor para todas as instâncias)
+  constants:
+    - type_window_resize
+    - type_start_out_of_sinc_server_time
+    - type_user_log_out
+    - click_atalhos
+    - click_bugs
+    - click_indefinidos
+    - cat_facil_2
+    - cat_dificil_4
+    - eq_DV
+    - eq_DV_acerto_clip
+    - eq_DV_acerto_diario
+    - eq_DV_acerto_total
+    - eq_DV_acerto_medio_diario_turma
+    - eq_DV_acerto_medio_total_turma
+    - eq_AF_erro_clip
+    - eq_MF_erro_clip
+    - eq_MM_erro_clip
+    - eq_AF_erro_diario
+    - eq_MF_erro_diario
+    - eq_AF_erro_total
+    - eq_MF_erro_total
+    - eq_AF_erro_medio_diario_turma
+    - eq_MF_erro_medio_diario_turma
+    - eq_AF_erro_medio_total_turma
+    - eq_MF_erro_medio_total_turma
+    - eq_DV_fator_clip
+    - eq_DV_fator_diario
+    - eq_DV_fator_total
+    - eq_DV_fator_medio_diario_turma
+    - eq_DV_fator_medio_total_turma
+    - misc_EqPrim_Ad_Inc_clip
+    - misc_OI_Dv_Plus_Dv_Minus_clip
+    - misc_OI_Mt_Minus_Ad_clip
+    - misc_OI_Mt_Plus_Mt_Plus_clip
+    - misc_OI_Dv_Plus_Dv_Plus_clip
+    - misc_OI_Mt_Plus_Dv_Minus_clip
+    - misc_OI_Mt_Plus_Ad_clip
+    - misc_OI_Dv_Minus_Dv_Plus_clip
+    - misc_OI_Mt_Plus_Sb_clip
+    - misc_OI_Mt_Minus_Mt_Plus_clip
+    - misc_OI_Mt_Minus_Mt_Minus_clip
+    - misc_OI_Dv_Plus_Ad_clip
+    - misc_EqPrim_Mt_Inc_clip
+    - misc_EqPrim_Dv_Inc_clip
+    - misc_OI_Dv_Minus_Dv_Minus_clip
+    - misc_EqSec_OpFrac_MMC_MtNumerador_clip
+    - misc_EqPrim_Ad_Inc_diario
+    - misc_OI_Mt_Minus_Ad_diario
+    - misc_OI_Mt_Plus_Mt_Plus_diario
+    - misc_OI_Mt_Plus_Dv_Minus_diario
+    - misc_OI_Mt_Plus_Ad_diario
+    - misc_OI_Mt_Plus_Sb_diario
+    - misc_OI_Mt_Minus_Mt_Plus_diario
+    - misc_OI_Mt_Minus_Mt_Minus_diario
+    - misc_OI_Dv_Plus_Ad_diario
+    - misc_OI_Dv_Minus_Dv_Minus_diario
+    - misc_OI_Mt_Minus_Mt_Plus_total
+    - misc_OI_Mt_Minus_Mt_Minus_total
+    - misc_OI_Dv_Minus_Dv_Minus_total
+
+  near_constants:
+    - verificado_com_mouse
+    - type_typing
+    - type_mouse_fast
+    - type_hint_request
+    - type_window_lost_focus
+    - type_window_gained_focus
+    - type_left_window
+    - type_entered_window
+    - click_planos
+    - click_gamificacao
+    - click_dicas
+    - click_erros
+    - click_notificacoes
+    - click_sistema
+    - click_emocoes
+    - cat_facil_3
+    - cat_facil_4
+    - cat_dificil_2
+    - cat_dificil_3
+    - eq_MF
+    - eq_OI
+    - eq_AD_acerto_clip
+    - eq_AF_acerto_clip
+    - eq_DM_acerto_clip
+    - eq_MF_acerto_clip
+    - eq_MM_acerto_clip
+    - eq_SB_acerto_clip
+    - eq_SP_acerto_clip
+    - eq_AF_acerto_diario
+    - eq_MF_acerto_diario
+    - eq_AD_erro_clip
+    - eq_DM_erro_clip
+    - eq_DV_erro_clip
+    - eq_MT_erro_clip
+    - eq_OI_erro_clip
+    - eq_SB_erro_clip
+    - eq_SP_erro_clip
+    - eq_MM_erro_diario
+    - eq_MM_erro_total
+    - eq_AD_fator_clip
+    - eq_AF_fator_clip
+    - eq_DM_fator_clip
+    - eq_MF_fator_clip
+    - eq_MM_fator_clip
+    - eq_SB_fator_clip
+    - eq_SP_fator_clip
+    - eq_AF_fator_diario
+    - eq_MF_fator_diario
+    - misc_EqPrim_Ad_Sin_clip
+    - misc_EqPrim_OpPrim_Ad_Num_Inc_clip
+    - misc_OI_Ad_Ad_clip
+    - misc_EqPrim_Ad_Num_clip
+    - misc_EqPrim_Dv_Simp_clip
+    - misc_EqPrim_Dv_Sin_clip
+    - misc_EqPrim_Dv_Num_clip
+    - misc_EqPrim_OpPrim_Sb_Num_Inc_clip
+    - misc_OI_Mt_Minus_Sb_clip
+    - misc_EqPrim_Mt_Num_clip
+    - misc_EqPrim_Mt_Sin_clip
+    - misc_OI_Sb_Sb_clip
+    - misc_OI_Dv_Plus_Sb_clip
+    - misc_EqSec_Distrib_MtTerm_clip
+    - misc_OI_Mt_Minus_Sb_diario
+    - misc_OI_Dv_Plus_Sb_diario
+    - misc_EqPrim_Mt_Inc_diario
+    - misc_EqPrim_Dv_Inc_diario
+    - misc_EqSec_OpFrac_MMC_MtNumerador_diario
+    - misc_OI_Mt_Plus_Mt_Plus_total
+    - misc_EqPrim_Mt_Inc_total
+    - misc_EqSec_OpFrac_MMC_MtNumerador_total
+    - estado_frustracao
+    - estado_tedio
+    - ultimo_frustracao
+    - ultimo_tedio
+    - comportamento_indefinido
+    - ultimo_comportamento_indefinido
+

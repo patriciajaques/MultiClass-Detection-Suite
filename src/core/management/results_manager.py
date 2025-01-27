@@ -1,31 +1,80 @@
-import pandas as pd
 from datetime import datetime
-import os
+import pandas as pd
+from pathlib import Path
+from typing import Dict, Any
+from core.utils.path_manager import PathManager
 
 
 class ResultsManager:
-    def __init__(self, base_path='drive/MyDrive/behavior_detection/results/'):
-        self.base_path = base_path
-        os.makedirs(base_path, exist_ok=True)
+    """
+    Gerencia o salvamento e carregamento de resultados de treinamento e avaliação.
+    Resultados são salvos em output/results/{module_name}/
+    """
 
-    def save_training_results(self, trained_models, stage_name):
+    def __init__(self, results_dir: str = None):
+        """
+        Inicializa o gerenciador de resultados.
+        
+        Args:
+            results_dir: Diretório opcional para resultados.
+                        Se None, usa output/results/{module_name}
+        """
+        if results_dir:
+            self.results_dir = Path(results_dir)
+        else:
+            # Cria um subdiretório 'results' dentro do diretório output
+            self.results_dir = PathManager.get_path('output') / 'results'
+
+        # Cria o diretório se não existir
+        self.results_dir.mkdir(parents=True, exist_ok=True)
+
+        # Cria subdiretórios para diferentes tipos de resultados
+        self.training_dir = self.results_dir / 'training'
+        self.metrics_dir = self.results_dir / 'metrics'
+        self.training_dir.mkdir(exist_ok=True)
+        self.metrics_dir.mkdir(exist_ok=True)
+
+    def save_training_results(self, trained_models: Dict[str, Any], stage_name: str) -> str:
+        """
+        Salva resultados do treinamento em CSV.
+        
+        Args:
+            trained_models: Dicionário com modelos treinados e seus resultados
+            stage_name: Nome do estágio de treinamento
+            
+        Returns:
+            str: Caminho do arquivo salvo
+        """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
-        # Salvar hiperparâmetros e scores CV
         results = []
         for model_name, info in trained_models.items():
             results.append({
-                'Model': model_name,  # Mudança aqui - nome da coluna para maiúsculo
+                'Model': model_name,
                 'CV_Score': info['cv_result'],
                 'Training_Type': info['training_type'],
                 'Hyperparameters': str(info['hyperparameters'])
             })
 
         df_results = pd.DataFrame(results)
-        df_results.to_csv(f"{self.base_path}training_results_{stage_name}_{timestamp}.csv",
-                          index=False, sep=';')
+        output_file = self.training_dir / \
+            f"training_results_{stage_name}_{timestamp}.csv"
+        df_results.to_csv(output_file, index=False, sep=';')
 
-    def save_evaluation_results(self, class_metrics, avg_metrics, stage_name):
+        return str(output_file)
+
+    def save_evaluation_results(self, class_metrics: Dict, avg_metrics: Dict, stage_name: str) -> tuple:
+        """
+        Salva métricas de avaliação em CSV.
+        
+        Args:
+            class_metrics: Métricas por classe
+            avg_metrics: Métricas médias
+            stage_name: Nome do estágio de avaliação
+            
+        Returns:
+            tuple: Caminhos dos arquivos salvos (class_metrics_path, avg_metrics_path)
+        """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
         # Salvar métricas por classe
@@ -38,8 +87,9 @@ class ResultsManager:
             })
 
         class_metrics_df = pd.DataFrame(class_metrics_rows)
-        class_metrics_df.to_csv(f"{self.base_path}class_metrics_{stage_name}_{timestamp}.csv",
-                                index=False, sep=';')
+        class_metrics_file = self.metrics_dir / \
+            f"class_metrics_{stage_name}_{timestamp}.csv"
+        class_metrics_df.to_csv(class_metrics_file, index=False, sep=';')
 
         # Salvar métricas médias
         avg_metrics_rows = []
@@ -48,178 +98,99 @@ class ResultsManager:
                 'Model': model_name,
                 'CV_Score': metrics.get('cv_result', metrics.get('cv_report', 0.0)),
                 'Training_Type': metrics.get('training_type', 'unknown'),
-                'Train_Avg_Metrics': metrics.get('train_avg_metrics').to_dict('index') if isinstance(metrics.get('train_avg_metrics'), pd.DataFrame) else {},
-                'Test_Avg_Metrics': metrics.get('test_avg_metrics').to_dict('index') if isinstance(metrics.get('test_avg_metrics'), pd.DataFrame) else {}
+                'Train_Avg_Metrics': metrics.get('train_avg_metrics', pd.DataFrame()).to_dict('index'),
+                'Test_Avg_Metrics': metrics.get('test_avg_metrics', pd.DataFrame()).to_dict('index')
             })
 
         avg_metrics_df = pd.DataFrame(avg_metrics_rows)
-        avg_metrics_df.to_csv(f"{self.base_path}avg_metrics_{stage_name}_{timestamp}.csv",
-                              index=False, sep=';')
+        avg_metrics_file = self.metrics_dir / \
+            f"avg_metrics_{stage_name}_{timestamp}.csv"
+        avg_metrics_df.to_csv(avg_metrics_file, index=False, sep=';')
 
-    def load_all_results(self):
+        return str(class_metrics_file), str(avg_metrics_file)
+
+    def load_all_results(self) -> tuple:
         """
-        Carrega e combina todos os resultados salvos.
+        Carrega todos os resultados salvos.
+        
+        Returns:
+            tuple: (class_metrics_dict, avg_metrics_dict)
         """
         try:
             # Identificar arquivos
-            class_metrics_files = [f for f in os.listdir(
-                self.base_path) if f.startswith('class_metrics_')]
-            avg_metrics_files = [f for f in os.listdir(
-                self.base_path) if f.startswith('avg_metrics_')]
+            class_metrics_files = list(
+                self.metrics_dir.glob("class_metrics_*.csv"))
+            avg_metrics_files = list(
+                self.metrics_dir.glob("avg_metrics_*.csv"))
 
             if not class_metrics_files or not avg_metrics_files:
                 print("Aviso: Nenhum arquivo de métricas encontrado.")
                 return {}, {}
 
-            # Carregar e processar métricas por classe
-            class_metrics_dict = {}
-            for f in class_metrics_files:
-                try:
-                    df = pd.read_csv(os.path.join(self.base_path, f), sep=';')
-                    column_mapping = {
-                        'model': 'Model',
-                        'train_metrics': 'Train_Metrics',
-                        'test_metrics': 'Test_Metrics'
-                    }
-                    # Converter todas para minúsculo primeiro
-                    df = df.rename(columns=str.lower)
-                    df = df.rename(columns=column_mapping)
+            # Processar métricas por classe
+            class_metrics_dict = self._process_class_metrics_files(
+                class_metrics_files)
 
-                    for idx, row in df.iterrows():
-                        model_name = row['Model']
-                        try:
-                            # Criar DataFrames com índices explícitos
-                            train_metrics = eval(row['Train_Metrics']) if isinstance(
-                                row['Train_Metrics'], str) else {}
-                            test_metrics = eval(row['Test_Metrics']) if isinstance(
-                                row['Test_Metrics'], str) else {}
+            # Processar métricas médias
+            avg_metrics_dict = self._process_avg_metrics_files(
+                avg_metrics_files)
 
-                            if isinstance(train_metrics, dict):
-                                train_df = pd.DataFrame.from_dict(
-                                    train_metrics, orient='index')
-                            else:
-                                train_df = pd.DataFrame()
-
-                            if isinstance(test_metrics, dict):
-                                test_df = pd.DataFrame.from_dict(
-                                    test_metrics, orient='index')
-                            else:
-                                test_df = pd.DataFrame()
-
-                            class_metrics_dict[model_name] = {
-                                'train_class_report': train_df,
-                                'test_class_report': test_df
-                            }
-                        except Exception as e:
-                            print(
-                                f"Erro ao processar métricas para modelo {model_name}: {str(e)}")
-                            continue
-
-                except Exception as e:
-                    print(f"Erro ao processar arquivo {f}: {str(e)}")
-                    continue
-
-            # Carregar e processar métricas médias
-            avg_metrics_dict = {}
-            for f in avg_metrics_files:
-                try:
-                    df = pd.read_csv(os.path.join(self.base_path, f), sep=';')
-                    column_mapping = {
-                        'model': 'Model',
-                        'cv_score': 'CV_Score',
-                        'train_avg_metrics': 'Train_Avg_Metrics',
-                        'test_avg_metrics': 'Test_Avg_Metrics',
-                        'training_type': 'Training_Type',
-                        'hyperparameters': 'Hyperparameters'
-                    }
-                    # Converter todas para minúsculo primeiro
-                    df = df.rename(columns=str.lower)
-                    df = df.rename(columns=column_mapping)
-
-                    for idx, row in df.iterrows():
-                        model_name = row['Model']
-                        try:
-                            # Processar métricas médias com tratamento de erro melhorado
-                            train_metrics = self._safe_eval(
-                                row['Train_Avg_Metrics'])
-                            test_metrics = self._safe_eval(row['Test_Avg_Metrics'])
-
-                            if isinstance(train_metrics, dict):
-                                train_df = pd.DataFrame.from_dict(
-                                    train_metrics, orient='index')
-                            else:
-                                train_df = pd.DataFrame()
-
-                            if isinstance(test_metrics, dict):
-                                test_df = pd.DataFrame.from_dict(
-                                    test_metrics, orient='index')
-                            else:
-                                test_df = pd.DataFrame()
-
-                            avg_metrics_dict[model_name] = {
-                                'cv_result': float(row.get('CV_Score', 0.0)),
-                                'train_avg_metrics': train_df,
-                                'test_avg_metrics': test_df,
-                                'training_type': row.get('Training_Type', 'unknown')
-                            }
-                        except Exception as e:
-                            print(
-                                f"Erro ao processar métricas médias para modelo {model_name}: {str(e)}")
-                            continue
-
-                except Exception as e:
-                    print(f"Erro ao processar arquivo {f}: {str(e)}")
-                    continue
-
-            num_class_results = len(class_metrics_dict)
-            num_avg_results = len(avg_metrics_dict)
-
-            if num_class_results == 0 or num_avg_results == 0:
-                print("Aviso: Nenhum resultado foi carregado com sucesso")
-                return {}, {}
-
-            print(
-                f"Carregados com sucesso: {num_class_results} resultados de classe e {num_avg_results} resultados médios")
             return class_metrics_dict, avg_metrics_dict
 
         except Exception as e:
             print(f"Erro ao carregar resultados: {str(e)}")
-            import traceback
-            print(traceback.format_exc())
             return {}, {}
 
+    def _process_class_metrics_files(self, files) -> Dict:
+        class_metrics_dict = {}
+        for file in files:
+            try:
+                df = pd.read_csv(file, sep=';')
+                # Normalize column names
+                df.columns = df.columns.str.lower()
 
-    def _safe_eval(self, value):
-        """Avalia strings de forma segura, com melhor tratamento de erros"""
+                for _, row in df.iterrows():
+                    model_name = row['model']
+                    train_metrics = self._safe_eval(row['train_metrics'])
+                    test_metrics = self._safe_eval(row['test_metrics'])
+
+                    class_metrics_dict[model_name] = {
+                        'train_class_report': pd.DataFrame(train_metrics),
+                        'test_class_report': pd.DataFrame(test_metrics)
+                    }
+            except Exception as e:
+                print(f"Erro ao processar arquivo {file}: {str(e)}")
+
+        return class_metrics_dict
+
+    def _process_avg_metrics_files(self, files) -> Dict:
+        avg_metrics_dict = {}
+        for file in files:
+            try:
+                df = pd.read_csv(file, sep=';')
+                df.columns = df.columns.str.lower()
+
+                for _, row in df.iterrows():
+                    model_name = row['model']
+                    avg_metrics_dict[model_name] = {
+                        'cv_result': float(row.get('cv_score', 0.0)),
+                        'train_avg_metrics': pd.DataFrame(self._safe_eval(row['train_avg_metrics'])),
+                        'test_avg_metrics': pd.DataFrame(self._safe_eval(row['test_avg_metrics'])),
+                        'training_type': row.get('training_type', 'unknown')
+                    }
+            except Exception as e:
+                print(f"Erro ao processar arquivo {file}: {str(e)}")
+
+        return avg_metrics_dict
+
+    def _safe_eval(self, value: str) -> Dict:
+        """Avalia strings de forma segura."""
         if not isinstance(value, str):
             return {}
         try:
-            # Limpar a string antes de avaliar
             value = value.strip()
             if value.startswith('{') and value.endswith('}'):
                 return eval(value)
             return {}
         except:
             return {}
-
-    def _process_metrics_to_dataframe(self, metrics_series):
-        """Converte série de métricas em DataFrame estruturado"""
-        try:
-            if isinstance(metrics_series, str):
-                metrics_dict = eval(metrics_series)
-            else:
-                metrics_dict = metrics_series.to_dict()
-
-            return pd.DataFrame(metrics_dict)
-        except:
-            return pd.DataFrame()
-
-    def _create_avg_metrics_df(self, row, prefix):
-        """Cria DataFrame de métricas médias a partir da linha do CSV"""
-        metrics = {
-            'precision': float(row.get(f'precision-{prefix}', 0.0)),
-            'recall': float(row.get(f'recall-{prefix}', 0.0)),
-            'f1-score': float(row.get(f'f1-score-{prefix}', 0.0)),
-            'support': float(row.get(f'support-{prefix}', 0.0))
-        }
-        return pd.DataFrame([metrics], index=['weighted avg'])

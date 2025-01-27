@@ -18,9 +18,24 @@ from behavior.behavior_model_params import BehaviorModelParams
 
 
 class BehaviorDetectionPipeline(BasePipeline):
-    def __init__(self, **kwargs):
-        super().__init__(config_dir='src/behavior/config', **kwargs)
+    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2):
+        """
+        Inicializa o pipeline de detecção de comportamentos.
+
+        Args:
+            target_column (str): Nome da coluna alvo
+            n_iter (int): Número de iterações para otimização de hiperparâmetros
+            n_jobs (int): Número de jobs paralelos para processamento
+            test_size (float): Proporção dos dados para conjunto de teste
+        """
+        super().__init__(
+            target_column='comportamento',
+            n_iter=n_iter,
+            n_jobs=n_jobs,
+            test_size=test_size,
+        )
         self.data_cleaner = DataCleaner(config_manager=self.config)
+        
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
         return BehaviorModelParams()
@@ -33,8 +48,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         print(f"Dataset inicial shape: {data.shape}")
 
         # Remove undefined behaviors
-        data = self.data_cleaner.remove_instances_with_value(
-            data, 'comportamento', '?')
+        # data = self.data_cleaner.remove_instances_with_value(data, self.target_column, '?')
         # exibindo a quantidade de classes em comportamento
         print(f"Classes de comportamento: {data['comportamento'].unique()}")
 
@@ -46,10 +60,10 @@ class BehaviorDetectionPipeline(BasePipeline):
             data, use_config=True)
         
         # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
-        cleaned_data['comportamento'] = cleaned_data['comportamento'].replace(
+        cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
             ['ON TASK OUT', 'ON TASK CONVERSATION'], 'ON TASK OUT')
         # exibindo a quantidade de classes em comportamento
-        print(f"Classes de comportamento: {data['comportamento'].unique()}")
+        print(f"Classes de comportamento: {data[self.target_column].unique()}")
 
 
         return cleaned_data
@@ -85,14 +99,14 @@ class BehaviorDetectionPipeline(BasePipeline):
 
     
         # 2. Encode target (generally, not needed for most models)
-        y = data['comportamento']
+        y = data[self.target_column]
         
         y_encoder = BehaviorDataEncoder()
         y_encoded = y_encoder.fit_transform_y(y)
-        data['comportamento'] = y_encoded
+        data[self.target_column] = y_encoded
 
         print(
-            f"Distribuição original das classes:\n{data['comportamento'].value_counts()}")
+            f"Distribuição original das classes:\n{data[self.target_column].value_counts()}")
 
         # 3. Divide the data into train and test sets stratified by student ID and target
 
@@ -101,13 +115,13 @@ class BehaviorDetectionPipeline(BasePipeline):
             data=data,
             test_size=self.test_size,
             group_column='aluno',
-            target_column='comportamento'
+            target_column=self.target_column
         )
 
         print(
-            f"Distribuição no conjunto de treino:\n{train_data['comportamento'].value_counts()}")
+            f"Distribuição no conjunto de treino:\n{train_data[self.target_column].value_counts()}")
         print(
-            f"Distribuição no conjunto de teste:\n{test_data['comportamento'].value_counts()}")
+            f"Distribuição no conjunto de teste:\n{test_data[self.target_column].value_counts()}")
 
         # Verifica a qualidade do split aqui, logo após a divisão
         self._verify_split_quality(train_data, test_data)
@@ -115,9 +129,9 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         # 5. Split features and target
         X_train, y_train = DataSplitter.split_into_x_y(
-            train_data, 'comportamento')
+            train_data, self.target_column)
         X_test, y_test = DataSplitter.split_into_x_y(
-            test_data, 'comportamento')
+            test_data, self.target_column)
 
         # 6. Impute missing values
         print("\nRealizando imputação de valores faltantes...")
@@ -183,7 +197,7 @@ class BehaviorDetectionPipeline(BasePipeline):
             ValueError: Se houver valores nulos nas colunas críticas
         """
         # Verifica presença das colunas
-        required_columns = ['aluno', 'comportamento']
+        required_columns = ['aluno', self.target_column]
         missing_columns = [
             col for col in required_columns if col not in data.columns]
 

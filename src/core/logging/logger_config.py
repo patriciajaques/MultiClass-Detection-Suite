@@ -3,7 +3,8 @@ import os
 import warnings
 from functools import wraps
 from datetime import datetime
-from pathlib import Path
+
+from core.utils.path_manager import PathManager
 
 class LoggerConfig:
     _loggers = {}  # Cache para armazenar loggers já criados
@@ -87,24 +88,7 @@ class LoggerConfig:
 
     @staticmethod
     def _get_output_directory():
-        """
-        Obtém o diretório de saída para armazenar os arquivos de log.
-        """
-        if os.path.exists('/app'):  # Ambiente Docker
-            output_dir = '/app/output'
-        else:  # Ambiente local
-            current_dir = Path(__file__).resolve()
-            src_dir = current_dir
-            while src_dir.name != 'behavior-detection' and src_dir.parent != src_dir:
-                src_dir = src_dir.parent
-                
-            if src_dir.name != 'behavior-detection':
-                output_dir = os.path.join(os.getcwd(), 'output')
-            else:
-                output_dir = os.path.join(src_dir, 'output')
-        
-        os.makedirs(output_dir, exist_ok=True)
-        return output_dir
+        return PathManager.get_path('output')
 
     @staticmethod
     def _generate_log_filename(file_main_name, log_extension):

@@ -1,9 +1,12 @@
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
-import argparse
+
+from core.utils.path_manager import PathManager
 
 def main():
     """Main function to run the behavior detection pipeline."""
 
+    PathManager.set_module('behavior')
+    
     pipeline = BehaviorDetectionPipeline(
         n_iter=50, 
         n_jobs=6, 

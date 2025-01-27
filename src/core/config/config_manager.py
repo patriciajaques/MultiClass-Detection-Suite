@@ -1,6 +1,8 @@
 from pathlib import Path
 import yaml
-from typing import Dict, Any, Optional
+from typing import Dict
+
+from core.utils.path_manager import PathManager
 
 
 class ConfigManager:
@@ -8,8 +10,8 @@ class ConfigManager:
     Gerenciador genérico de configurações do sistema.
     """
 
-    def __init__(self, config_dir: str):
-        self.config_dir = Path(config_dir)
+    def __init__(self):
+        self.config_dir = PathManager.get_path('config')
         self._config = []  # Inicializa como uma lista vazia
         self.load_configs()
 

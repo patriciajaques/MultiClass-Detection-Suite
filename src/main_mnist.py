@@ -1,11 +1,12 @@
-import argparse
+from core.utils.path_manager import PathManager
 from mnist.mnist_detection_pipeline import MNISTDetectionPipeline
 
 
 def main():
     """Main function to run the MNIST detection pipeline."""
 
-    print("Iniciando pipeline...")
+    PathManager.set_module('mnist')
+
     pipeline = MNISTDetectionPipeline(
         n_iter=50,
         n_jobs=6,
@@ -14,7 +15,6 @@ def main():
 
     print("Executando pipeline...")
     pipeline.run()
-    print("Pipeline concluído!")
 
 
 if __name__ == "__main__":
