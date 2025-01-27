@@ -13,8 +13,6 @@ from behavior.data.behavior_data_encoder import BehaviorDataEncoder
 from behavior.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
 
-
-
 from core.pipeline.base_pipeline import BasePipeline
 from behavior.behavior_model_params import BehaviorModelParams
 

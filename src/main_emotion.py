@@ -16,6 +16,10 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
         # Remove undefined emotions e NaN
         data = data[data['estado_afetivo'].notna()]
         # data = self.data_cleaner.remove_instances_with_value(data, 'estado_afetivo', '?')
+        
+        # Unifica as classes "BOREDOM" e "FRUSTRATION" em "BORED_FRUSTRATION"
+        data['estado_afetivo'] = data['estado_afetivo'].replace(
+            {'BOREDOM': 'BORED_FRUSTRATION', 'FRUSTRATION': 'BORED_FRUSTRATION'})
 
         print(f"Classes de emoções: {data['estado_afetivo'].unique()}")
 
@@ -25,6 +29,7 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
         # Remove unnecessary columns usando configuração
         cleaned_data = self.data_cleaner.remove_columns(
             data, use_config=True)
+        
 
         return cleaned_data
 

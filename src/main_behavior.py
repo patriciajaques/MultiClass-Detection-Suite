@@ -25,15 +25,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# Máquina 1: Executar stages 1-25
-# python src/main.py --start-stage 1 --end-stage 25
-
-# # Máquina 2: Executar stages 26-50
-# python src/main.py --start-stage 26 --end-stage 50
-
-# # Máquina 3: Executar stages 51-75
-# python src/main.py --start-stage 51 --end-stage 75
-
-# /opt/anaconda3/envs/behavior_detection/bin/python /Users/patricia/Documents/code/python-code/behavior-detection/src/main_behavior.py
-# /opt/anaconda3/envs/behavior_detection/bin/python /Users/patricia/Documents/code/python-code/behavior-detection/src/main_behavior.py --start-stage 21 --end-stage 22
