@@ -9,44 +9,61 @@ from core.management.results_manager import ResultsManager
 from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
 from core.reporting import metrics_reporter
 
+
 class StageTrainingManager:
     def __init__(self, X_train, X_test, y_train, y_test, model_params,
-                    checkpoint_path='../output/checkpoints/',
-                    results_path='../output/results/',
-                    progress_file='../output/progress.json',
-                    n_iter=50,
-                    cv=5,
-                    scoring='balanced_accuracy',
-                    n_jobs=-1,
-                    stage_range=None):  # Novo parâmetro
-            """
-            Inicializa o gerenciador de treinamento em etapas.
-            
-            Args:
-                ...
-                stage_range (tuple): Tupla (início, fim) indicando o intervalo de stages a executar
-            """
-            self.X_train = X_train
-            self.X_test = X_test
-            self.y_train = y_train
-            self.y_test = y_test
-            self.model_params = model_params
-            self.n_iter = n_iter
-            self.cv = cv
-            self.scoring = scoring
-            self.n_jobs = n_jobs
-            self.stage_range = stage_range
-            
-            # Modificar os caminhos para incluir o intervalo de stages no nome
-            if stage_range:
-                range_str = f"_{stage_range[0]}_{stage_range[1]}"
-                checkpoint_path = checkpoint_path.rstrip('/') + range_str + '/'
-                results_path = results_path.rstrip('/') + range_str + '/'
-                progress_file = progress_file.replace('.json', f'{range_str}.json')
-            
-            self.checkpoint_handler = CheckpointManager(checkpoint_path)
-            self.results_handler = ResultsManager(results_path)
-            self.progress_file = progress_file
+                 checkpoint_path='../output/checkpoints/',
+                 results_path='../output/results/',
+                 progress_file='../output/progress.json',
+                 n_iter=50,
+                 cv=5,
+                 scoring='balanced_accuracy',
+                 n_jobs=-1,
+                 stage_range=None):
+        """
+        Inicializa o gerenciador de treinamento.
+        
+        Args:
+            X_train: Features de treino
+            X_test: Features de teste
+            y_train: Labels de treino
+            y_test: Labels de teste
+            model_params: Parâmetros dos modelos
+            checkpoint_path: Caminho para salvar checkpoints
+            results_path: Caminho para salvar resultados
+            progress_file: Arquivo para controle de progresso
+            n_iter: Número de iterações para otimização
+            cv: Número de folds para validação cruzada
+            scoring: Métrica de avaliação
+            n_jobs: Número de jobs paralelos
+            stage_range: Tupla (início, fim) para execução parcial
+        """
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
+        self.model_params = model_params
+        self.n_iter = n_iter
+        self.cv = cv
+        self.scoring = scoring
+        self.n_jobs = n_jobs
+        self.stage_range = stage_range
+
+        # Definir sufixo para os caminhos baseado no tipo de execução
+        execution_suffix = ''
+        if stage_range:
+            execution_suffix = '_partial'
+
+        # Configurar caminhos com sufixo apropriado
+        self.checkpoint_path = checkpoint_path.rstrip(
+            '/') + execution_suffix + '/'
+        self.results_path = results_path.rstrip('/') + execution_suffix + '/'
+        self.progress_file = progress_file.replace(
+            '.json', f'{execution_suffix}.json')
+
+        # Inicializar handlers
+        self.checkpoint_handler = CheckpointManager(self.checkpoint_path)
+        self.results_handler = ResultsManager(self.results_path)
 
     def train_models(self, selected_models, selected_selectors):
         """Executa o treinamento dos modelos selecionados."""
@@ -134,75 +151,88 @@ class StageTrainingManager:
         with open(self.progress_file, 'w') as f:
             json.dump(progress, f)
     
-    
     def execute_all_stages(self, training_manager, stages):
         """
-        Executa um intervalo específico de etapas sequencialmente.
+        Executa todas as combinações de modelos e seletores, mantendo controle do progresso.
         """
+        progress = training_manager._load_progress()
+        completed_pairs = set(progress['completed_stages'])
 
-        print("\nOrdem de execução dos stages:")
-        for i, (stage_name, models, selectors) in enumerate(stages, 1):
-            print(f"{i}. {stage_name}: {models}")
+        # Exibe o status inicial
+        print("\nStatus de execução:")
+        for stage_name, models, selectors in stages:
+            for model in models:
+                for selector in selectors:
+                    pair = f"{model}_{selector}"
+                    print(
+                        f"{pair}: {'já executado' if pair in completed_pairs else 'pendente'}")
 
+        # Aplica filtro de range se especificado
         if self.stage_range:
             start_idx, end_idx = self.stage_range
             stages = stages[start_idx-1:end_idx]
             print(f"\nExecutando stages do {start_idx} ao {end_idx}")
-        
-        progress = training_manager._load_progress()
-        completed_stages = set(progress['completed_stages'])
 
-        print("\nVerificando progresso anterior...")
-        if completed_stages:
-            print(f"Stages já completados: {', '.join(completed_stages)}")
-        else:
-            print("Nenhum stage completado anteriormente. Iniciando do começo.")
-        
-        all_stages_completed = len(completed_stages) == len(stages)
-        
-        if not all_stages_completed:
-            # Executa os stages que faltam
-            for stage_num, (stage_name, models, selectors) in enumerate(stages, 1):
-                if stage_name in completed_stages:
-                    print(f"\nStage {stage_num} ({stage_name}) já foi completado. Pulando...")
-                    continue
-                    
-                print(f"\n{'='*50}")
-                print(f"Iniciando Stage {stage_num}: {stage_name}")
-                print(f"{'='*50}")
-                
-                try:
-                    training_manager._save_progress(list(completed_stages), stage_name)
-                    results = training_manager.execute_stage(stage_name, models, selectors)
-                    
-                    if results:
-                        trained_models, class_metrics, avg_metrics = results
-                        print(f"\nGerando relatórios para {stage_name}...")
-                        metrics_reporter.generate_reports(
-                            class_metrics, 
-                            avg_metrics, 
-                            filename_prefix=f"_{stage_name}_"
-                        )
-                        completed_stages.add(stage_name)
-                        training_manager._save_progress(list(completed_stages))
-                        print(f"\nStage {stage_num} ({stage_name}) concluído com sucesso!")
-                    
-                except Exception as e:
-                    print(f"\nErro no Stage {stage_num} ({stage_name}): {str(e)}")
-                    print("O treinamento pode ser retomado deste ponto posteriormente.")
-                    raise
-        
+        # Executa cada combinação modelo/seletor
+        for stage_name, models, selectors in stages:
+            for model in models:
+                for selector in selectors:
+                    pair = f"{model}_{selector}"
+                    if pair in completed_pairs:
+                        print(f"\n{pair} já foi completado. Pulando...")
+                        continue
 
-        # Sempre gera os relatórios finais, mesmo quando todos os stages já foram completados
+                    print(f"\n{'='*50}")
+                    print(f"Iniciando {pair}")
+                    print(f"{'='*50}")
+
+                    try:
+                        training_manager._save_progress(
+                            list(completed_pairs), pair)
+                        results = training_manager.execute_stage(
+                            stage_name, [model], [selector])
+
+                        if results:
+                            trained_models, class_metrics, avg_metrics = results
+                            print(f"\nGerando relatórios para {pair}...")
+                            metrics_reporter.generate_reports(
+                                class_metrics,
+                                avg_metrics,
+                                filename_prefix=f"_{pair}_"
+                            )
+                            completed_pairs.add(pair)
+                            training_manager._save_progress(list(completed_pairs))
+                            print(f"\n{pair} concluído com sucesso!")
+
+                    except Exception as e:
+                        print(f"\nErro em {pair}: {str(e)}")
+                        raise
+
+        # Gera relatórios finais após todas as execuções
+        self._generate_final_reports(training_manager)
+
+
+    def _generate_final_reports(self, training_manager):
+        """
+        Gera os relatórios finais consolidados após a execução de todos os stages.
+        """
         print("\nGerando relatório final consolidado...")
         class_metrics, avg_metrics = training_manager.combine_results()
-        if class_metrics and avg_metrics:
-            if self.stage_range:
-                filename_prefix = f"_Final_Combined_{self.stage_range[0]}_{self.stage_range[1]}_"
-            else:
-                filename_prefix = "_Final_Combined_All_"
 
-            output_dir = os.path.abspath("../output")  # Tornar caminho absoluto
+        if not class_metrics or not avg_metrics:
+            print("Erro: Não foi possível carregar os resultados para gerar o relatório final")
+            return
+
+        try:
+            # Define o prefixo do arquivo baseado no range de execução
+            filename_prefix = "_Final_Combined_"
+            if self.stage_range:
+                filename_prefix += f"{self.stage_range[0]}_{self.stage_range[1]}_"
+            else:
+                filename_prefix += "All_"
+
+            # Usa caminho absoluto para garantir a localização correta dos arquivos
+            output_dir = os.path.abspath("../output")
             print(f"\nSalvando relatórios finais:")
             print(f"- Diretório: {output_dir}")
             print(f"- Prefixo: {filename_prefix}")
@@ -215,7 +245,7 @@ class StageTrainingManager:
                 force_overwrite=True
             )
             print("Relatórios finais gerados com sucesso!")
-        else:
-            print("Erro: Não foi possível carregar os resultados para gerar o relatório final")
-        
-        print("\nProcesso completo! Todos os stages do intervalo foram executados.")
+
+        except Exception as e:
+            print(f"Erro ao gerar relatórios finais: {str(e)}")
+            raise
