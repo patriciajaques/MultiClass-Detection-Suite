@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, MinMaxScaler, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
+from core.logging.feature_mapping_logger import FeatureMappingLogger
 from core.preprocessors.column_selector import ColumnSelector
 
 class DataEncoder():
@@ -55,7 +56,12 @@ class DataEncoder():
             transformers.append(('ord', OrdinalEncoder(
                 categories=categories), self.ordinal_columns))
 
-        self.column_transformer = ColumnTransformer(transformers=transformers)
+        # Preserva nomes originais
+        self.column_transformer = ColumnTransformer(
+            transformers=transformers,
+            remainder='passthrough',
+            verbose_feature_names_out=False
+        )
 
     def select_columns(self, X: pd.DataFrame):
         """ Seleciona colunas numéricas, nominais e ordinais
@@ -167,3 +173,21 @@ class DataEncoder():
             raise RuntimeError(
                 "Encoder não foi ajustado. Use fit_transform_y primeiro.")
         return self.label_encoder.inverse_transform(y_encoded)
+
+    def get_feature_mapping(self):
+        """Retorna o mapeamento das features categóricas após encoding"""
+        if not hasattr(self, 'column_transformer') or not self.nominal_columns:
+            return {}
+
+        mappings = {}
+        for col in self.nominal_columns:
+            encoder = self.column_transformer.named_transformers_['nom']
+            categories = encoder.categories_[self.nominal_columns.index(col)]
+            mappings[col] = dict(enumerate(categories))
+        return mappings
+
+    def get_class_mapping(self):
+        """Retorna o mapeamento das classes target após encoding"""
+        if not hasattr(self, 'label_encoder') or not hasattr(self.label_encoder, 'classes_'):
+            return {}
+        return dict(enumerate(self.label_encoder.classes_))

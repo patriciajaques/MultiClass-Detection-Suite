@@ -5,6 +5,7 @@ import pandas as pd
 
 from behavior.data.behavior_data_loader import BehaviorDataLoader
 from behavior.temporal_features_processor import TemporalFeaturesProcessor
+from core.logging.feature_mapping_logger import FeatureMappingLogger
 from core.preprocessors.data_cleaner import DataCleaner
 from core.preprocessors.data_imputer import DataImputer
 from core.preprocessors.data_splitter import DataSplitter
@@ -89,8 +90,8 @@ class BehaviorDetectionPipeline(BasePipeline):
         # 2. Encode target (generally, not needed for most models)
         y = data['comportamento']
         
-        encoder = BehaviorDataEncoder()
-        y_encoded = encoder.fit_transform_y(y)
+        y_encoder = BehaviorDataEncoder()
+        y_encoded = y_encoder.fit_transform_y(y)
         data['comportamento'] = y_encoded
 
         print(
@@ -141,6 +142,10 @@ class BehaviorDetectionPipeline(BasePipeline):
         X_encoder.fit(X_train)
         X_train_encoded = X_encoder.transform(X_train_imputed)
         X_test_encoded = X_encoder.transform(X_test_imputed)
+
+        logger = FeatureMappingLogger()
+        logger.log_feature_mappings(X_encoder)
+        logger.log_target_mappings(y_encoder)
 
         # Após todas as transformações
         print("\nResumo final do pré-processamento:")
