@@ -2,10 +2,10 @@ import argparse
 import pandas as pd
 from sklearn.metrics import balanced_accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
-from behavior.data.behavior_data_encoder import BehaviorDataEncoder
-from behavior.data.behavior_data_loader import BehaviorDataLoader
+from behavior.behavior_data_loader import BehaviorDataLoader
 from core.preprocessors.data_cleaner import DataCleaner
 from core.config.config_manager import ConfigManager
+from core.preprocessors.data_encoder import DataEncoder
 from lstm.lstm_pipeline import LSTMPipeline
 
 
@@ -47,7 +47,7 @@ def prepare_data(data, test_size=0.2):
     ordering_data_test = test_data[ordering_cols].copy()
 
     # Encode features
-    encoder = BehaviorDataEncoder(num_classes=4)
+    encoder = DataEncoder(num_classes=4)
     X_train = encoder.fit_transform(train_data.drop(columns=ordering_cols))
     X_test = encoder.transform(test_data.drop(columns=ordering_cols))
 

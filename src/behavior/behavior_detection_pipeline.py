@@ -3,13 +3,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from behavior.data.behavior_data_loader import BehaviorDataLoader
+from behavior.behavior_data_loader import BehaviorDataLoader
 from behavior.temporal_features_processor import TemporalFeaturesProcessor
 from core.logging.feature_mapping_logger import FeatureMappingLogger
 from core.preprocessors.data_cleaner import DataCleaner
+from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.data_imputer import DataImputer
 from core.preprocessors.data_splitter import DataSplitter
-from behavior.data.behavior_data_encoder import BehaviorDataEncoder
 from behavior.behavior_model_params import BehaviorModelParams
 from core.management.stage_training_manager import StageTrainingManager
 
@@ -101,7 +101,13 @@ class BehaviorDetectionPipeline(BasePipeline):
         # 2. Encode target (generally, not needed for most models)
         y = data[self.target_column]
         
-        y_encoder = BehaviorDataEncoder()
+        y_encoder = DataEncoder(
+            categorical_threshold=5,
+            scaling_strategy='standard',
+            select_numerical=True,
+            select_nominal=True,
+            select_ordinal=False
+        )        
         y_encoded = y_encoder.fit_transform_y(y)
         data[self.target_column] = y_encoded
 
@@ -149,7 +155,13 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         # 6. Encode features
         print("\nRealizando encoding das features...")
-        X_encoder = BehaviorDataEncoder()
+        X_encoder = DataEncoder(
+            categorical_threshold=5,
+            scaling_strategy='standard',
+            select_numerical=True,
+            select_nominal=True,
+            select_ordinal=False
+        )
         X_encoder.fit(X_train)
         X_train_encoded = X_encoder.transform(X_train_imputed)
         X_test_encoded = X_encoder.transform(X_test_imputed)

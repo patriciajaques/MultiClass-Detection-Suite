@@ -1,5 +1,5 @@
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
-from behavior.data.behavior_data_loader import BehaviorDataLoader
+from behavior.behavior_data_loader import BehaviorDataLoader
 from core.utils.path_manager import PathManager
 
 

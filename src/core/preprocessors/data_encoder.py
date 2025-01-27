@@ -7,7 +7,7 @@ from core.logging.feature_mapping_logger import FeatureMappingLogger
 from core.preprocessors.column_selector import ColumnSelector
 
 class DataEncoder():
-    def __init__(self, categorical_threshold: int, scaling_strategy: str = 'standard', select_numerical: bool = True, select_nominal: bool = True, select_ordinal: bool = True):
+    def __init__(self, categorical_threshold: int = 10, scaling_strategy: str = 'standard', select_numerical: bool = True, select_nominal: bool = True, select_ordinal: bool = False):
         self.categorical_threshold = categorical_threshold
         self.scaling_strategy = scaling_strategy
         self.select_numerical = select_numerical
