@@ -77,24 +77,10 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
 
 def main():
     """Main function to run the emotion detection pipeline."""
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description='Execute emotion detection pipeline for specific stages')
-    parser.add_argument('--start-stage', type=int,
-                        help='Starting stage number')
-    parser.add_argument('--end-stage', type=int, help='Ending stage number')
-    args = parser.parse_args()
-
-    stage_range = None
-    if args.start_stage is not None and args.end_stage is not None:
-        stage_range = (args.start_stage, args.end_stage)
-
     pipeline = EmotionDetectionPipeline(
         n_iter=50,
         n_jobs=6,
-        test_size=0.2,
-        stage_range=stage_range
+        test_size=0.2
     )
     pipeline.run()
 

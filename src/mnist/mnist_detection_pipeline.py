@@ -10,9 +10,9 @@ from core.management.stage_training_manager import StageTrainingManager
 
 
 class MNISTDetectionPipeline(BasePipeline):
-    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None, stage_range=None):
+    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None):
         super().__init__(n_iter=n_iter, n_jobs=n_jobs, test_size=test_size,
-                         base_path=base_path, stage_range=stage_range, config_dir='src/mnist/config')
+                         base_path=base_path, config_dir='src/mnist/config')
 
     def _get_model_params(self):
         """Implementação do método abstrato para obter parâmetros do modelo."""
@@ -82,16 +82,13 @@ class MNISTDetectionPipeline(BasePipeline):
             n_iter=self.n_iter,
             cv=10,
             scoring='balanced_accuracy',
-            n_jobs=self.n_jobs,
-            stage_range=self.stage_range
+            n_jobs=self.n_jobs
         )
 
         # Define training stages
         stages = self._get_training_stages()
 
         # Execute training stages
-        print(
-            f"\n5. Executando stages {self.stage_range if self.stage_range else 'todos'}...")
         training_manager.execute_all_stages(training_manager, stages)
 
         print("\nPipeline concluído!")

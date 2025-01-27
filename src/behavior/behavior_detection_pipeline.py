@@ -21,7 +21,6 @@ class BehaviorDetectionPipeline(BasePipeline):
     def __init__(self, **kwargs):
         super().__init__(config_dir='src/behavior/config', **kwargs)
         self.data_cleaner = DataCleaner(config_manager=self.config)
-
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
         return BehaviorModelParams()
@@ -241,16 +240,12 @@ class BehaviorDetectionPipeline(BasePipeline):
             n_iter=self.n_iter,
             cv=10,
             scoring='balanced_accuracy',
-            n_jobs=self.n_jobs,
-            stage_range=self.stage_range
+            n_jobs=self.n_jobs
         )
 
         # Define training stages
         stages = self._get_training_stages()
 
-        # Execute training stages
-        print(
-            f"\n5. Executando stages {self.stage_range if self.stage_range else 'todos'}...")
         training_manager.execute_all_stages(training_manager, stages)
 
         print("\nPipeline concluído!")

@@ -12,14 +12,14 @@ from core.reporting import metrics_reporter
 
 class StageTrainingManager:
     def __init__(self, X_train, X_test, y_train, y_test, model_params,
-                 checkpoint_path='../output/checkpoints/',
-                 results_path='../output/results/',
-                 progress_file='../output/progress.json',
-                 n_iter=50,
-                 cv=5,
-                 scoring='balanced_accuracy',
-                 n_jobs=-1,
-                 stage_range=None):
+                n_iter=50,
+                cv=5,
+                scoring='balanced_accuracy',
+                n_jobs=-1,
+                checkpoint_path='../output/checkpoints/',
+                results_path='../output/results/',
+                progress_file='../output/progress.json'
+                ):
         """
         Inicializa o gerenciador de treinamento.
         
@@ -36,7 +36,6 @@ class StageTrainingManager:
             cv: Número de folds para validação cruzada
             scoring: Métrica de avaliação
             n_jobs: Número de jobs paralelos
-            stage_range: Tupla (início, fim) para execução parcial
         """
         self.X_train = X_train
         self.X_test = X_test
@@ -47,23 +46,10 @@ class StageTrainingManager:
         self.cv = cv
         self.scoring = scoring
         self.n_jobs = n_jobs
-        self.stage_range = stage_range
-
-        # Definir sufixo para os caminhos baseado no tipo de execução
-        execution_suffix = ''
-        if stage_range:
-            execution_suffix = '_partial'
-
-        # Configurar caminhos com sufixo apropriado
-        self.checkpoint_path = checkpoint_path.rstrip(
-            '/') + execution_suffix + '/'
-        self.results_path = results_path.rstrip('/') + execution_suffix + '/'
-        self.progress_file = progress_file.replace(
-            '.json', f'{execution_suffix}.json')
-
+        self.progress_file = progress_file
         # Inicializar handlers
-        self.checkpoint_handler = CheckpointManager(self.checkpoint_path)
-        self.results_handler = ResultsManager(self.results_path)
+        self.checkpoint_handler = CheckpointManager(checkpoint_path)
+        self.results_handler = ResultsManager(results_path)
 
     def train_models(self, selected_models, selected_selectors):
         """Executa o treinamento dos modelos selecionados."""
@@ -167,11 +153,6 @@ class StageTrainingManager:
                     print(
                         f"{pair}: {'já executado' if pair in completed_pairs else 'pendente'}")
 
-        # Aplica filtro de range se especificado
-        if self.stage_range:
-            start_idx, end_idx = self.stage_range
-            stages = stages[start_idx-1:end_idx]
-            print(f"\nExecutando stages do {start_idx} ao {end_idx}")
 
         # Executa cada combinação modelo/seletor
         for stage_name, models, selectors in stages:
@@ -225,11 +206,7 @@ class StageTrainingManager:
 
         try:
             # Define o prefixo do arquivo baseado no range de execução
-            filename_prefix = "_Final_Combined_"
-            if self.stage_range:
-                filename_prefix += f"{self.stage_range[0]}_{self.stage_range[1]}_"
-            else:
-                filename_prefix += "All_"
+            filename_prefix = "_Final_"
 
             # Usa caminho absoluto para garantir a localização correta dos arquivos
             output_dir = os.path.abspath("../output")

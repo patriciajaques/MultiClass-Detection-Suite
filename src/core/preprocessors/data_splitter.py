@@ -58,7 +58,7 @@ class DataSplitter:
 
     @staticmethod
     def split_data_stratified(data: pd.DataFrame,
-                              target_column: str,
+                              target_column: str = 'target',
                               test_size: float = 0.2,
                               random_state: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
@@ -81,7 +81,7 @@ class DataSplitter:
 
     @staticmethod
     def split_into_x_y(data: pd.DataFrame,
-                       target_column: str) -> Tuple[pd.DataFrame, pd.Series]:
+                       target_column: str = 'target') -> Tuple[pd.DataFrame, pd.Series]:
         """
         Separa features e target.
 

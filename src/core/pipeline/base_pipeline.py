@@ -12,7 +12,7 @@ class BasePipeline(ABC):
     """Classe base abstrata para pipelines de detecção."""
 
     def __init__(self, n_iter=50, n_jobs=6, test_size=0.2, base_path=None,
-                 stage_range=None, config_dir=None):
+                 config_dir=None):
         """
         Inicializa o pipeline base.
         
@@ -21,13 +21,11 @@ class BasePipeline(ABC):
             n_jobs (int): Número de jobs paralelos
             test_size (float): Tamanho do conjunto de teste
             base_path (str): Caminho base para os arquivos
-            stage_range (tuple): Intervalo de stages a executar (inicio, fim)
             config_dir (str): Diretório de configurações
         """
         self.n_iter = n_iter
         self.n_jobs = n_jobs
         self.test_size = test_size
-        self.stage_range = stage_range
         self.base_path = base_path
         self.paths = self._setup_paths(base_path)
         self.config = ConfigManager(config_dir) if config_dir else None
@@ -169,16 +167,12 @@ class BasePipeline(ABC):
             n_iter=self.n_iter,
             cv=10,
             scoring='balanced_accuracy',
-            n_jobs=self.n_jobs,
-            stage_range=self.stage_range
-        )
+            n_jobs=self.n_jobs)
 
         # Define training stages
         stages = self._get_training_stages()
 
         # Execute training stages
-        print(
-            f"\n5. Executando stages {self.stage_range if self.stage_range else 'todos'}...")
         training_manager.execute_all_stages(training_manager, stages)
 
         print("\nPipeline concluído!")

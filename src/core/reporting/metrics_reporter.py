@@ -69,16 +69,16 @@ def generate_reports(class_metrics_results, avg_metrics_results, directory="../o
 
     try:
         confusion_matrix_file = os.path.join(
-            directory, f"{filename_prefix}confusion_matrices.txt")
+            directory, f"{filename_prefix}confusion_matrix.txt")
         confusion_matrix_report = ReportFormatter.generate_confusion_matrix_report(
             class_metrics_results)
         with open(confusion_matrix_file, 'w') as f:
             f.write(confusion_matrix_report)
         print(
-            f"Relatório de matrizes de confusão gerado: {confusion_matrix_file}")
+            f"Relatório de matriz de confusão gerado: {confusion_matrix_file}")
 
     except Exception as e:
-        print(f"\nErro ao gerar relatório de matrizes de confusão: {str(e)}")
+        print(f"\nErro ao gerar relatório de matriz de confusão: {str(e)}")
 
 
 @staticmethod
