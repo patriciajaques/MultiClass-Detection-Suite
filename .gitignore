@@ -4,6 +4,7 @@ Thumbs.db
 
 # Ignorar arquivos de log
 *.log
+output/
 
 # Ignorar diretórios de ambientes virtuais (Python)
 venv/

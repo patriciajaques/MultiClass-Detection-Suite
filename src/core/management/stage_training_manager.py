@@ -215,7 +215,6 @@ class StageTrainingManager:
             metrics_reporter.generate_reports(
                 class_metrics,
                 avg_metrics,
-                directory=output_dir,
                 filename_prefix=filename_prefix,
                 force_overwrite=True
             )

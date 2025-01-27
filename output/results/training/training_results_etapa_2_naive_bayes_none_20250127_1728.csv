@@ -1,2 +1,0 @@
-Model;CV_Score;Training_Type;Hyperparameters
-Naive Bayes_none;0.40969248819198967;Optuna;{'classifier__var_smoothing': 1e-05}

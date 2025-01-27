@@ -1,17 +1,17 @@
 import os
 from core.models.model_manager import ModelManager
 from core.reporting.report_formatter import ReportFormatter
+from core.utils.path_manager import PathManager
 
 
 @staticmethod
-def generate_reports(class_metrics_results, avg_metrics_results, directory="../output/", filename_prefix="", force_overwrite=False):
+def generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="", force_overwrite=False):
     """Gera relatórios a partir dos resultados da avaliação dos modelos."""
     if not class_metrics_results or not avg_metrics_results:
         print("Aviso: Resultados vazios ou inválidos")
         return
 
-    # Converte caminho relativo em absoluto
-    directory = os.path.abspath(directory)
+    directory = PathManager.get_path('output')
     print(f"\nGerando relatórios no diretório: {directory}")
 
     # Garante que o diretório existe
