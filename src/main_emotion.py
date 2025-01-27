@@ -13,7 +13,7 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
             n_iter (int): Número de iterações para otimização de hiperparâmetros
             n_jobs (int): Número de jobs paralelos para processamento
             test_size (float): Proporção dos dados para conjunto de teste
-            
+
         Note:
             Esta classe estende BehaviorDetectionPipeline para realizar detecção
             de emoções ao invés de comportamentos, mantendo a mesma estrutura
@@ -34,14 +34,14 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
         print(f"Dataset inicial shape: {data.shape}")
 
         # Remove undefined emotions e NaN
-        data = data[data['estado_afetivo'].notna()]
-        # data = self.data_cleaner.remove_instances_with_value(data, 'estado_afetivo', '?')
-        
+        data = data[data[self.target_column].notna()]
+        # data = self.data_cleaner.remove_instances_with_value(data, self.target_column, '?')
+
         # Unifica as classes "BOREDOM" e "FRUSTRATION" em "BORED_FRUSTRATION"
-        data['estado_afetivo'] = data['estado_afetivo'].replace(
+        data[self.target_column] = data[self.target_column].replace(
             {'BOREDOM': 'BORED_FRUSTRATION', 'FRUSTRATION': 'BORED_FRUSTRATION'})
 
-        print(f"Classes de emoções: {data['estado_afetivo'].unique()}")
+        print(f"Classes de emoções: {data[self.target_column].unique()}")
 
         # Cria id único de sequencias (reuso do método da classe pai)
         data['sequence_id'] = self._create_sequence_ids(data)
@@ -49,26 +49,8 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
         # Remove unnecessary columns usando configuração
         cleaned_data = self.data_cleaner.remove_columns(
             data, use_config=True)
-        
 
         return cleaned_data
-
-    def prepare_data(self, data):
-        """Prepara os dados para treinamento focando em emoções."""
-        print(f"\nIniciando preparação dos dados para detecção de emoções...")
-
-        # Converte o target para estado_afetivo para poder aproveitar o método de preparação da classe pai
-        data = data.copy()
-        data['comportamento'] = data['estado_afetivo']
-        # Remove a coluna 'estado_afetivo' do dataframe após fazer a cópia
-        data = data.drop(columns=['estado_afetivo'])
-
-        print(
-            f"Distribuição de emoções:\n{data['comportamento'].value_counts()}")
-
-        # Reutiliza o método prepare_data da classe pai
-        return super().prepare_data(data)
-    
 
     def _verify_split_quality(self, train_data, test_data):
         """
@@ -97,9 +79,9 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
 
 def main():
     """Main function to run the emotion detection pipeline."""
-    
+
     PathManager.set_module('emotion')
-    
+
     pipeline = EmotionDetectionPipeline(
         n_iter=50,
         n_jobs=6,
