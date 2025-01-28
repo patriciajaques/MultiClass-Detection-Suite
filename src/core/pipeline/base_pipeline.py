@@ -1,9 +1,9 @@
 # src/core/pipeline/base_pipeline.py
 from abc import ABC, abstractmethod
 import pandas as pd
+from sklearn.pipeline import Pipeline
 
 from core.config.config_manager import ConfigManager
-from core.management.stage_training_manager import StageTrainingManager
 from core.preprocessors.data_balancer import DataBalancer
 from core.utils.path_manager import PathManager
 
@@ -32,6 +32,20 @@ class BasePipeline(ABC):
         }
         self.config = ConfigManager() 
         self.model_params = self._get_model_params()
+
+    @staticmethod
+    def create_pipeline(selector, model_config) -> Pipeline:
+        """
+        Cria um pipeline com seleção de características e classificador.
+        """
+        steps = []
+        if selector is not None:
+            # Remover qualquer parâmetro 'selector' que possa existir
+            if hasattr(selector, 'selector'):
+                delattr(selector, 'selector')
+            steps.append(('feature_selection', selector))
+        steps.append(('classifier', model_config))
+        return Pipeline(steps)
 
     def _get_training_stages(self):
         """Define os stages (algoritmo e seletor) de treinamento usando configuração."""
@@ -118,6 +132,8 @@ class BasePipeline(ABC):
         return X_resampled, y_resampled
 
     def run(self):
+        from core.management.stage_training_manager import StageTrainingManager
+
         """Executa o pipeline completo."""
         print(f"Iniciando pipeline de {self.__class__.__name__}...")
 

@@ -1,112 +1,115 @@
 from abc import ABC, abstractmethod
-from time import time
-from sklearn.pipeline import Pipeline
-
-from typing import List, Optional, Dict, Any
+from typing import Dict, Any, List, Optional
 import pandas as pd
 
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
 
 
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+import pandas as pd
+from sklearn.pipeline import Pipeline
+from time import time
+
+
 class BaseTraining(ABC):
+    """
+    Classe base abstrata para diferentes estratégias de treinamento.
+    Implementa o padrão Template Method para treinar um único pipeline.
+    """
+
     def __init__(self):
-        self.trained_models: Dict[str, Any] = {}
-        self.total_execution_time = 0
+        self.trained_model_info = None
+        self.execution_time = 0
 
-    def train_model(
-        self,
-        X_train,
-        y_train,
-        model_params,  # define os parâmetros do modelo para o dataset específico
-        # Lista de nomes de modelos a serem treinados. Se None, usa todos os modelos.
-        selected_models: Optional[List[str]] = None,
-        # Lista de nomes de seletores a serem utilizados. Se None, usa todos os seletores.
-        selected_selectors: Optional[List[str]] = None,
-        n_iter: int = 50,  # Número de iterações para otimização.
-        cv: int = 5,  # Número de folds para validação cruzada.
-        scoring: str = 'balanced_accuracy',  # Métrica de avaliação.
-        n_jobs: int = -1  # Número de trabalhos paralelos.
-    ) -> Dict[str, Any]:  # Dicionário contendo os modelos treinados e seus resultados.
+    def train_model(self,
+                    pipeline: Pipeline,
+                    X_train: pd.DataFrame,
+                    y_train: pd.Series,
+                    model_name: str,
+                    model_params: Any,
+                    selector_name: str,
+                    n_iter: int = 50,
+                    cv: int = 5,
+                    scoring: str = 'balanced_accuracy',
+                    n_jobs: int = -1,
+                    selector_search_space: Dict = None) -> Dict[str, Any]:
         """
-        Treina modelos com diferentes seletores de características.
+        Treina um único pipeline com uma combinação específica de modelo e seletor.
+        Mantém registro do tempo de execução.
         """
+        try:
+            start_time = time()
 
-        start_time = time()
+            # Otimiza e treina o modelo
+            self.optimize_model(
+                pipeline=pipeline,
+                model_name=model_name,
+                model_params=model_params,
+                selector_name=selector_name,
+                X_train=X_train,
+                y_train=y_train,
+                n_iter=n_iter,
+                cv=cv,
+                scoring=scoring,
+                n_jobs=n_jobs,
+                selector_search_space=selector_search_space
+            )
 
-        available_selector_names = FeatureSelectionFactory.get_available_selectors_names()
-        # Filtrar modelos
-        models = self._filter_models(
-            model_params.get_models(), selected_models)
-        # Filtrar seletores
-        selector_names = self._filter_selectors(
-            selected_selectors, available_selector_names)
+            self.execution_time = time() - start_time
+            self._log_execution_time(model_name, selector_name)
 
-        for model_name, model_config in models.items():
-            for selector_name in selector_names:
-                if selector_name == 'none':
-                    pipeline = self._create_pipeline(None, model_config)
-                    selector_search_space = {}
-                else:
-                    # Criar a instância do seletor diretamente dentro do loop
-                    selector_instance = FeatureSelectionFactory.create_selector(
-                        selector_name, X_train, y_train)
-                    selector = selector_instance.selector  # Acessar o seletor criado no construtor
+            # Adiciona tempo de execução às informações do modelo
+            if self.trained_model_info:
+                self.trained_model_info['execution_time'] = self.execution_time
 
-                    pipeline = self._create_pipeline(selector, model_config)
-                    # Obter o espaço de busca diretamente do selector_instance
-                    selector_search_space = selector_instance.get_search_space()
+            return self.trained_model_info
 
-                self.optimize_model(
-                    pipeline=pipeline,
-                    model_name=model_name,
-                    model_params=model_params,
-                    selector_name=selector_name,
-                    X_train=X_train,
-                    y_train=y_train,
-                    n_iter=n_iter,
-                    cv=cv,
-                    scoring=scoring,
-                    n_jobs=n_jobs,
-                    selector_search_space=selector_search_space
-                )
-
-        self.total_execution_time = time() - start_time
-        self._log_execution_time(len(models))
-        return self.trained_models
+        except Exception as e:
+            self.log_training_error(e, model_name, selector_name)
+            return None
 
     @abstractmethod
-    def optimize_model(
-        self,
-        pipeline,
-        model_name: str,
-        selector_name: str,
-        X_train,
-        y_train,
-        n_iter: int,
-        cv: int,
-        scoring: str,
-        n_jobs: int,
-        selector_search_space: dict
-    ):
+    def optimize_model(self,
+                       pipeline: Pipeline,
+                       model_name: str,
+                       model_params: Any,
+                       selector_name: str,
+                       X_train: pd.DataFrame,
+                       y_train: pd.Series,
+                       n_iter: int,
+                       cv: int,
+                       scoring: str,
+                       n_jobs: int,
+                       selector_search_space: Dict) -> None:
+        """
+        Método abstrato para otimização de hiperparâmetros.
+        Deve ser implementado por cada estratégia específica de treinamento.
+        """
         pass
 
-    @staticmethod
-    def _create_pipeline(selector, model_config) -> Pipeline:
+    def _log_execution_time(self, model_name: str, selector_name: str) -> None:
         """
-        Cria um pipeline com seleção de características e o classificador.
-
+        Registra o tempo de execução do treinamento.
+        
         Args:
-            selector: Seletor de características.
-            model_config: Configuração do modelo de classificação.
-
-        Returns:
-            Pipeline: Pipeline configurado.
+            model_name: Nome do modelo treinado
+            selector_name: Nome do seletor de features usado
         """
-        steps = []
-        if selector is not None:
-            steps.append(('feature_selection', selector))
-        steps.append(('classifier', model_config))
-        return Pipeline(steps)
+        self.logger.info(f"\n{'='*50}")
+        self.logger.info(
+            f"Tempo total de execução para {model_name} com {selector_name}: "
+            f"{self.execution_time:.2f} segundos"
+        )
+        self.logger.info(f"{'='*50}\n")
+
+    def log_training_error(self, error: Exception, model_name: str, selector_name: str) -> None:
+        """Registra erros ocorridos durante o treinamento."""
+        self.logger.error(
+            f"Erro ao treinar {model_name} com {selector_name}: {str(error)}")
+        import traceback
+        self.logger.error(traceback.format_exc())
+
 
     def _filter_models(self, models: Dict[str, Any], selected_models: Optional[List[str]]) -> Dict[str, Any]:
         """
@@ -152,18 +155,17 @@ class BaseTraining(ABC):
             return selector_names
         return available_selector_names + ['none']
 
-    def log_parameter_error(self, logger, model_name: str, params: dict) -> None:
+    def log_parameter_error(self, model_name: str, params: dict) -> None:
         """
-        Método comum para logar erros de parâmetros inválidos.
-
+        Logs parameter-related errors during model optimization.
+        
         Args:
-            logger: Logger configurado
-            model_name: Nome do modelo
-            params: Parâmetros que causaram o erro
+            model_name: Name of the model that encountered the error
+            params: Parameters that caused the error
         """
-        logger.warning(
-            f"Trial failed: Invalid parameter combination for {model_name}")
-        logger.warning(f"Parameters that failed: {params}")
+        self.logger.warning(
+            f"Parameter optimization failed for model {model_name}")
+        self.logger.warning(f"Failed parameters configuration: {params}")
 
     @staticmethod
     def log_search_results(logger, search, model_name, selector_name):
@@ -190,18 +192,3 @@ class BaseTraining(ABC):
                 f"Number of successful trials for {model_name}: {success_count}")
             logger.info(
                 f"Number of failed trials for {model_name}: {len(cv_results['mean_test_score']) - success_count}")
-
-    def _log_execution_time(self, num_models):
-        """
-        Registra no log as informações sobre o tempo de execução do algoritmo.
-
-        Args:
-            num_models (int): Número total de modelos treinados
-        """
-        algorithm_name = self.__class__.__name__.replace('Training', '')
-        self.logger.info(f"\n{'='*50}")
-        self.logger.info(
-            f"Tempo total de execução do {algorithm_name}: {self.total_execution_time:.2f} segundos")
-        self.logger.info(
-            f"Média de tempo por modelo: {self.total_execution_time/num_models:.2f} segundos")
-        self.logger.info(f"{'='*50}\n")

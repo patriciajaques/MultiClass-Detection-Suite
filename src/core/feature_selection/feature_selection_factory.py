@@ -18,14 +18,22 @@ class FeatureSelectionFactory:
     def create_selector(method, X_train, y_train=None, **kwargs):
         if method not in FeatureSelectionFactory.SELECTORS:
             raise ValueError(f"Método desconhecido: {method}")
-        
+
         selector_class = FeatureSelectionFactory.SELECTORS[method]
-        if method in ['rfe', 'mi', 'rf']:
-            selector = selector_class(X_train, y_train, **kwargs)
-        else:
-            selector = selector_class(X_train, **kwargs)
-        
-        return selector
+        if selector_class is None:
+            return None
+
+        # Remover o parâmetro 'selector' se presente
+        kwargs.pop('selector', None)
+
+        try:
+            if method == 'pca':
+                return selector_class(X_train, **kwargs)
+            else:
+                return selector_class(X_train, y_train, **kwargs)
+        except Exception as e:
+            print(f"Error creating selector {method}: {str(e)}")
+            raise
 
     @staticmethod
     def get_available_selectors_names():

@@ -35,7 +35,7 @@ class RandomSearchTraining(BaseTraining):
             random_search.fit(X_train, y_train)
             
             # Log the results using ModelTraining's method
-            self.log_search_results(self.logger, random_search, model_name, selector_name)
+            self.log_search_results(random_search, model_name, selector_name)
 
             self.trained_models[f"{model_name}_{selector_name}"] = {
                 'model': random_search.best_estimator_,

@@ -22,5 +22,3 @@ if __name__ == "__main__":
     print("Chamando função main()...")
     main()
 
-
-#  /opt/anaconda3/envs/behavior_detection/bin/python /Users/patricia/Documents/code/python-code/behavior-detection/src/main_mnist.py --start-stage 6 --end-stage 6

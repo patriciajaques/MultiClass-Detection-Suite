@@ -1,39 +1,49 @@
+from time import time
 import optuna
 from optuna.samplers import TPESampler
 from optuna.logging import set_verbosity, WARNING
 from sklearn.model_selection import cross_val_score
 from sklearn.base import clone
+import pandas as pd
+
 from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.optuna_param_converter import OptunaParamConverter
 from core.logging.logger_config import with_logging
-from time import time
-from sklearn.model_selection import train_test_split
-import pandas as pd
+
 
 @with_logging('optuna_training')
 class OptunaBayesianOptimizationTraining(BaseTraining):
+    """
+    Implementa otimização Bayesiana de hiperparâmetros usando Optuna.
+    """
+
     def __init__(self):
         super().__init__()
 
-    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+    def optimize_model(self, pipeline, model_name, model_params, selector_name,
+                       X_train, y_train, n_iter, cv, scoring, n_jobs=-1,
+                       selector_search_space=None) -> None:
+        """
+        Otimiza hiperparâmetros usando Optuna e treina o modelo final.
+        """
         set_verbosity(WARNING)
-        self.logger.info(f"Training and evaluating {model_name} with Optuna Optimization and {selector_name}")
-        print(f"Inside OptunaBayesianOptimizationTraining.optimize_model")
-
+        self.logger.info(
+            f"Otimizando {model_name} com Optuna e seletor {selector_name}")
 
         def objective(trial):
+            """Função objetivo para o Optuna otimizar."""
             try:
-                # Sugerir hiperparâmetros do modelo
-                model_hyperparams = OptunaParamConverter.suggest_parameters(trial, model_params, model_name)
-                 
-                # Sugerir hiperparâmetros do seletor
+                # Sugere hiperparâmetros do modelo e seletor
+                model_hyperparams = OptunaParamConverter.suggest_parameters(
+                    trial, model_params, model_name)
                 selector_hyperparams = OptunaParamConverter.suggest_selector_hyperparameters(
                     trial, selector_search_space) if selector_search_space else {}
-                
-                # Combinar os hiperparâmetros
+
+                # Configura pipeline com os hiperparâmetros sugeridos
                 hyperparams = {**model_hyperparams, **selector_hyperparams}
                 pipeline.set_params(**hyperparams)
-                
+
+                # Avalia performance usando validação cruzada
                 return cross_val_score(
                     estimator=pipeline,
                     X=X_train,
@@ -42,56 +52,56 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
                     cv=cv,
                     n_jobs=n_jobs
                 ).mean()
-                
+
             except Exception as e:
-                self.log_parameter_error(self.logger, model_name, hyperparams)
+                self.log_parameter_error(model_name, hyperparams)
                 return float('-inf')
 
-        # Criar um estudo do Optuna
-        study = optuna.create_study(direction='maximize', sampler=TPESampler())
-        
-        # Iniciar o tempo de otimização
-        start_time = time()
+        # Configura e executa a otimização
+        study = optuna.create_study(
+            direction='maximize',
+            sampler=TPESampler()
+        )
+
         study.optimize(objective, n_trials=n_iter)
-        total_time = time() - start_time
 
-        # Criar uma cópia do pipeline para o treinamento final
+        # Treina modelo final com melhores hiperparâmetros
         best_pipeline = clone(pipeline)
-
-        # Configurar com os melhores hiperparâmetros
         best_pipeline.set_params(**study.best_trial.params)
-
-        # Treinar o pipeline final com todos os dados de treinamento
         best_pipeline.fit(X_train, y_train)
 
-        # Log the results using the overridden method
-        self.log_search_results(self.logger, study, model_name, selector_name)
-        
-        # Armazenar os resultados
-        self.trained_models[f"{model_name}_{selector_name}"] = {
+        # Registra resultados
+        self.log_study_results(study, model_name, selector_name)
+
+        # Armazena informações do modelo treinado
+        self.trained_model_info = {
             'model': best_pipeline,
             'training_type': "Optuna",
             'hyperparameters': study.best_trial.params,
-            'cv_result': study.best_trial.value,
-            'optimization_time_seconds': total_time
+            'cv_result': study.best_trial.value
         }
 
-        # Log final do melhor resultado
-        self.logger.info(f"Optuna Optimization Best Result for {model_name} with {selector_name}: {study.best_trial.value}")
-    
-    @staticmethod
-    def log_search_results(logger, study, model_name, selector_name):
-        """Log the results of the Optuna optimization process."""
-        logger.info(f"Best parameters: {study.best_params}")
-        logger.info(f"Best cross-validation score: {study.best_value}")
 
-        # Log all hyperparameter combinations and their cross-validation results
-        logger.info("All hyperparameter combinations and their cross-validation results:")
-        nan_count = 0
+
+    def log_study_results(self, study: optuna.Study, model_name: str,
+                          selector_name: str) -> None:
+        """Registra resultados da otimização."""
+        self.logger.info(f"Melhores parâmetros: {study.best_params}")
+        self.logger.info(f"Melhor score CV: {study.best_value}")
+
+        # Registra todas as combinações testadas
+        self.logger.info(
+            "Todas as combinações de hiperparâmetros e seus resultados:")
+        trials_df = study.trials_dataframe()
+        failed_trials = trials_df['value'].isna().sum()
+
         for trial in study.trials:
-            mean_score = trial.value
-            params = trial.params
-            if pd.isna(mean_score):
-                nan_count += 1
-            logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
-        logger.info(f"Number of tests that resulted in NaN for {model_name}: {nan_count}")
+            if not pd.isna(trial.value):
+                self.logger.info(
+                    f"Parâmetros: {trial.params}, Score Médio: {trial.value}"
+                )
+
+        self.logger.info(
+            f"Número de tentativas que resultaram em NaN para {model_name}: {failed_trials}"
+        )
+

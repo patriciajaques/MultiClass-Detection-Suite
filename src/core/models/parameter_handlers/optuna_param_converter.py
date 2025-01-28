@@ -29,41 +29,37 @@ class OptunaParamConverter:
             
         return OptunaParamConverter._suggest_from_space(trial, param_space)
 
+    # src/core/models/parameter_handlers/optuna_param_converter.py
+
+
     def suggest_selector_hyperparameters(trial, selector_search_space):
-        """
-        Sugere hiperparâmetros para o seletor de features baseado no espaço de busca fornecido.
-        """
+        """Suggests hyperparameters for feature selector with improved handling."""
         if not selector_search_space:
             return {}
 
         suggested_params = {}
-        
-        for param_name, param_values in selector_search_space.items():
-            if isinstance(param_values, list):
-                # Se todos os valores são float, usar suggest_float
-                if all(isinstance(x, float) for x in param_values):
-                    suggested_params[param_name] = trial.suggest_float(
-                        param_name,
-                        min(param_values),
-                        max(param_values)
-                    )
-                # Se todos os valores são int, usar suggest_int
-                elif all(isinstance(x, int) for x in param_values):
+
+        for param_name, param_config in selector_search_space.items():
+            if isinstance(param_config, dict):
+                param_type = param_config.get('type')
+                if param_type == 'float':
+                    if 'values' in param_config:
+                        suggested_params[param_name] = trial.suggest_categorical(
+                            param_name, param_config['values']
+                        )
+                    else:
+                        range_vals = param_config['range']
+                        suggested_params[param_name] = trial.suggest_float(
+                            param_name, range_vals[0], range_vals[1]
+                        )
+                elif param_type == 'int':
+                    range_vals = param_config['range']
                     suggested_params[param_name] = trial.suggest_int(
-                        param_name,
-                        min(param_values),
-                        max(param_values)
+                        param_name, range_vals[0], range_vals[1]
                     )
-                # Caso contrário, usar categorical
-                else:
-                    suggested_params[param_name] = trial.suggest_categorical(
-                        param_name,
-                        param_values
-                    )
-            else:
-                # Para outros tipos de parâmetros
-                suggested_params[param_name] = OptunaParamConverter._suggest_single_parameter(
-                    trial, param_name, param_values
+            elif isinstance(param_config, list):
+                suggested_params[param_name] = trial.suggest_categorical(
+                    param_name, param_config
                 )
 
         return suggested_params

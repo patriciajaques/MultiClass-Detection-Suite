@@ -44,4 +44,4 @@ class GridSearchTraining(BaseTraining):
             }
 
         except Exception as e:
-            self.log_parameter_error(self.logger, model_name, param_grid)
+            self.log_parameter_error(model_name, param_grid)
