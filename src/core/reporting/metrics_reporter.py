@@ -1,5 +1,4 @@
 import os
-from core.models.model_manager import ModelManager
 from core.reporting.report_formatter import ReportFormatter
 from core.utils.path_manager import PathManager
 
@@ -81,11 +80,3 @@ def generate_reports(class_metrics_results, avg_metrics_results, filename_prefix
         except Exception as e:
             print(f"\nErro ao gerar relatório de matriz de confusão: {str(e)}")
 
-
-@staticmethod
-def save_models(trained_models, model_dir="../models/", filename_prefix=""):
-    # Salvar todos os modelos
-    saved_models = ModelManager.save_all_models(
-        trained_models, model_dir, filename_prefix)
-    print("Modelos salvos:", saved_models)
-    return saved_models

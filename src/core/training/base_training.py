@@ -13,19 +13,20 @@ class BaseTraining(ABC):
         self.trained_models: Dict[str, Any] = {}
         self.total_execution_time = 0
 
-
     def train_model(
         self,
         X_train,
         y_train,
         model_params,  # define os parâmetros do modelo para o dataset específico
-        selected_models: Optional[List[str]] = None, # Lista de nomes de modelos a serem treinados. Se None, usa todos os modelos.
-        selected_selectors: Optional[List[str]] = None, # Lista de nomes de seletores a serem utilizados. Se None, usa todos os seletores.
-        n_iter: int = 50, # Número de iterações para otimização.
-        cv: int = 5, # Número de folds para validação cruzada.
-        scoring: str = 'balanced_accuracy', # Métrica de avaliação.
-        n_jobs: int = -1 # Número de trabalhos paralelos.
-    ) -> Dict[str, Any]: # Dicionário contendo os modelos treinados e seus resultados.
+        # Lista de nomes de modelos a serem treinados. Se None, usa todos os modelos.
+        selected_models: Optional[List[str]] = None,
+        # Lista de nomes de seletores a serem utilizados. Se None, usa todos os seletores.
+        selected_selectors: Optional[List[str]] = None,
+        n_iter: int = 50,  # Número de iterações para otimização.
+        cv: int = 5,  # Número de folds para validação cruzada.
+        scoring: str = 'balanced_accuracy',  # Métrica de avaliação.
+        n_jobs: int = -1  # Número de trabalhos paralelos.
+    ) -> Dict[str, Any]:  # Dicionário contendo os modelos treinados e seus resultados.
         """
         Treina modelos com diferentes seletores de características.
         """
@@ -34,9 +35,11 @@ class BaseTraining(ABC):
 
         available_selector_names = FeatureSelectionFactory.get_available_selectors_names()
         # Filtrar modelos
-        models = self._filter_models(model_params.get_models(), selected_models)
+        models = self._filter_models(
+            model_params.get_models(), selected_models)
         # Filtrar seletores
-        selector_names = self._filter_selectors(selected_selectors, available_selector_names)
+        selector_names = self._filter_selectors(
+            selected_selectors, available_selector_names)
 
         for model_name, model_config in models.items():
             for selector_name in selector_names:
@@ -45,7 +48,8 @@ class BaseTraining(ABC):
                     selector_search_space = {}
                 else:
                     # Criar a instância do seletor diretamente dentro do loop
-                    selector_instance = FeatureSelectionFactory.create_selector(selector_name, X_train, y_train)
+                    selector_instance = FeatureSelectionFactory.create_selector(
+                        selector_name, X_train, y_train)
                     selector = selector_instance.selector  # Acessar o seletor criado no construtor
 
                     pipeline = self._create_pipeline(selector, model_config)
@@ -55,7 +59,7 @@ class BaseTraining(ABC):
                 self.optimize_model(
                     pipeline=pipeline,
                     model_name=model_name,
-                    model_params=model_params,  
+                    model_params=model_params,
                     selector_name=selector_name,
                     X_train=X_train,
                     y_train=y_train,
@@ -67,7 +71,7 @@ class BaseTraining(ABC):
                 )
 
         self.total_execution_time = time() - start_time
-        self._log_execution_time(len(models)) 
+        self._log_execution_time(len(models))
         return self.trained_models
 
     @abstractmethod
@@ -116,7 +120,8 @@ class BaseTraining(ABC):
             Dict[str, Any]: Dicionário filtrado de modelos.
         """
         if selected_models is not None:
-            filtered_models = {name: cfg for name, cfg in models.items() if name in selected_models}
+            filtered_models = {name: cfg for name,
+                               cfg in models.items() if name in selected_models}
             missing_models = set(selected_models) - set(filtered_models.keys())
             if missing_models:
                 raise ValueError(f"Modelos não encontrados: {missing_models}")
@@ -138,25 +143,28 @@ class BaseTraining(ABC):
             ValueError: Se algum seletor selecionado não for encontrado.
         """
         if selected_selectors is not None:
-            selector_names = [s for s in selected_selectors if s in available_selector_names or s == 'none']
+            selector_names = [
+                s for s in selected_selectors if s in available_selector_names or s == 'none']
             missing_selectors = set(selected_selectors) - set(selector_names)
             if missing_selectors:
-                raise ValueError(f"Seletores não encontrados: {missing_selectors}")
+                raise ValueError(
+                    f"Seletores não encontrados: {missing_selectors}")
             return selector_names
         return available_selector_names + ['none']
-    
+
     def log_parameter_error(self, logger, model_name: str, params: dict) -> None:
         """
         Método comum para logar erros de parâmetros inválidos.
-        
+
         Args:
             logger: Logger configurado
             model_name: Nome do modelo
             params: Parâmetros que causaram o erro
         """
-        logger.warning(f"Trial failed: Invalid parameter combination for {model_name}")
+        logger.warning(
+            f"Trial failed: Invalid parameter combination for {model_name}")
         logger.warning(f"Parameters that failed: {params}")
-    
+
     @staticmethod
     def log_search_results(logger, search, model_name, selector_name):
         """Log the results of the search process."""
@@ -166,28 +174,34 @@ class BaseTraining(ABC):
             logger.info(f"Best cross-validation score: {search.best_score_}")
 
         # Log all hyperparameter combinations and their cross-validation results
-        logger.info("All hyperparameter combinations and their cross-validation results:")
-        
+        logger.info(
+            "All hyperparameter combinations and their cross-validation results:")
+
         if hasattr(search, 'cv_results_'):
             cv_results = search.cv_results_
             success_count = 0
             for mean_score, params in zip(cv_results['mean_test_score'], cv_results['params']):
                 if not pd.isna(mean_score):
                     success_count += 1
-                    logger.info(f"Params: {params}, Mean Test Score: {mean_score}")
-            
-            logger.info(f"Number of successful trials for {model_name}: {success_count}")
-            logger.info(f"Number of failed trials for {model_name}: {len(cv_results['mean_test_score']) - success_count}")
+                    logger.info(
+                        f"Params: {params}, Mean Test Score: {mean_score}")
+
+            logger.info(
+                f"Number of successful trials for {model_name}: {success_count}")
+            logger.info(
+                f"Number of failed trials for {model_name}: {len(cv_results['mean_test_score']) - success_count}")
 
     def _log_execution_time(self, num_models):
         """
         Registra no log as informações sobre o tempo de execução do algoritmo.
-        
+
         Args:
             num_models (int): Número total de modelos treinados
         """
         algorithm_name = self.__class__.__name__.replace('Training', '')
         self.logger.info(f"\n{'='*50}")
-        self.logger.info(f"Tempo total de execução do {algorithm_name}: {self.total_execution_time:.2f} segundos")
-        self.logger.info(f"Média de tempo por modelo: {self.total_execution_time/num_models:.2f} segundos")
+        self.logger.info(
+            f"Tempo total de execução do {algorithm_name}: {self.total_execution_time:.2f} segundos")
+        self.logger.info(
+            f"Média de tempo por modelo: {self.total_execution_time/num_models:.2f} segundos")
         self.logger.info(f"{'='*50}\n")

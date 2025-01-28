@@ -1,1 +1,1 @@
-{"completed_stages": ["Random Forest_none", "Naive Bayes_none"], "last_stage": null}
+{"completed_pairs": ["naive_bayes_pca", "naive_bayes_none"]}

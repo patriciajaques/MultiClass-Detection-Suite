@@ -34,7 +34,7 @@ class BasePipeline(ABC):
         self.model_params = self._get_model_params()
 
     def _get_training_stages(self):
-        """Define os stages de treinamento usando configuração."""
+        """Define os stages (algoritmo e seletor) de treinamento usando configuração."""
         try:
             training_config = self.config.get_config('training_settings')
 
@@ -42,19 +42,17 @@ class BasePipeline(ABC):
             selectors = training_config.get('selectors', ['none'])
 
             stages = []
-            stage_num = 1
 
             for model in models:
                 for selector in selectors:
-                    stage_name = f'etapa_{stage_num}_{model.lower().replace(" ", "_")}_{selector}'
-                    stages.append((stage_name, [model], [selector]))
-                    stage_num += 1
+                    stage_name = f'{model.lower().replace(" ", "_")}_{selector}'
+                    stages.append((stage_name, model, selector))
 
             return stages
 
         except Exception as e:
             print(f"Erro ao carregar configurações de treinamento: {str(e)}")
-            return [('etapa_1_naive_bayes_none', ['Naive Bayes'], ['none'])]
+            return [('naive_bayes_none', ['Naive Bayes'], ['none'])]
 
     @abstractmethod
     def _get_model_params(self):
@@ -152,6 +150,6 @@ class BasePipeline(ABC):
         stages = self._get_training_stages()
 
         # Execute training stages
-        training_manager.execute_all_stages(training_manager, stages)
+        training_manager.execute_all_stages(stages)
 
         print("\nPipeline concluído!")

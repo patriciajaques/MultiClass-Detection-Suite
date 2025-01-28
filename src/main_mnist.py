@@ -8,6 +8,7 @@ def main():
     PathManager.set_module('mnist')
 
     pipeline = MNISTDetectionPipeline(
+        target_column='target',
         n_iter=50,
         n_jobs=6,
         test_size=0.2

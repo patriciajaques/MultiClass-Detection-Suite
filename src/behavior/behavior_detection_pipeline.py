@@ -272,6 +272,6 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Define training stages
         stages = self._get_training_stages()
 
-        training_manager.execute_all_stages(training_manager, stages)
+        training_manager.execute_all_stages(stages)
 
         print("\nPipeline concluído!")

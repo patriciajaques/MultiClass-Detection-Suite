@@ -1,14 +1,14 @@
 # stage_training_manager.py
 
 from datetime import datetime
-import json
 import os
 from core.evaluation.evaluation import Evaluation
 from core.management.checkpoint_manager import CheckpointManager
+from core.management.progress_tracker import ProgressTracker
 from core.management.results_manager import ResultsManager
+from core.models.model_persistence import ModelPersistence
 from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
 from core.reporting import metrics_reporter
-from core.utils.path_manager import PathManager
 
 
 class StageTrainingManager:
@@ -44,10 +44,11 @@ class StageTrainingManager:
         self.cv = cv
         self.scoring = scoring
         self.n_jobs = n_jobs
-        self.progress_file = PathManager.get_path('output') / 'progress.json'
         # Inicializar handlers
+        self.model_persistence = ModelPersistence()
         self.checkpoint_handler = CheckpointManager()
         self.results_handler = ResultsManager()
+        self.progress_tracker = ProgressTracker()
 
     def train_models(self, selected_models, selected_selectors):
         """Executa o treinamento dos modelos selecionados."""
@@ -117,86 +118,50 @@ class StageTrainingManager:
         print(f"Resultados carregados para {len(class_metrics)} modelos")
         return class_metrics, avg_metrics
     
-    def _load_progress(self):
-        """Carrega o progresso atual do treinamento."""
-        try:
-            with open(self.progress_file, 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return {'completed_stages': [], 'last_stage': None}
-            
-    def _save_progress(self, completed_stages, current_stage=None):
-        """Salva o progresso atual do treinamento."""
-        progress = {
-            'completed_stages': completed_stages,
-            'last_stage': current_stage
-        }
-        os.makedirs(os.path.dirname(self.progress_file), exist_ok=True)
-        with open(self.progress_file, 'w') as f:
-            json.dump(progress, f)
-    
-    def execute_all_stages(self, training_manager, stages):
+    def execute_all_stages(self, stages):
         """
         Executa todas as combinações de modelos e seletores, mantendo controle do progresso.
         """
-        progress = training_manager._load_progress()
-        completed_pairs = set(progress['completed_stages'])
-
-        # Exibe o status inicial
-        print("\nStatus de execução:")
-        for stage_name, models, selectors in stages:
-            for model in models:
-                for selector in selectors:
-                    pair = f"{model}_{selector}"
-                    print(
-                        f"{pair}: {'já executado' if pair in completed_pairs else 'pendente'}")
-
 
         # Executa cada combinação modelo/seletor
-        for stage_name, models, selectors in stages:
-            for model in models:
-                for selector in selectors:
-                    pair = f"{model}_{selector}"
-                    if pair in completed_pairs:
-                        print(f"\n{pair} já foi completado. Pulando...")
-                        continue
+        for stage_name, model, selector in stages:
+            if self.progress_tracker.is_completed(stage_name):
+                print(f"\n{stage_name} já foi completado. Pulando...")
+                continue
 
-                    print(f"\n{'='*50}")
-                    print(f"Iniciando {pair}")
-                    print(f"{'='*50}")
+            print(f"\n{'='*50}")
+            print(f"Iniciando {stage_name}")
+            print(f"{'='*50}")
 
-                    try:
-                        training_manager._save_progress(
-                            list(completed_pairs), pair)
-                        results = training_manager.execute_stage(
-                            stage_name, [model], [selector])
+            try:
+                results = self.execute_stage(
+                    stage_name, [model], [selector])
 
-                        if results:
-                            trained_models, class_metrics, avg_metrics = results
-                            print(f"\nGerando relatórios para {pair}...")
-                            metrics_reporter.generate_reports(
-                                class_metrics,
-                                avg_metrics,
-                                filename_prefix=f"_{pair}_"
-                            )
-                            completed_pairs.add(pair)
-                            training_manager._save_progress(list(completed_pairs))
-                            print(f"\n{pair} concluído com sucesso!")
+                if results:
+                    trained_models, class_metrics, avg_metrics = results
+                    print(f"\nGerando relatórios para {stage_name}...")
+                    metrics_reporter.generate_reports(
+                        class_metrics,
+                        avg_metrics,
+                        filename_prefix=f"_{stage_name}_"
+                    )
+                    self.progress_tracker.save_progress(stage_name)
+                    print(f"\n{stage_name} concluído com sucesso!")
 
-                    except Exception as e:
-                        print(f"\nErro em {pair}: {str(e)}")
-                        raise
+            except Exception as e:
+                print(f"\nErro em {stage_name}: {str(e)}")
+                raise
 
         # Gera relatórios finais após todas as execuções
-        self._generate_final_reports(training_manager)
+        self._generate_final_reports()
 
 
-    def _generate_final_reports(self, training_manager):
+    def _generate_final_reports(self):
         """
         Gera os relatórios finais consolidados após a execução de todos os stages.
         """
         print("\nGerando relatório final consolidado...")
-        class_metrics, avg_metrics = training_manager.combine_results()
+        class_metrics, avg_metrics = self.combine_results()
 
         if not class_metrics or not avg_metrics:
             print("Erro: Não foi possível carregar os resultados para gerar o relatório final")
