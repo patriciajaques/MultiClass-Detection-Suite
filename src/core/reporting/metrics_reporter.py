@@ -13,9 +13,6 @@ def generate_reports(class_metrics_results, avg_metrics_results, filename_prefix
     directory = PathManager.get_path('output')
     print(f"\nGerando relatórios no diretório: {directory}")
 
-    # Garante que o diretório existe
-    os.makedirs(directory, exist_ok=True)
-
     # Gera nomes dos arquivos com caminho completo
     text_report_file = os.path.join(
         directory, f"{filename_prefix}text_report.txt")

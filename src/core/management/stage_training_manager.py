@@ -143,7 +143,7 @@ class StageTrainingManager:
                     metrics_reporter.generate_reports(
                         class_metrics,
                         avg_metrics,
-                        filename_prefix=f"_{stage_name}_"
+                        filename_prefix=f"{stage_name}_"
                     )
                     self.progress_tracker.save_progress(stage_name)
                     print(f"\n{stage_name} concluído com sucesso!")
