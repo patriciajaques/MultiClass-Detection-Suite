@@ -1,4 +1,3 @@
-# src/core/pipeline/base_pipeline.py
 from abc import ABC, abstractmethod
 import pandas as pd
 from sklearn.pipeline import Pipeline

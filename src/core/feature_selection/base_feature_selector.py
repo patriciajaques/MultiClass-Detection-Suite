@@ -12,7 +12,10 @@ class BaseFeatureSelector(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         """Fit the selector to data."""
-        self.selector = self._create_selector()
+        self.X_train = X
+        self.y_train = y
+        if self.selector is None:
+            self.selector = self._create_selector()
         self.selector.fit(X, y)
         return self
 

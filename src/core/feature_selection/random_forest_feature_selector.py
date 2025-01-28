@@ -10,8 +10,9 @@ logger = logging.getLogger(__name__)
 
 class RandomForestFeatureSelector(BaseFeatureSelector):
     def __init__(self, X_train, y_train, max_features=None):
-        self.max_features = max_features
         super().__init__(X_train, y_train)
+        self.max_features = max_features
+        self.selector = self._create_selector() if X_train is not None else None
 
     def _create_selector(self):
         n_features = self.X_train.shape[1]
