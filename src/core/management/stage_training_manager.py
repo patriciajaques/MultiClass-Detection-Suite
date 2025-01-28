@@ -2,6 +2,7 @@ from typing import List, Tuple, Dict, Any
 
 from core.evaluation.evaluation import Evaluation
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
+from core.models.model_persistence import ModelPersistence
 from core.pipeline.base_pipeline import BasePipeline
 from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
 from core.reporting import metrics_reporter
@@ -24,6 +25,7 @@ class StageTrainingManager:
 
         # Initialize training strategy
         self.training_strategy = OptunaBayesianOptimizationTraining()
+        self.model_persistence = ModelPersistence()
 
     def execute_stage(self, model_name: str, selector_name: str) -> Dict[str, Any]:
         """Executes a single training stage with specified model and selector.
@@ -58,6 +60,21 @@ class StageTrainingManager:
                 n_jobs=self.n_jobs,
                 selector_search_space=selector_search_space
             )
+
+            if results:
+                # Salvar o modelo treinado
+                model_info = {
+                    'pipeline': results['model'],
+                    'hyperparameters': results['hyperparameters'],
+                    'cv_score': results['cv_result'],
+                    'training_type': results['training_type'],
+                    'model_name': model_name,
+                    'selector_name': selector_name
+                }
+                stage_name = f"{model_name}_{selector_name}"
+                saved_path = self.model_persistence.save_model(
+                    model_info, stage_name)
+                print(f"Model saved to: {saved_path}")
 
             return results
         except Exception as e:

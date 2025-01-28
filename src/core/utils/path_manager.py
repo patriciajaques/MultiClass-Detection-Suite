@@ -61,7 +61,7 @@ class PathManager:
                 'root': self._base_path,
                 'data': self._base_path / 'data',
                 'output': self._base_path / 'output',  # Garante path consistente
-                'models': self._base_path / 'models',
+                'models': self._base_path / 'output' / 'models',
                 'src': self._base_path / 'src',
                 'config': self._base_path / 'src' / self._module_name / 'config'
             }
