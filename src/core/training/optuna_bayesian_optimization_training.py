@@ -75,13 +75,11 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
 
         # Armazena informações do modelo treinado
         self.trained_model_info = {
-            'model': best_pipeline,
+            'pipeline': best_pipeline,
             'training_type': "Optuna",
             'hyperparameters': study.best_trial.params,
-            'cv_result': study.best_trial.value
+            'cv_score': study.best_trial.value
         }
-
-
 
     def log_study_results(self, study: optuna.Study, model_name: str,
                           selector_name: str) -> None:
@@ -104,4 +102,3 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
         self.logger.info(
             f"Número de tentativas que resultaram em NaN para {model_name}: {failed_trials}"
         )
-

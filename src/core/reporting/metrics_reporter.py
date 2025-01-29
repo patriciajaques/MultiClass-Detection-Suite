@@ -1,79 +1,59 @@
 import os
 from core.reporting.report_formatter import ReportFormatter
 from core.utils.path_manager import PathManager
+from core.reporting.classification_model_metrics import ClassificationModelMetrics
 
 
-@staticmethod
-def generate_reports(class_metrics_results, avg_metrics_results, filename_prefix="", force_overwrite=False):
-    """Gera relatórios a partir dos resultados da avaliação dos modelos."""
-    if not class_metrics_results or not avg_metrics_results:
-        print("Aviso: Resultados vazios ou inválidos")
-        return
+class MetricsReporter:
+    """Classe responsável por gerar relatórios a partir dos resultados da avaliação dos modelos."""
 
-    directory = PathManager.get_path('output')
-    print(f"\nGerando relatórios no diretório: {directory}")
+    @staticmethod
+    def generate_stage_report(model_metrics: ClassificationModelMetrics):
+        """
+        Gera relatório para um único modelo usando um objeto ClassificationModelMetrics.
+        
+        Args:
+            model_metrics: Objeto contendo todas as métricas do modelo
+        """
+        if not model_metrics:
+            print("Aviso: Objeto de métricas vazio ou inválido")
+            return
 
-    # Gera nomes dos arquivos com caminho completo
-    text_report_file = os.path.join(
-        directory, f"{filename_prefix}text_report.txt")
-    class_report_file = os.path.join(
-        directory, f"{filename_prefix}class_report.csv")
-    avg_metrics_file = os.path.join(
-        directory, f"{filename_prefix}avg_metrics_report.csv")
+        directory = PathManager.get_path('output')
+        stage_name = model_metrics.stage_name
 
-    print(f"Arquivos a serem gerados:")
-    print(f"- Relatório texto: {text_report_file}")
-    print(f"- Relatório de classes: {class_report_file}")
-    print(f"- Relatório de métricas médias: {avg_metrics_file}")
-
-    try:
-        # Gerar relatório textual
-        text_report = ReportFormatter.generate_text_report(
-            class_metrics_results, avg_metrics_results)
-        with open(text_report_file, 'w') as f:
-            f.write(text_report)
-        print(f"\nRelatório texto gerado: {text_report_file}")
-
-        # Gerar DataFrame detalhado dos relatórios por classe
-        class_report_df = ReportFormatter.generate_class_report_dataframe(
-            class_metrics_results)
-        class_report_df.to_csv(class_report_file, sep=';', index=False)
-        print(f"Relatório de classes gerado: {class_report_file}")
-
-        # Gerar DataFrame resumido dos relatórios de métricas médias
-        avg_metrics_report_df = ReportFormatter.generate_avg_metrics_report_dataframe(
-            avg_metrics_results)
-        avg_metrics_report_df.to_csv(avg_metrics_file, sep=';', index=False)
-        print(f"Relatório de métricas médias gerado: {avg_metrics_file}")
-
-        # Verificar se os arquivos foram criados
-        files_created = all(os.path.exists(f) for f in [
-                            text_report_file, class_report_file, avg_metrics_file])
-        if files_created:
-            print("\nTodos os arquivos foram gerados com sucesso!")
-            print(f"Tamanhos dos arquivos:")
-            print(f"- Texto: {os.path.getsize(text_report_file)} bytes")
-            print(f"- Classes: {os.path.getsize(class_report_file)} bytes")
-            print(f"- Métricas: {os.path.getsize(avg_metrics_file)} bytes")
-        else:
-            print("\nAVISO: Nem todos os arquivos foram gerados corretamente!")
-
-    except Exception as e:
-        print(f"\nErro ao gerar relatórios: {str(e)}")
-        import traceback
-        print(traceback.format_exc())
-
-    if filename_prefix != '_Final_':
         try:
-            confusion_matrix_file = os.path.join(
-                directory, f"{filename_prefix}confusion_matrix.txt")
+            # Gerar relatório textual
+            text_report = ReportFormatter.generate_text_report(model_metrics)
+            with open(os.path.join(directory, f"{stage_name}_text_report.txt"), 'w') as f:
+                f.write(text_report)
+
+            # Gerar relatório detalhado de classes
+            class_report_df = ReportFormatter.generate_class_report_dataframe(
+                model_metrics)
+            class_report_df.to_csv(
+                os.path.join(directory, f"{stage_name}_class_report.csv"),
+                sep=';',
+                index=False
+            )
+
+            # Gerar relatório de métricas médias
+            avg_metrics_df = ReportFormatter.generate_avg_metrics_report_dataframe(
+                model_metrics)
+            avg_metrics_df.to_csv(
+                os.path.join(
+                    directory, f"{stage_name}_avg_metrics_report.csv"),
+                sep=';',
+                index=False
+            )
+
+            # Gerar matriz de confusão
             confusion_matrix_report = ReportFormatter.generate_confusion_matrix_report(
-                class_metrics_results)
-            with open(confusion_matrix_file, 'w') as f:
+                model_metrics)
+            with open(os.path.join(directory, f"{stage_name}_confusion_matrix.txt"), 'w') as f:
                 f.write(confusion_matrix_report)
-            print(
-                f"Relatório de matriz de confusão gerado: {confusion_matrix_file}")
 
         except Exception as e:
-            print(f"\nErro ao gerar relatório de matriz de confusão: {str(e)}")
-
+            print(f"\nErro ao gerar relatórios para {stage_name}: {str(e)}")
+            import traceback
+            print(traceback.format_exc())

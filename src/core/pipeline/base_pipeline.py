@@ -58,8 +58,7 @@ class BasePipeline(ABC):
 
             for model in models:
                 for selector in selectors:
-                    stage_name = f'{model.lower().replace(" ", "_")}_{selector}'
-                    stages.append((stage_name, model, selector))
+                    stages.append((model, selector))
 
             return stages
 

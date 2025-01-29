@@ -1,3 +1,4 @@
+import core.utils.file_utils  as file_utils
 from core.utils.path_manager import PathManager
 from mnist.mnist_detection_pipeline import MNISTDetectionPipeline
 
@@ -20,5 +21,6 @@ def main():
 
 if __name__ == "__main__":
     print("Chamando função main()...")
+    output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
+    file_utils.clear_output_directory(output_dir)
     main()
-

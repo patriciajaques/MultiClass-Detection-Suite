@@ -1,6 +1,7 @@
 from sklearn.datasets import load_digits
 import pandas as pd
 
+from core.logging.feature_mapping_logger import FeatureMappingLogger
 from core.pipeline.base_pipeline import BasePipeline
 from core.preprocessors.data_splitter import DataSplitter
 from core.preprocessors.data_encoder import DataEncoder
@@ -11,7 +12,8 @@ from core.management.stage_training_manager import StageTrainingManager
 
 class MNISTDetectionPipeline(BasePipeline):
     def __init__(self, target_column='target', n_iter=50, n_jobs=6, test_size=0.2):
-        super().__init__(target_column=target_column, n_iter=n_iter, n_jobs=n_jobs, test_size=test_size)
+        super().__init__(target_column=target_column,
+                         n_iter=n_iter, n_jobs=n_jobs, test_size=test_size)
 
     def _get_model_params(self):
         """Implementação do método abstrato para obter parâmetros do modelo."""
@@ -47,8 +49,8 @@ class MNISTDetectionPipeline(BasePipeline):
             categorical_threshold=10,
             scaling_strategy='standard',
             select_numerical=True,
-            select_nominal=False,  # Modificação aqui: não selecionar colunas nominais
-            select_ordinal=False   # Modificação aqui: não selecionar colunas ordinais
+            select_nominal=False,  # não selecionar colunas nominais
+            select_ordinal=False   # não selecionar colunas ordinais
         )
         X_train = encoder.fit_transform(X_train)
         X_test = encoder.transform(X_test)

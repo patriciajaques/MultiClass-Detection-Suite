@@ -19,8 +19,8 @@ class BaseTraining(ABC):
     """
 
     def __init__(self):
-        self.trained_model_info = None
         self.execution_time = 0
+        self.trained_model_info = {}
 
     def train_model(self,
                     pipeline: Pipeline,
@@ -58,10 +58,7 @@ class BaseTraining(ABC):
 
             self.execution_time = time() - start_time
             self._log_execution_time(model_name, selector_name)
-
-            # Adiciona tempo de execução às informações do modelo
-            if self.trained_model_info:
-                self.trained_model_info['execution_time'] = self.execution_time
+            self.trained_model_info['execution_time'] = self.execution_time
 
             return self.trained_model_info
 

@@ -15,9 +15,6 @@ class PathManager:
             cls._instance._initialize()
         return cls._instance
 
-    # core/utils/path_manager.py
-
-
     def _find_project_root(self) -> Path:
         """Find project root by looking for project markers."""
         current_path = Path.cwd()

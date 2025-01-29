@@ -4,6 +4,7 @@ from core.logging.logger_config import with_logging
 from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.grid_search_param_converter import GridSearchParamConverter
 
+
 @with_logging('grid_search')
 class GridSearchTraining(BaseTraining):
     def __init__(self):
@@ -11,9 +12,11 @@ class GridSearchTraining(BaseTraining):
 
     def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
         try:
-            self.logger.info(f"Training and evaluating {model_name} with GridSearchCV and {selector_name}")
+            self.logger.info(
+                f"Training and evaluating {model_name} with GridSearchCV and {selector_name}")
 
-            param_grid = GridSearchParamConverter.convert_param_space(model_params, model_name)
+            param_grid = GridSearchParamConverter.convert_param_space(
+                model_params, model_name)
             if selector_search_space:
                 if isinstance(param_grid, list):
                     for subspace in param_grid:
@@ -28,19 +31,21 @@ class GridSearchTraining(BaseTraining):
                 n_jobs=n_jobs,
                 scoring=scoring,
                 verbose=0,
-                error_score=float('-inf')  # Retorna -inf em vez de levantar erro
+                # Retorna -inf em vez de levantar erro
+                error_score=float('-inf')
             )
 
             grid_search.fit(X_train, y_train)
-            
+
             # Log the results using ModelTraining's method
-            self.log_search_results(self.logger, grid_search, model_name, selector_name)
+            self.log_search_results(
+                self.logger, grid_search, model_name, selector_name)
 
             self.trained_models[f"{model_name}_{selector_name}"] = {
-                'model': grid_search.best_estimator_,
+                'pipeline': grid_search.best_estimator_,
                 'training_type': "GridSearchCV",
                 'hyperparameters': grid_search.best_params_,
-                'cv_result': grid_search.best_score_
+                'cv_score': grid_search.best_score_
             }
 
         except Exception as e:

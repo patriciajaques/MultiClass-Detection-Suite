@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
@@ -50,7 +48,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Remove undefined behaviors
         # data = self.data_cleaner.remove_instances_with_value(data, self.target_column, '?')
         # exibindo a quantidade de classes em comportamento
-        print(f"Classes de comportamento: {data['comportamento'].unique()}")
+        # print(f"Classes de comportamento: {data['comportamento'].unique()}")
 
         # Cria id único de sequencias
         data['sequence_id'] = self._create_sequence_ids(data)
@@ -63,7 +61,8 @@ class BehaviorDetectionPipeline(BasePipeline):
         cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
             ['ON TASK OUT', 'ON TASK CONVERSATION'], 'ON TASK OUT')
         # exibindo a quantidade de classes em comportamento
-        print(f"Classes de comportamento: {data[self.target_column].unique()}")
+        print(
+            f"Classes de comportamento: {cleaned_data[self.target_column].unique()}")
 
 
         return cleaned_data

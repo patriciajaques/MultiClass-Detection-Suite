@@ -1,11 +1,15 @@
+import traceback
 from typing import List, Tuple, Dict, Any
 
 from core.evaluation.evaluation import Evaluation
+from core.evaluation.model_evaluator import ModelEvaluator
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
+from core.management.progress_tracker import ProgressTracker
 from core.models.model_persistence import ModelPersistence
 from core.pipeline.base_pipeline import BasePipeline
+from core.reporting.classification_model_metrics import ClassificationModelMetrics
 from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
-from core.reporting import metrics_reporter
+from core.reporting.metrics_reporter import MetricsReporter
 
 
 class StageTrainingManager:
@@ -25,18 +29,21 @@ class StageTrainingManager:
 
         # Initialize training strategy
         self.training_strategy = OptunaBayesianOptimizationTraining()
-        self.model_persistence = ModelPersistence()
+        self.progress_tracker = ProgressTracker()
 
     def execute_stage(self, model_name: str, selector_name: str) -> Dict[str, Any]:
         """Executes a single training stage with specified model and selector.
-        
+
         Args:
             model_name: Name of the model to train
             selector_name: Name of the feature selector to use
-            
+
         Returns:
-            Dict containing trained model and results
+            Dict containing trained model and result
         """
+
+        stage_name = f"{model_name}_{selector_name}"
+
         try:
             print(f"\nExecuting stage: {model_name} with {selector_name}")
 
@@ -44,10 +51,11 @@ class StageTrainingManager:
             pipeline = self._create_pipeline(model_name, selector_name)
 
             # Get selector search space if applicable
-            selector_search_space = self._get_selector_search_space(selector_name)
+            selector_search_space = self._get_selector_search_space(
+                selector_name)
 
             # Train the model
-            results = self.training_strategy.train_model(
+            trained_model_info = self.training_strategy.train_model(
                 pipeline=pipeline,
                 X_train=self.X_train,
                 y_train=self.y_train,
@@ -61,48 +69,54 @@ class StageTrainingManager:
                 selector_search_space=selector_search_space
             )
 
-            if results:
-                # Salvar o modelo treinado
-                model_info = {
-                    'pipeline': results['model'],
-                    'hyperparameters': results['hyperparameters'],
-                    'cv_score': results['cv_result'],
-                    'training_type': results['training_type'],
-                    'model_name': model_name,
-                    'selector_name': selector_name
-                }
-                stage_name = f"{model_name}_{selector_name}"
-                saved_path = self.model_persistence.save_model(
-                    model_info, stage_name)
-                print(f"Model saved to: {saved_path}")
+            # Evaluate the model
+            model_metrics = ModelEvaluator.evaluate_single_model(
+                trained_model_info['pipeline'], self.X_train, self.y_train, self.X_test, self.y_test, stage_name
+            )
+            model_metrics.execution_time = trained_model_info['execution_time']
+            model_metrics.training_type = trained_model_info['training_type']
+            model_metrics.hyperparameters = trained_model_info['hyperparameters']
+            model_metrics.cv_score = trained_model_info['cv_score']
 
-            return results
+            # Generate reports
+            MetricsReporter.generate_stage_report(model_metrics)
+
+            # Save trained model
+            ModelPersistence.save_model(pipeline, stage_name)
+
+            return model_metrics
         except Exception as e:
-            print(f"Error in stage {model_name} with {selector_name}: {str(e)}")
+            print(f"Error in {self.__class__.__name__}.execute_stage: {model_name} with {selector_name}. "
+                  f"Exception: {str(e)}. Traceback: {traceback.format_exc()}")
             return None
-
 
     def execute_all_stages(self, stages: List[Tuple[str, str, str]]):
         completed_stages = []
         failed_stages = []
 
-        for stage_name, model_name, selector_name in stages:
+        print("\n=== Executando todos os estágios ===")
+        print("\nEstágios a serem executados:")
+        stage_names = [
+            f"{model_name} with {selector_name}" for model_name, selector_name in stages]
+        print("\n" + ", ".join(stage_names) + "\n")
+
+        for model_name, selector_name in stages:
+            stage_name = f"{model_name}_{selector_name}"
             try:
-                results = self.execute_stage(model_name, selector_name)
-                if results:
-                    completed_stages.append(stage_name)
-                    self._generate_stage_reports(results, stage_name)
+                # Check if stage has already been completed
+                if self.progress_tracker.is_completed(stage_name):
+                    print(f"Stage {stage_name} already completed. Skipping...")
                 else:
-                    failed_stages.append(stage_name)
+                    self.execute_stage(model_name, selector_name)
+                    completed_stages.append(stage_name)
+                    self.progress_tracker.save_progress(stage_name)
+
             except Exception as e:
                 failed_stages.append(stage_name)
                 print(f"Error in stage {stage_name}: {str(e)}")
                 continue
 
-        if completed_stages:
-            print(f"\nCompleted stages: {', '.join(completed_stages)}")
-        if failed_stages:
-            print(f"\nFailed stages: {', '.join(failed_stages)}")
+        self._print_execution_summary(completed_stages, failed_stages)
 
     def _create_pipeline(self, model_name: str, selector_name: str):
         """Creates a pipeline with specified model and selector."""
@@ -128,41 +142,33 @@ class StageTrainingManager:
         )
         return selector.get_search_space()
 
-    def _generate_stage_reports(self, results: Dict, stage_name: str):
-        try:
-            class_metrics, avg_metrics = Evaluation.evaluate_all_models(
-                {stage_name: results},
-                self.X_train, self.y_train,
-                self.X_test, self.y_test
-            )
-
-            # Free memory after generating reports
-            metrics_reporter.generate_reports(
-                class_metrics,
-                avg_metrics,
-                filename_prefix=f"{stage_name}_"
-            )
-            del class_metrics
-            del avg_metrics
-        except Exception as e:
-            print(f"Error generating reports for stage {stage_name}: {str(e)}")
-
     def _generate_final_reports(self, all_results: Dict):
-        """Generates consolidated final reports."""
+        """Gera relatórios consolidados finais."""
         print("\nGenerating final consolidated reports...")
 
-        # Evaluate all models
-        class_metrics, avg_metrics = Evaluation.evaluate_all_models(
+        # Avaliar todos os modelos
+        models_metrics = Evaluation.evaluate_all_models(
             all_results,
             self.X_train, self.y_train,
             self.X_test, self.y_test
         )
 
-        # Generate final reports
-        metrics_reporter.generate_reports(
-            class_metrics,
-            avg_metrics,
+        # Gerar relatórios finais
+        MetricsReporter.generate_reports(
+            models_metrics['class_metrics'],
+            models_metrics['avg_metrics'],
             filename_prefix="_Final_",
             force_overwrite=True
         )
 
+    def _print_execution_summary(self, completed_stages, failed_stages):
+        print("\n=== Sumário da Execução ===")
+        if completed_stages:
+            print(
+                f"\nEstágios completados nesta execução: {', '.join(completed_stages)}")
+        if failed_stages:
+            print(f"\nEstágios com falha: {', '.join(failed_stages)}")
+
+        all_completed = self.progress_tracker.completed_pairs
+        print(f"\nTotal de estágios já completados: {len(all_completed)}")
+        print(f"Estágios completados: {', '.join(all_completed)}")
