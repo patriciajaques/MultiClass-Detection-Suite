@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 
@@ -14,22 +15,43 @@ class RandomForestFeatureSelector(BaseFeatureSelector):
         self.max_features = max_features
         self.selector = self._create_selector() if X_train is not None else None
 
+    # Em random_forest_feature_selector.py, método _create_selector:
+
+
     def _create_selector(self):
-        n_features = self.X_train.shape[1]
+
+        # 1. Cria o estimador Random Forest base
         estimator = RandomForestClassifier(n_estimators=100, random_state=42)
-        estimator.fit(self.X_train, self.y_train)
-        
-        # Se max_features não for especificado, use metade das features
-        if self.max_features is None or self.max_features == 'auto':
-            self.max_features = max(1, n_features // 2)
-        elif isinstance(self.max_features, float):
-            self.max_features = max(1, int(self.max_features * n_features))
-        
-        selector = SelectFromModel(estimator, max_features=self.max_features)
-        
+
+        # 2. Verifica se os dados de entrada são um DataFrame
+        if isinstance(self.X_train, pd.DataFrame):
+            # 2.1 Se for DataFrame, guarda os nomes das colunas
+            feature_names = self.X_train.columns.tolist()
+
+            # 2.2 Treina o Random Forest
+            estimator.fit(self.X_train, self.y_train)
+
+            # 2.3 Cria o seletor de features usando o modelo já treinado
+            selector = SelectFromModel(
+                estimator,
+                max_features=self.max_features,
+                prefit=True  # Indica que o estimador já está treinado
+            )
+
+            # 2.4 Armazena explicitamente os nomes das features no seletor
+            selector.feature_names_in_ = feature_names
+        else:
+            # 3. Se não for DataFrame, segue o fluxo normal
+            estimator.fit(self.X_train, self.y_train)
+            selector = SelectFromModel(
+                estimator,
+                max_features=self.max_features
+            )
+
+        # 4. Log do número de features selecionadas
         selected_features = selector.get_support().sum()
         logger.info(f"Selected {selected_features} features")
-        
+
         return selector
 
     def get_search_space(self):

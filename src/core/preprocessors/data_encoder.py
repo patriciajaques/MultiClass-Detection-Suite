@@ -150,13 +150,6 @@ class DataEncoder():
         y_encoded = self.label_encoder.fit_transform(y)
         self._is_fitted = True
 
-        # Validação pós-encoding
-        unique_encoded = np.unique(y_encoded)
-        if len(unique_encoded) > self.categorical_threshold:
-            raise ValueError(
-                f"Número de classes ({len(unique_encoded)}) maior que o esperado ({self.categorical_threshold})"
-            )
-
         return y_encoded
 
     def transform_y(self, y):

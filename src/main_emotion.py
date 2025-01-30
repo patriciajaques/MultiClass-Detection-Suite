@@ -1,5 +1,6 @@
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
 from behavior.behavior_data_loader import BehaviorDataLoader
+from core.utils import file_utils
 from core.utils.path_manager import PathManager
 
 
@@ -67,4 +68,6 @@ def main():
 
 
 if __name__ == "__main__":
+    output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
+    file_utils.clear_output_directory(output_dir)
     main()

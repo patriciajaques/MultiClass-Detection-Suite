@@ -1,7 +1,6 @@
 import pandas as pd
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
 
-
 class ReportFormatter:
     DEFAULT_PRECISION = 4
 
@@ -21,7 +20,7 @@ class ReportFormatter:
     def _format_dict(metrics: dict) -> str: 
         """Formata métricas gerais"""
         formatted_metrics = {k: ReportFormatter.format_float(v) for k, v in metrics.items()}
-        return "".join(f"{k}: {v}" for k, v in formatted_metrics.items())
+        return "\n".join(f"{k}: {v}" for k, v in formatted_metrics.items())
     
     @staticmethod
     def format_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -50,6 +49,9 @@ class ReportFormatter:
         # Cross-validation results
         report_output += f"\nCross-Validation Results:\n"
         report_output += f"Average Score: {ReportFormatter.format_float(model_metrics.cv_score)}\n"
+
+        # Tempo de treinamento
+        report_output += f"Training Time: {ReportFormatter.format_float(model_metrics.execution_time)} seconds\n"
 
         # Train and test results
         report_output += ReportFormatter._format_set_report(
@@ -125,6 +127,10 @@ class ReportFormatter:
         # Adicionar linha 'CV Score' na coluna 'Train'
         cv_score_df = pd.DataFrame({'Train': [model_metrics.cv_score]}, index=['CV Score'])
         combined_df = pd.concat([combined_df, cv_score_df])
+
+        # Adicionar linha 'Execution Time' na coluna 'Train'
+        exec_time_df = pd.DataFrame({'Train': [model_metrics.execution_time]}, index=['Execution Time'])
+        combined_df = pd.concat([combined_df, exec_time_df])
 
         combined_df = ReportFormatter.format_dataframe(combined_df.reset_index().rename(
             columns={'index': 'Metric'}))

@@ -2,7 +2,8 @@ import os
 import shutil
 
 
-def clear_output_directory(directory):
+def clear_output_directory(directory='output'): 
+    
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         try:

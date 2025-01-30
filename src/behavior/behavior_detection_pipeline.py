@@ -53,8 +53,8 @@ class BehaviorDetectionPipeline(BasePipeline):
             data, use_config=True)
         
         # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
-        cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
-            ['ON TASK OUT', 'ON TASK CONVERSATION'], 'ON TASK OUT')
+        # cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
+        #     ['ON TASK OUT', 'ON TASK CONVERSATION'], 'ON TASK OUT')
         # exibindo a quantidade de classes em comportamento
         print(
             f"Classes de comportamento: {cleaned_data[self.target_column].unique()}")
@@ -86,10 +86,10 @@ class BehaviorDetectionPipeline(BasePipeline):
         self._validate_split_columns(data)
 
         # 1. Criar features temporais [NOVO]
-        print("\nCriando features temporais...")
-        temporal_processor = TemporalFeaturesProcessor()
-        data = temporal_processor.fit_transform(data)
-        print(f"Shape após features temporais: {data.shape}")
+        # print("\nCriando features temporais...")
+        # temporal_processor = TemporalFeaturesProcessor()
+        # data = temporal_processor.fit_transform(data)
+        # print(f"Shape após features temporais: {data.shape}")
 
     
         # 2. Encode target (generally, not needed for most models)
