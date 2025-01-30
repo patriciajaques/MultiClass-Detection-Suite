@@ -57,3 +57,23 @@ class MetricsReporter:
             print(f"\nErro ao gerar relatórios para {stage_name}: {str(e)}")
             import traceback
             print(traceback.format_exc())
+
+    @staticmethod
+    def generate_final_report():
+        """Gera relatório consolidado de todas as métricas."""
+        metrics_df = MetricsPersistence.get_all_metrics()
+
+        if metrics_df.empty:
+            print("Nenhuma métrica encontrada.")
+            return
+
+        print("\n=== Relatório Consolidado de Métricas ===")
+        print("\nMétricas médias por modelo:")
+        print(metrics_df.groupby('stage_name')[
+              ['balanced_accuracy', 'precision', 'recall', 'f1-score']].mean())
+
+        # Salvar relatório
+        output_dir = PathManager.get_path('output')
+        metrics_df.to_csv(output_dir / 'consolidated_metrics.csv', index=False)
+        print(
+            f"\nRelatório completo salvo em: {output_dir}/consolidated_metrics.csv")

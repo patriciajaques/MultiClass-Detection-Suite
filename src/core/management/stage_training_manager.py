@@ -1,13 +1,13 @@
 import traceback
 from typing import List, Tuple, Dict, Any
 
-from core.evaluation.evaluation import Evaluation
 from core.evaluation.model_evaluator import ModelEvaluator
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
 from core.management.progress_tracker import ProgressTracker
 from core.models.model_persistence import ModelPersistence
 from core.pipeline.base_pipeline import BasePipeline
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
+from core.reporting.metrics_persistence import MetricsPersistence
 from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
 from core.reporting.metrics_reporter import MetricsReporter
 
@@ -31,7 +31,7 @@ class StageTrainingManager:
         self.training_strategy = OptunaBayesianOptimizationTraining()
         self.progress_tracker = ProgressTracker()
 
-    def execute_stage(self, model_name: str, selector_name: str) -> Dict[str, Any]:
+    def execute_stage(self, model_name: str, selector_name: str) -> ClassificationModelMetrics:
         """Executes a single training stage with specified model and selector.
 
         Args:
@@ -93,6 +93,7 @@ class StageTrainingManager:
     def execute_all_stages(self, stages: List[Tuple[str, str, str]]):
         completed_stages = []
         failed_stages = []
+        all_metrics = []
 
         print("\n=== Executando todos os estágios ===")
         print("\nEstágios a serem executados:")
@@ -106,11 +107,13 @@ class StageTrainingManager:
                 # Check if stage has already been completed
                 if self.progress_tracker.is_completed(stage_name):
                     print(f"Stage {stage_name} already completed. Skipping...")
+                    model_metrics = MetricsPersistence.load_metrics(stage_name)
                 else:
-                    self.execute_stage(model_name, selector_name)
+                    model_metrics = self.execute_stage(model_name, selector_name)
+                    MetricsPersistence.save_metrics(model_metrics, stage_name)
                     completed_stages.append(stage_name)
                     self.progress_tracker.save_progress(stage_name)
-
+                all_metrics.append(model_metrics)
             except Exception as e:
                 failed_stages.append(stage_name)
                 print(f"Error in stage {stage_name}: {str(e)}")
@@ -142,24 +145,6 @@ class StageTrainingManager:
         )
         return selector.get_search_space()
 
-    def _generate_final_reports(self, all_results: Dict):
-        """Gera relatórios consolidados finais."""
-        print("\nGenerating final consolidated reports...")
-
-        # Avaliar todos os modelos
-        models_metrics = Evaluation.evaluate_all_models(
-            all_results,
-            self.X_train, self.y_train,
-            self.X_test, self.y_test
-        )
-
-        # Gerar relatórios finais
-        MetricsReporter.generate_reports(
-            models_metrics['class_metrics'],
-            models_metrics['avg_metrics'],
-            filename_prefix="_Final_",
-            force_overwrite=True
-        )
 
     def _print_execution_summary(self, completed_stages, failed_stages):
         print("\n=== Sumário da Execução ===")

@@ -60,7 +60,7 @@ class ReportFormatter:
                    if set_name == "Train"
                    else model_metrics.test_metrics)
 
-        output += ReportFormatter._format_classification_report(class_report)
+        output += ReportFormatter._dict_to_df(class_report).to_string(index=False)
         output += f"\n\n{set_name} set average metrics:\n"
         output += ReportFormatter._format_metrics(metrics)
 
@@ -82,36 +82,52 @@ class ReportFormatter:
     @staticmethod
     def generate_avg_metrics_report_dataframe(model_metrics: ClassificationModelMetrics) -> pd.DataFrame:
         """Gera DataFrame com métricas médias do modelo"""
-
+    
         # Criar DataFrames separados para treino e teste
-        train_df = ReportFormatter._dict_to_df(
-            model_metrics.train_metrics, '-train')
-        test_df = ReportFormatter._dict_to_df(
-            model_metrics.test_metrics, '-test')
-
+        train_df = pd.DataFrame.from_dict(
+            model_metrics.train_metrics, orient='index', columns=['Train'])
+        test_df = pd.DataFrame.from_dict(
+            model_metrics.test_metrics, orient='index', columns=['Test'])
+    
         # Combinar os DataFrames
         combined_df = train_df.join(test_df, how='outer')
-
-        # Adicionar coluna 'CV Score' com o valor de model_metrics.cv_score
-        combined_df.insert(0, 'CV Score', model_metrics.cv_score)
-
-        # Adicionar coluna 'Modelo-Seletor' com o nome do modelo e seletor
-        combined_df.insert(0, 'Modelo-Seletor', model_metrics.stage_name)
-
-        return combined_df.reset_index().rename(columns={'index': 'Class'})
+    
+        # Adicionar linha 'CV Score' na coluna 'Train'
+        cv_score_df = pd.DataFrame({'Train': [model_metrics.cv_score]}, index=['CV Score'])
+        combined_df = pd.concat([combined_df, cv_score_df])
+    
+        return combined_df.reset_index().rename(columns={'index': 'Metric'})
 
     @staticmethod
     def generate_confusion_matrix_report(model_metrics: ClassificationModelMetrics) -> str:
         """Gera relatório formatado das matrizes de confusão"""
         report = f"\nModel: {model_metrics.stage_name}\n"
 
+        # Extrai os labels das classes
+        labels = model_metrics.class_labels if model_metrics.class_labels else None
+
+        # Processa matriz de treino
         report += "\nTrain Confusion Matrix:\n"
         report += "Predicted →\nActual ↓\n"
-        report += model_metrics.confusion_matrix_train.to_string()
+        # Extrai matriz da tupla
+        cm_train = model_metrics.confusion_matrix_train[0]
+        cm_train_df = pd.DataFrame(
+            cm_train,
+            index=labels,
+            columns=labels
+        )
+        report += cm_train_df.to_string()
 
+        # Processa matriz de teste
         report += "\n\nTest Confusion Matrix:\n"
         report += "Predicted →\nActual ↓\n"
-        report += model_metrics.confusion_matrix_test.to_string()
+        cm_test = model_metrics.confusion_matrix_test[0]  # Extrai matriz da tupla
+        cm_test_df = pd.DataFrame(
+            cm_test,
+            index=labels,
+            columns=labels
+        )
+        report += cm_test_df.to_string()
 
         report += "\n" + "="*50 + "\n"
         return report
@@ -147,19 +163,16 @@ class ReportFormatter:
     @staticmethod
     def _format_metrics(metrics: dict) -> str:
         """Formata métricas gerais"""
-        return "\n".join(f"{k}: {v:.4f}" for k, v in metrics.items())
+        return "\n".join(f"{k}: {v:.4f}" for k, v in metrics.items()) + "\n\n"
 
     @staticmethod
-    def _dict_to_df(report_dict, suffix):
+    def _dict_to_df(report_dict, suffix="") -> pd.DataFrame:
         """Gera DataFrame com métricas detalhadas de um relatório de classificação."""
         if not isinstance(report_dict, dict):
             return pd.DataFrame()  # Retorna DataFrame vazio se não for dicionário
     
         # Filtra apenas as entradas que são dicionários (métricas por classe)
         class_metrics = {k: v for k, v in report_dict.items() if isinstance(v, dict)}
-    
-        if not class_metrics:  # Se não houver métricas por classe
-            return pd.DataFrame()
     
         df = pd.DataFrame.from_dict(class_metrics, orient='index')
         if suffix:

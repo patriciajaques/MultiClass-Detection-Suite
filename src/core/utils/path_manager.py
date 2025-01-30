@@ -60,7 +60,8 @@ class PathManager:
                 'output': self._base_path / 'output',  # Garante path consistente
                 'models': self._base_path / 'output' / 'models',
                 'src': self._base_path / 'src',
-                'config': self._base_path / 'src' / self._module_name / 'config'
+                'config': self._base_path / 'src' / self._module_name / 'config',
+                'metrics': self._base_path / 'output' / 'metrics',
             }
 
             # Validação dos diretórios críticos
@@ -71,7 +72,7 @@ class PathManager:
                         f"Diretório {dir_name} não encontrado em {self._base_path}")
 
             # Criação dos diretórios de output
-            for path in ['output', 'models']:
+            for path in ['output', 'models', 'metrics']:
                 self._paths[path].mkdir(parents=True, exist_ok=True)
 
     @classmethod
