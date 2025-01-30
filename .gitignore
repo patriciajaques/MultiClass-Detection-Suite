@@ -25,7 +25,7 @@ node_modules/
 # Ignorar arquivos de configuração do VS Code
 .history
 .idea/
-.coverage
+.coverage*
 
 # Ignorar arquivos compilados Python
 *.pyc

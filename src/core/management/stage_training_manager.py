@@ -45,8 +45,6 @@ class StageTrainingManager:
         stage_name = f"{model_name}_{selector_name}"
 
         try:
-            print(f"\nExecuting stage: {model_name} with {selector_name}")
-
             # Create pipeline
             pipeline = self._create_pipeline(model_name, selector_name)
 
@@ -109,6 +107,7 @@ class StageTrainingManager:
                     print(f"Stage {stage_name} already completed. Skipping...")
                     model_metrics = MetricsPersistence.load_metrics(stage_name)
                 else:
+                    print(f"\n=== Executando estágio: {model_name} com {selector_name} ===")
                     model_metrics = self.execute_stage(model_name, selector_name)
                     MetricsPersistence.save_metrics(model_metrics, stage_name)
                     completed_stages.append(stage_name)
@@ -118,7 +117,7 @@ class StageTrainingManager:
                 failed_stages.append(stage_name)
                 print(f"Error in stage {stage_name}: {str(e)}")
                 continue
-
+        MetricsReporter.generate_final_report(all_metrics)
         self._print_execution_summary(completed_stages, failed_stages)
 
     def _create_pipeline(self, model_name: str, selector_name: str):

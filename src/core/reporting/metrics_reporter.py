@@ -1,4 +1,6 @@
 import os
+
+import pandas as pd
 from core.reporting.report_formatter import ReportFormatter
 from core.utils.path_manager import PathManager
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
@@ -57,23 +59,25 @@ class MetricsReporter:
             print(f"\nErro ao gerar relatórios para {stage_name}: {str(e)}")
             import traceback
             print(traceback.format_exc())
+      
 
     @staticmethod
-    def generate_final_report():
-        """Gera relatório consolidado de todas as métricas."""
-        metrics_df = MetricsPersistence.get_all_metrics()
+    def generate_final_report(all_metrics: list[ClassificationModelMetrics]):
+        """Generates a consolidated report of all metrics in a structured format."""
 
-        if metrics_df.empty:
-            print("Nenhuma métrica encontrada.")
-            return
+        METRIC_COLUMNS = ['balanced_accuracy','f1-score', 'precision', 'recall', 'kappa']
+        metrics_df = pd.DataFrame([
+            {
+                'Model': m.stage_name,
+                'CV Score': m.cv_score,
+                **{f'{k}-train': m.train_metrics[k] for k in METRIC_COLUMNS},
+                **{f'{k}-test': m.test_metrics[k] for k in METRIC_COLUMNS}
+            }
+            for m in all_metrics
+        ])
 
-        print("\n=== Relatório Consolidado de Métricas ===")
-        print("\nMétricas médias por modelo:")
-        print(metrics_df.groupby('stage_name')[
-              ['balanced_accuracy', 'precision', 'recall', 'f1-score']].mean())
-
-        # Salvar relatório
-        output_dir = PathManager.get_path('output')
-        metrics_df.to_csv(output_dir / 'consolidated_metrics.csv', index=False)
-        print(
-            f"\nRelatório completo salvo em: {output_dir}/consolidated_metrics.csv")
+        metrics_df.to_csv(
+            PathManager.get_path('output') / 'consolidated_metrics.csv',
+            sep=';',
+            index=False
+        )
