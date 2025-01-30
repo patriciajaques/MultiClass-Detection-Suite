@@ -1,8 +1,8 @@
 training_settings:
   models:
     # - "Logistic Regression"
-    # - "Decision Tree"
-    - "Random Forest"
+    - "Decision Tree"
+    # - "Random Forest"
     # - "Gradient Boosting"
     # - "SVM"
     # - "KNN"
@@ -11,7 +11,7 @@ training_settings:
     # - "MLP"
 
   selectors:
-    - "none"
+    # - "none"
     # - "pca"
     # - "rfe"
     - "rf"

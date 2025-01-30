@@ -42,49 +42,62 @@ class LoggerConfig:
     @staticmethod
     def configure_log_file(file_main_name='bayesian_optimization', log_extension=".log", logger_name=None):
         """
-        Configura um arquivo de log. Pode configurar o logger raiz ou um logger nomeado.
-
-        Args:
-            file_main_name (str): Nome base para o arquivo de log.
-            log_extension (str): Extensão do arquivo de log.
-            logger_name (str, optional): Nome do logger a ser configurado. Se None, configura o logger raiz.
+        Configura um arquivo de log com handlers separados para logs gerais e erros.
         """
         output_dir = LoggerConfig._get_output_directory()
-        log_filename = LoggerConfig._generate_log_filename(file_main_name, log_extension)
+
+        # Arquivo para logs gerais
+        log_filename = LoggerConfig._generate_log_filename(
+            file_main_name, log_extension)
         log_file_path = os.path.join(output_dir, log_filename)
-        
+
+        # Arquivo específico para erros e warnings
+        error_filename = LoggerConfig._generate_log_filename(
+            f"{file_main_name}_errors", log_extension)
+        error_file_path = os.path.join(output_dir, error_filename)
+
         if logger_name:
             logger = logging.getLogger(logger_name)
             logger.setLevel(logging.DEBUG)
-            
-            # Evita adicionar múltiplos handlers se já existirem
-            if not logger.handlers:
-                # Handler para arquivo com nível DEBUG
-                fh = logging.FileHandler(log_file_path)
-                fh.setLevel(logging.DEBUG)
-                
-                # Handler para console com nível INFO
-                ch = logging.StreamHandler()
-                ch.setLevel(logging.INFO)
-                
-                # Formatação dos logs
-                formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
-                fh.setFormatter(formatter)
-                ch.setFormatter(formatter)
-                
-                # Adiciona os handlers ao logger
-                logger.addHandler(fh)
-                logger.addHandler(ch)
-        else:
-            # Configura o logger raiz se ainda não estiver configurado
-            root_logger = logging.getLogger()
-            if not root_logger.handlers:
-                logging.basicConfig(
-                    filename=log_file_path,
-                    level=logging.INFO,
-                    filemode='w',
-                    format='%(asctime)s:%(levelname)s:%(message)s'
-                )
+
+            # Limpa handlers existentes
+            if logger.handlers:
+                logger.handlers.clear()
+
+            # Handler para arquivo geral (DEBUG e acima)
+            fh = logging.FileHandler(log_file_path)
+            fh.setLevel(logging.DEBUG)
+
+            # Handler específico para erros e warnings
+            error_fh = logging.FileHandler(error_file_path)
+            error_fh.setLevel(logging.WARNING)
+
+            # Handler para console (INFO e acima)
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.INFO)
+
+            # Formatação dos logs
+            formatter = logging.Formatter(
+                '%(asctime)s | %(name)s | %(levelname)s | %(message)s')
+            fh.setFormatter(formatter)
+            error_fh.setFormatter(formatter)
+            ch.setFormatter(formatter)
+
+            # Adiciona os handlers ao logger
+            logger.addHandler(fh)
+            logger.addHandler(error_fh)
+            logger.addHandler(ch)
+
+            # Configura o capturador de warnings
+            def warning_to_logger(message, category, filename, lineno, file=None, line=None):
+                warning_message = f"{filename}:{lineno}: {category.__name__}: {message}"
+                logger.warning(warning_message)
+
+            # Substitui o handler padrão de warnings pelo nosso
+            warnings.showwarning = warning_to_logger
+
+            # Força todos os warnings a serem mostrados
+            warnings.filterwarnings('always')
 
     @staticmethod
     def _get_output_directory():

@@ -92,7 +92,7 @@ class ReportFormatter:
                    if set_name == "Train"
                    else model_metrics.test_metrics)
 
-        output += ReportFormatter._dict_to_df(class_report).to_string(index=False)
+        output += ReportFormatter._dict_to_df(class_report).to_string(index=True)
         output += f"\n\n{set_name} set average metrics:\n"
         output += ReportFormatter._format_dict(metrics)+"\n"
 

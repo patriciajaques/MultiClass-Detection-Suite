@@ -1,4 +1,6 @@
+import logging
 from time import time
+import traceback
 import optuna
 from optuna.samplers import TPESampler
 from optuna.logging import set_verbosity, WARNING
@@ -19,6 +21,7 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
 
     def __init__(self):
         super().__init__()
+        self.logger.setLevel(logging.DEBUG)
 
     def optimize_model(self, pipeline, model_name, model_params, selector_name,
                        X_train, y_train, n_iter, cv, scoring, n_jobs=-1,
@@ -26,7 +29,7 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
         """
         Otimiza hiperparâmetros usando Optuna e treina o modelo final.
         """
-        set_verbosity(WARNING)
+        
         self.logger.info(
             f"Otimizando {model_name} com Optuna e seletor {selector_name}")
 
@@ -44,7 +47,7 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
                 pipeline.set_params(**hyperparams)
 
                 # Avalia performance usando validação cruzada
-                return cross_val_score(
+                cv_mean_score = cross_val_score(
                     estimator=pipeline,
                     X=X_train,
                     y=y_train,
@@ -52,9 +55,16 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
                     cv=cv,
                     n_jobs=n_jobs
                 ).mean()
+                self.logger.info(
+                    f"Trial completed successfully. Score: {cv_mean_score}")
+
+                return cv_mean_score
+            
 
             except Exception as e:
-                self.log_parameter_error(model_name, hyperparams)
+                self.logger.error(f"Cross-validation failed: {str(e)}")
+                self.logger.error(f"Parameters that caused error: {hyperparams}")
+                self.logger.error(traceback.format_exc())
                 return float('-inf')
 
         # Configura e executa a otimização
