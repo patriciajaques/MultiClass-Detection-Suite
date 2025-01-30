@@ -1,7 +1,7 @@
 training_settings:
     models:
         - Naive Bayes
-        - Logistic Regression
+        # - Logistic Regression
         # - Decision Tree
         # - Random Forest
         # - Gradient Boosting
@@ -10,7 +10,7 @@ training_settings:
         # - MLP
     selectors:
         - none
-        - pca
+        # - pca
         # - rfe
         # - rf
         # - mi

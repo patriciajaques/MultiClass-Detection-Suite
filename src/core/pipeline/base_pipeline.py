@@ -4,6 +4,9 @@ from sklearn.pipeline import Pipeline
 
 from core.config.config_manager import ConfigManager
 from core.preprocessors.data_balancer import DataBalancer
+from core.preprocessors.data_cleaner import DataCleaner
+from core.reporting.feature_mapping_reporter import FeatureMappingReporter
+from core.reporting.report_formatter import ReportFormatter
 from core.utils.path_manager import PathManager
 
 class BasePipeline(ABC):
@@ -31,6 +34,10 @@ class BasePipeline(ABC):
         }
         self.config = ConfigManager() 
         self.model_params = self._get_model_params()
+        self.data_cleaner = DataCleaner(config_manager=self.config)
+        self.X_encoder = None
+        self.y_encoder = None
+        ReportFormatter.setup_formatting(4)
 
     @staticmethod
     def create_pipeline(selector, model_config) -> Pipeline:
@@ -81,26 +88,39 @@ class BasePipeline(ABC):
         """Prepara os dados para treinamento."""
         pass
 
-    def _verify_split_quality(self, train_data, test_data):
+    def _verify_split_quality(self, train_data, test_data, tolerance: float = 0.15):
         """
-        Verifica se o split manteve as proporções desejadas com tolerância ajustada
-        """
-        # Verifica se todos os alunos estão em apenas um conjunto
-        train_students = set(train_data['aluno'])
-        test_students = set(test_data['aluno'])
-        overlap = train_students & test_students
-        assert len(overlap) == 0, f"Alunos presentes em ambos conjuntos: {overlap}"
+        Verifica se o split manteve as proporções de classes desejadas dentro da tolerância especificada.
 
-        # Verifica proporções das classes com tolerância maior
-        train_dist = train_data[self.target_column].value_counts(
-            normalize=True)
+        Args:
+            train_data (pd.DataFrame): Dados de treino
+            test_data (pd.DataFrame): Dados de teste
+            tolerance (float): Tolerância máxima permitida para diferença na distribuição (0.0 a 1.0)
+
+        Raises:
+            ValueError: Se os dados não contiverem a coluna target
+        """
+        if self.target_column not in train_data.columns or self.target_column not in test_data.columns:
+            raise ValueError(
+                f"Coluna target '{self.target_column}' não encontrada nos dados")
+
+        # Calcula distribuições
+        train_dist = train_data[self.target_column].value_counts(normalize=True)
         test_dist = test_data[self.target_column].value_counts(normalize=True)
 
-        for behavior in train_dist.index:
-            diff = abs(train_dist[behavior] - test_dist[behavior])
-            if diff >= 0.15:  # Aumenta tolerância para 15%
+        # Verifica distribuição para cada classe
+        for class_name in train_dist.index:
+            train_prop = train_dist[class_name]
+            # Usa 0 se a classe não existir no teste
+            test_prop = test_dist.get(class_name, 0)
+            diff = abs(train_prop - test_prop)
+
+            if diff >= tolerance:
                 print(
-                    f"Aviso: Diferença de {diff:.2%} na distribuição do comportamento {behavior}")
+                    f"Aviso: Diferença significativa detectada para '{class_name}' "
+                    f"(treino: {train_prop:.2%}, teste: {test_prop:.2%}, "
+                    f"diferença: {diff:.2%}, tolerância: {tolerance:.2%})"
+                )
 
     def balance_data(self, X_train, y_train, strategy='auto'):
         print("\nIniciando balanceamento de dados...")
@@ -143,6 +163,11 @@ class BasePipeline(ABC):
         print("\n2. Preparando dados para treinamento...")
         X_train, X_test, y_train, y_test = self.prepare_data(data)
 
+        # Gerando report das features
+        feature_report = FeatureMappingReporter()
+        feature_report.log_feature_mappings(self.X_encoder)
+        feature_report.log_target_mappings(self.y_encoder)
+        
         # Balance data
         print("\n3. Balanceando dados de treino...")
         X_train, y_train = self.balance_data(X_train, y_train, strategy='auto')

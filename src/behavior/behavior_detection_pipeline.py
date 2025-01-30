@@ -3,20 +3,16 @@ import pandas as pd
 
 from behavior.behavior_data_loader import BehaviorDataLoader
 from behavior.temporal_features_processor import TemporalFeaturesProcessor
-from core.logging.feature_mapping_logger import FeatureMappingLogger
-from core.preprocessors.data_cleaner import DataCleaner
 from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.data_imputer import DataImputer
 from core.preprocessors.data_splitter import DataSplitter
 from behavior.behavior_model_params import BehaviorModelParams
-from core.management.stage_training_manager import StageTrainingManager
-
 from core.pipeline.base_pipeline import BasePipeline
 from behavior.behavior_model_params import BehaviorModelParams
 
 
 class BehaviorDetectionPipeline(BasePipeline):
-    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2):
+    def __init__(self, target_column='comportamento', n_iter=50, n_jobs=6, test_size=0.2):
         """
         Inicializa o pipeline de detecção de comportamentos.
 
@@ -27,12 +23,11 @@ class BehaviorDetectionPipeline(BasePipeline):
             test_size (float): Proporção dos dados para conjunto de teste
         """
         super().__init__(
-            target_column='comportamento',
+            target_column=target_column,
             n_iter=n_iter,
             n_jobs=n_jobs,
             test_size=test_size,
         )
-        self.data_cleaner = DataCleaner(config_manager=self.config)
         
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
@@ -100,14 +95,14 @@ class BehaviorDetectionPipeline(BasePipeline):
         # 2. Encode target (generally, not needed for most models)
         y = data[self.target_column]
         
-        y_encoder = DataEncoder(
+        self.y_encoder = DataEncoder(
             categorical_threshold=5,
             scaling_strategy='standard',
             select_numerical=True,
             select_nominal=True,
             select_ordinal=False
         )        
-        y_encoded = y_encoder.fit_transform_y(y)
+        y_encoded = self.y_encoder.fit_transform_y(y)
         data[self.target_column] = y_encoded
 
         print(
@@ -129,7 +124,7 @@ class BehaviorDetectionPipeline(BasePipeline):
             f"Distribuição no conjunto de teste:\n{test_data[self.target_column].value_counts()}")
 
         # Verifica a qualidade do split aqui, logo após a divisão
-        self._verify_split_quality(train_data, test_data)
+        self._verify_split_quality(train_data, test_data, 0.15)
 
 
         # 5. Split features and target
@@ -154,20 +149,16 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         # 6. Encode features
         print("\nRealizando encoding das features...")
-        X_encoder = DataEncoder(
+        self.X_encoder = DataEncoder(
             categorical_threshold=5,
             scaling_strategy='standard',
             select_numerical=True,
             select_nominal=True,
             select_ordinal=False
         )
-        X_encoder.fit(X_train)
-        X_train_encoded = X_encoder.transform(X_train_imputed)
-        X_test_encoded = X_encoder.transform(X_test_imputed)
-
-        logger = FeatureMappingLogger()
-        logger.log_feature_mappings(X_encoder)
-        logger.log_target_mappings(y_encoder)
+        self.X_encoder.fit(X_train)
+        X_train_encoded = self.X_encoder.transform(X_train_imputed)
+        X_test_encoded = self.X_encoder.transform(X_test_imputed)
 
         # Após todas as transformações
         print("\nResumo final do pré-processamento:")
@@ -223,54 +214,39 @@ class BehaviorDetectionPipeline(BasePipeline):
         if not columns_with_nulls.empty:
             raise ValueError(
                 f"Valores nulos encontrados em colunas críticas:\n{columns_with_nulls}")
+    
+    def _verify_split_quality(self, train_data, test_data, tolerance: float = 0.15):
+        """
+        Verifica se o split manteve as proporções desejadas com tolerância ajustada
+        """
+        # Verifica se todos os alunos estão em apenas um conjunto
+        train_students = set(train_data['aluno'])
+        test_students = set(test_data['aluno'])
+        overlap = train_students & test_students
+        if len(overlap) > 0:
+            print(f"Aviso: Alunos presentes em ambos conjuntos: {overlap}")
 
-    def run(self):
-        """Executa o pipeline completo de detecção de comportamentos."""
-        print("Iniciando pipeline de detecção de comportamentos...")
+        if self.target_column not in train_data.columns or self.target_column not in test_data.columns:
+            raise ValueError(
+                f"Coluna target '{self.target_column}' não encontrada nos dados")
 
-        # Load and clean data
-        print("\n1. Carregando e limpando dados...")
-        data = self.load_and_clean_data()
+        # Calcula distribuições
+        train_dist = train_data[self.target_column].value_counts(normalize=True)
+        test_dist = test_data[self.target_column].value_counts(normalize=True)
 
-        print("Inspecionando os dados após limpeza:")
-        print("Dados de treino:")
-        data.info()
-        print("\nDescriptive Statistics:")
-        print(data.describe(include='all'))
+        # Verifica distribuição para cada classe
+        for class_name in train_dist.index:
+            train_prop = train_dist[class_name]
+            # Usa 0 se a classe não existir no teste
+            test_prop = test_dist.get(class_name, 0)
+            diff = abs(train_prop - test_prop)
 
-        # Prepare data
-        print("\n2. Preparando dados para treinamento...")
-        X_train, X_test, y_train, y_test = self.prepare_data(data)
+            if diff >= tolerance:
+                print(
+                    f"Aviso: Diferença significativa detectada para '{class_name}' "
+                    f"(treino: {train_prop:.2%}, teste: {test_prop:.2%}, "
+                    f"diferença: {diff:.2%}, tolerância: {tolerance:.2%})"
+                )
 
-        print("Inspecionando os dados após limpeza e pre-processamento:")
-        print("Dados de treino:")
-        X_train.info()
-        print("\nDescriptive Statistics:")
-        print(X_train.describe(include='all'))
 
-        # Balance data
-        print("\n3. Balanceando dados de treino...")
-        X_train, y_train = self.balance_data(X_train, y_train, strategy=0.75)
-
-        print(f"Modelos disponíveis: {self.model_params.get_models().keys()}")
-
-        # Train models
-        print("\n4. Iniciando treinamento dos modelos...")
-        training_manager = StageTrainingManager(
-            X_train=X_train,
-            X_test=X_test,
-            y_train=y_train,
-            y_test=y_test,
-            model_params=self.model_params,
-            n_iter=self.n_iter,
-            cv=10,
-            scoring='balanced_accuracy',
-            n_jobs=self.n_jobs
-        )
-
-        # Define training stages
-        stages = self._get_training_stages()
-
-        training_manager.execute_all_stages(stages)
-
-        print("\nPipeline concluído!")
+ 

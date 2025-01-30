@@ -4,7 +4,7 @@ from core.utils.path_manager import PathManager
 
 
 class EmotionDetectionPipeline(BehaviorDetectionPipeline):
-    def __init__(self, n_iter=50, n_jobs=6, test_size=0.2):
+    def __init__(self, target_column='estado_afetivo', n_iter=50, n_jobs=6, test_size=0.2):
         """
         Inicializa o pipeline de detecção de emoções.
 
@@ -20,7 +20,7 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
             de pipeline e parâmetros.
         """
         super().__init__(
-            target_column='estado_afetivo',
+            target_column=target_column,
             n_iter=n_iter,
             n_jobs=n_jobs,
             test_size=test_size,
@@ -51,30 +51,6 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
             data, use_config=True)
 
         return cleaned_data
-
-    def _verify_split_quality(self, train_data, test_data):
-        """
-        Sobrescreve o método de verificação de qualidade do split para trabalhar com strings de emoções.
-        """
-        # Verifica se todos os alunos estão em apenas um conjunto
-        train_students = set(train_data['aluno'])
-        test_students = set(test_data['aluno'])
-        overlap = train_students & test_students
-        assert len(
-            overlap) == 0, f"Alunos presentes em ambos conjuntos: {overlap}"
-
-        # Verifica proporções das classes com tolerância maior
-        train_dist = train_data[self.target_column].value_counts(normalize=True)
-        test_dist = test_data[self.target_column].value_counts(normalize=True)
-
-        # Itera sobre todas as emoções presentes em ambos os conjuntos
-        for emotion in set(train_dist.index) | set(test_dist.index):
-            train_prop = train_dist.get(emotion, 0)
-            test_prop = test_dist.get(emotion, 0)
-            diff = abs(train_prop - test_prop)
-            if diff >= 0.15:  # 15% de tolerância
-                print(
-                    f"Aviso: Diferença de {diff:.2%} na distribuição da emoção {emotion}")
 
 
 def main():

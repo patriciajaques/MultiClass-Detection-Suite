@@ -75,6 +75,7 @@ class MetricsReporter:
             }
             for m in all_metrics
         ])
+        metrics_df = ReportFormatter.format_dataframe(metrics_df)
 
         metrics_df.to_csv(
             PathManager.get_path('output') / 'consolidated_metrics.csv',

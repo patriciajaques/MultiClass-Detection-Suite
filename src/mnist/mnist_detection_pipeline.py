@@ -1,11 +1,9 @@
 from sklearn.datasets import load_digits
 import pandas as pd
 
-from core.logging.feature_mapping_logger import FeatureMappingLogger
 from core.pipeline.base_pipeline import BasePipeline
 from core.preprocessors.data_splitter import DataSplitter
 from core.preprocessors.data_encoder import DataEncoder
-from core.preprocessors.data_balancer import DataBalancer
 from mnist.digits_model_params import DigitsModelParams
 from core.management.stage_training_manager import StageTrainingManager
 

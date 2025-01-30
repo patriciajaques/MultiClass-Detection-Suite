@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, MinMaxScaler, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
-from core.logging.feature_mapping_logger import FeatureMappingLogger
 from core.preprocessors.column_selector import ColumnSelector
 
 class DataEncoder():

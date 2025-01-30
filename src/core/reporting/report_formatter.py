@@ -3,6 +3,36 @@ from core.reporting.classification_model_metrics import ClassificationModelMetri
 
 
 class ReportFormatter:
+    DEFAULT_PRECISION = 4
+
+    @staticmethod
+    def setup_formatting(precision=4):
+        """Configura a formatação global e define a precisão padrão."""
+        ReportFormatter.DEFAULT_PRECISION = precision
+        pd.set_option('display.float_format', f'{{:.{precision}f}}'.format)
+        pd.set_option('display.precision', precision)
+
+    @staticmethod
+    def format_float(value):
+        """Formata um valor float com a precisão especificada."""
+        return f"{value:.{ReportFormatter.DEFAULT_PRECISION}f}"
+    
+    @staticmethod
+    def _format_dict(metrics: dict) -> str: 
+        """Formata métricas gerais"""
+        formatted_metrics = {k: ReportFormatter.format_float(v) for k, v in metrics.items()}
+        return "".join(f"{k}: {v}" for k, v in formatted_metrics.items())
+    
+    @staticmethod
+    def format_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+        """Formata números em um DataFrame."""
+        formatted_df = df.copy()
+        numeric_cols = formatted_df.select_dtypes(include=['float64']).columns
+        for col in numeric_cols:
+            formatted_df[col] = formatted_df[col].round(
+                ReportFormatter.DEFAULT_PRECISION)
+        return formatted_df
+
     @staticmethod
     def generate_text_report(model_metrics: ClassificationModelMetrics) -> str:
         """
@@ -19,7 +49,7 @@ class ReportFormatter:
 
         # Cross-validation results
         report_output += f"\nCross-Validation Results:\n"
-        report_output += f"Average Score: {model_metrics.cv_score:.4f}\n"
+        report_output += f"Average Score: {ReportFormatter.format_float(model_metrics.cv_score)}\n"
 
         # Train and test results
         report_output += ReportFormatter._format_set_report(
@@ -62,7 +92,7 @@ class ReportFormatter:
 
         output += ReportFormatter._dict_to_df(class_report).to_string(index=False)
         output += f"\n\n{set_name} set average metrics:\n"
-        output += ReportFormatter._format_metrics(metrics)
+        output += ReportFormatter._format_dict(metrics)+"\n"
 
         return output
 
@@ -95,8 +125,11 @@ class ReportFormatter:
         # Adicionar linha 'CV Score' na coluna 'Train'
         cv_score_df = pd.DataFrame({'Train': [model_metrics.cv_score]}, index=['CV Score'])
         combined_df = pd.concat([combined_df, cv_score_df])
-    
-        return combined_df.reset_index().rename(columns={'index': 'Metric'})
+
+        combined_df = ReportFormatter.format_dataframe(combined_df.reset_index().rename(
+            columns={'index': 'Metric'}))
+
+        return combined_df
 
     @staticmethod
     def generate_confusion_matrix_report(model_metrics: ClassificationModelMetrics) -> str:
@@ -139,18 +172,18 @@ class ReportFormatter:
         # Processar métricas gerais primeiro
         for metric in ['accuracy', 'balanced_accuracy']:
             if metric in report_dict:
-                output += f"{metric.capitalize()}: {report_dict[metric]:.4f}\n"
+                output += f"{metric.capitalize()}: {ReportFormatter.format_float(report_dict[metric])}\n"
 
         # Processar métricas por classe
         for class_name, metrics in report_dict.items():
             if isinstance(metrics, dict):  # apenas entradas que são dicionários (métricas por classe)
                 metrics_list = []
                 if 'precision' in metrics:
-                    metrics_list.append(f"Precision: {metrics['precision']:.4f}")
+                    metrics_list.append(f"Precision: {ReportFormatter.format_float(metrics['precision'])}")
                 if 'recall' in metrics:
-                    metrics_list.append(f"Recall: {metrics['recall']:.4f}")
+                    metrics_list.append(f"Recall: {ReportFormatter.format_float(metrics['recall'])}")
                 if 'f1-score' in metrics:
-                    metrics_list.append(f"F1-Score: {metrics['f1-score']:.4f}")
+                    metrics_list.append(f"F1-Score: {ReportFormatter.format_float(metrics['f1-score'])}")
                 if 'support' in metrics:
                     metrics_list.append(f"Support: {int(metrics['support'])}")
 
@@ -159,11 +192,7 @@ class ReportFormatter:
 
         return output
 
-    
-    @staticmethod
-    def _format_metrics(metrics: dict) -> str:
-        """Formata métricas gerais"""
-        return "\n".join(f"{k}: {v:.4f}" for k, v in metrics.items()) + "\n\n"
+
 
     @staticmethod
     def _dict_to_df(report_dict, suffix="") -> pd.DataFrame:
@@ -175,6 +204,7 @@ class ReportFormatter:
         class_metrics = {k: v for k, v in report_dict.items() if isinstance(v, dict)}
     
         df = pd.DataFrame.from_dict(class_metrics, orient='index')
+        df = ReportFormatter.format_dataframe(df)
         if suffix:
             df = df.add_suffix(suffix)
         return df
