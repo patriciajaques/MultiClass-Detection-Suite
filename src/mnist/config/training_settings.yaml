@@ -10,7 +10,7 @@ training_settings:
         # - MLP
     selectors:
         - none
-        # - pca
-        # - rfe
-        # - rf
-        # - mi
+        - pca
+        - rfe
+        - rf
+        - mi

@@ -4,7 +4,10 @@ from core.feature_selection.base_feature_selector import BaseFeatureSelector
 
 class MutualInformationFeatureSelector(BaseFeatureSelector):
     def __init__(self, X_train=None, y_train=None, k=10):
-        super().__init__(X_train=X_train, y_train=y_train, k=k)
+        self.k = k
+        self.selector = None
+        super().__init__(X_train=X_train, y_train=y_train)
+        
 
     def _create_selector(self, k=10):
         selector = SelectKBest(mutual_info_classif, k=k)

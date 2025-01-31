@@ -22,8 +22,12 @@ class MNISTDetectionPipeline(BasePipeline):
         # Carregar dataset MNIST
         print("Carregando dataset MNIST...")
         digits = load_digits()
+        
         data = pd.DataFrame(digits.data)
         data['target'] = digits.target
+
+        # Pegar apenas 30% das instâncias do dataframe data para facilitar a execução de testes
+        # data = data.sample(frac=0.3, random_state=42)
 
         print(f"Dataset shape: {data.shape}")
         return data
