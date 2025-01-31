@@ -2,16 +2,16 @@ import argparse
 import pandas as pd
 from sklearn.metrics import balanced_accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
-from behavior.behavior_data_loader import BehaviorDataLoader
 from core.preprocessors.data_cleaner import DataCleaner
 from core.config.config_manager import ConfigManager
 from core.preprocessors.data_encoder import DataEncoder
+from core.preprocessors.data_loader import DataLoader
 from lstm.lstm_pipeline import LSTMPipeline
 
 
 def load_and_clean_data(data_path):
     print("Loading and cleaning data...")
-    data = BehaviorDataLoader.load_data(data_path, delimiter=';')
+    data = DataLoader.load_data(data_path, delimiter=';')
 
     config_manager = ConfigManager('src/behavior/config')
     data_cleaner = DataCleaner(config_manager)

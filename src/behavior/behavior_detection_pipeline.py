@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from behavior.behavior_data_loader import BehaviorDataLoader
 from behavior.temporal_features_processor import TemporalFeaturesProcessor
 from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.data_imputer import DataImputer
+from core.preprocessors.data_loader import DataLoader
 from core.preprocessors.data_splitter import DataSplitter
 from behavior.behavior_model_params import BehaviorModelParams
 from core.pipeline.base_pipeline import BasePipeline
@@ -36,7 +36,7 @@ class BehaviorDetectionPipeline(BasePipeline):
     def load_and_clean_data(self):
         """Carrega e limpa o dataset."""
         # Load data
-        data = BehaviorDataLoader.load_data(
+        data = DataLoader.load_data(
             self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
         print(f"Dataset inicial shape: {data.shape}")
 

@@ -1,5 +1,5 @@
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
-from behavior.behavior_data_loader import BehaviorDataLoader
+from core.preprocessors.data_loader import DataLoader
 from core.utils import file_utils
 from core.utils.path_manager import PathManager
 
@@ -30,7 +30,7 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
     def load_and_clean_data(self):
         """Carrega e limpa o dataset focando nas emoções."""
         # Load data usando o loader existente
-        data = BehaviorDataLoader.load_data(
+        data = DataLoader.load_data(
             self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
         print(f"Dataset inicial shape: {data.shape}")
 
