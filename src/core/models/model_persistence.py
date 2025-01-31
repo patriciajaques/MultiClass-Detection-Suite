@@ -31,7 +31,7 @@ class ModelPersistence:
         return path
 
     @staticmethod
-    def load_model(model_path: Path = None) -> Pipeline:
+    def load_model(stage_name: Path = None) -> Pipeline:
         """
         Carrega um pipeline salvo.
 
@@ -41,8 +41,7 @@ class ModelPersistence:
         Returns:
             Pipeline: Pipeline scikit-learn carregado
         """
-        if model_path is None:
-            model_path = ModelPersistence.get_latest_model()
+        model_path = ModelPersistence.get_latest_model(stage_name)
         return joblib.load(model_path)
 
     @staticmethod

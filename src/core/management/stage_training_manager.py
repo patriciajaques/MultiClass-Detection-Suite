@@ -1,9 +1,12 @@
 import traceback
 from typing import List, Tuple, Dict, Any
 
+import pandas as pd
+
 from core.evaluation.model_evaluator import ModelEvaluator
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
 from core.management.progress_tracker import ProgressTracker
+from core.models.ensemble.voting_ensemble_builder import VotingEnsembleBuilder
 from core.models.model_persistence import ModelPersistence
 from core.pipeline.base_pipeline import BasePipeline
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
@@ -117,8 +120,37 @@ class StageTrainingManager:
                 failed_stages.append(stage_name)
                 print(f"Error in stage {stage_name}: {str(e)}")
                 continue
+        
+        # Cria o ensemble
+        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics)
+
+        # Adiciona as métricas do ensemble ao relatório final
+        all_metrics.append(ensemble_metrics)
+
         MetricsReporter.generate_final_report(all_metrics)
         self._print_execution_summary(completed_stages, failed_stages)
+
+    def _create_and_evaluate_ensemble(self, all_metrics):
+        ensemble_info = VotingEnsembleBuilder.create_voting_ensemble(
+            MetricsReporter.assemble_metrics_summary(all_metrics),
+            n_models=3,
+            metric='balanced_accuracy-test',
+            voting='soft'
+        )
+
+        print("\nEnsemble criado com os seguintes modelos:")
+        for model in ensemble_info['selected_models']:
+            print(f"- {model}")
+
+        # Treina e avalia o ensemble
+        ensemble_metrics = VotingEnsembleBuilder.train_and_evaluate_ensemble(
+            ensemble_info['ensemble'],
+            self.X_train, self.X_test,
+            self.y_train, self.y_test,
+            stage_name="voting_ensemble"
+        )
+        
+        return ensemble_metrics    
 
     def _create_pipeline(self, model_name: str, selector_name: str):
         """Creates a pipeline with specified model and selector."""

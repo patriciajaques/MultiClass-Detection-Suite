@@ -72,6 +72,8 @@ class RFEFeatureSelector(BaseFeatureSelector):
         self.X_train = X
         self.y_train = y
 
+        
+
         if self.selector is None:
             self.selector = self._create_selector()
 

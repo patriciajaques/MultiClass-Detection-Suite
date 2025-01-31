@@ -65,6 +65,16 @@ class MetricsReporter:
     def generate_final_report(all_metrics: list[ClassificationModelMetrics]):
         """Generates a consolidated report of all metrics in a structured format."""
 
+        metrics_df = MetricsReporter.assemble_metrics_summary(all_metrics)
+
+        metrics_df.to_csv(
+            PathManager.get_path('output') / 'consolidated_metrics.csv',
+            sep=';',
+            index=False
+        )
+
+    @staticmethod
+    def assemble_metrics_summary(all_metrics):
         METRIC_COLUMNS = ['balanced_accuracy','f1-score', 'precision', 'recall', 'kappa']
         metrics_df = pd.DataFrame([
             {
@@ -76,9 +86,4 @@ class MetricsReporter:
             for m in all_metrics
         ])
         metrics_df = ReportFormatter.format_dataframe(metrics_df)
-
-        metrics_df.to_csv(
-            PathManager.get_path('output') / 'consolidated_metrics.csv',
-            sep=';',
-            index=False
-        )
+        return metrics_df
