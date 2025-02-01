@@ -44,15 +44,15 @@ class DataImputer(BaseEstimator, TransformerMixin):
         self.categorical_columns = X[missing_columns].select_dtypes(
             exclude=['int64', 'float64']).columns.tolist()
 
-        print(
+        self.logger.info(
             f"Colunas numéricas com missing values: {len(self.numerical_columns)}")
-        print(
+        self.logger.info(
             f"Colunas categóricas com missing values: {len(self.categorical_columns)}")
 
     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'DataImputer':
         """
         Ajusta os imputadores aos dados.
-        
+
         Args:
             X: DataFrame com os dados
             y: Ignorado, mantido para compatibilidade com sklearn
@@ -100,10 +100,10 @@ class DataImputer(BaseEstimator, TransformerMixin):
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         """
         Aplica a imputação nos dados.
-        
+
         Args:
             X: DataFrame para transformar
-            
+
         Returns:
             DataFrame com valores imputados
         """
@@ -130,11 +130,11 @@ class DataImputer(BaseEstimator, TransformerMixin):
     def fit_transform(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> pd.DataFrame:
         """
         Ajusta os imputadores e transforma os dados.
-        
+
         Args:
             X: DataFrame para ajustar e transformar
             y: Ignorado, mantido para compatibilidade
-            
+
         Returns:
             DataFrame com valores imputados
         """
@@ -143,10 +143,10 @@ class DataImputer(BaseEstimator, TransformerMixin):
     def get_missing_info(self, X: pd.DataFrame) -> Dict[str, dict]:
         """
         Retorna informações sobre valores faltantes no DataFrame.
-        
+
         Args:
             X: DataFrame para analisar
-            
+
         Returns:
             Dict com informações sobre missing values por coluna
         """

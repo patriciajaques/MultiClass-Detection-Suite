@@ -12,7 +12,9 @@ def main():
         target_column='target',
         n_iter=50,
         n_jobs=6,
-        test_size=0.2
+        val_size=0.25,
+        test_size=0.2,
+        training_strategy_name='grid' # pode ser optuna (default), grid ou random 
     )
 
     print("Executando pipeline...")
@@ -21,6 +23,6 @@ def main():
 
 if __name__ == "__main__":
     print("Chamando função main()...")
-    # output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
-    # file_utils.clear_output_directory(output_dir)
+    output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
+    file_utils.clear_output_directory(output_dir)
     main()

@@ -18,11 +18,13 @@ from core.reporting.metrics_reporter import MetricsReporter
 class StageTrainingManager:
     """Manages the execution of multiple training stages with different model and selector combinations."""
 
-    def __init__(self, X_train, X_test, y_train, y_test, model_params,
-                 n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1):
+    def __init__(self, X_train, X_val, X_test, y_train, y_val, y_test,  model_params,
+                 n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1, training_strategy=None):
         self.X_train = X_train
+        self.X_val = X_val
         self.X_test = X_test
         self.y_train = y_train
+        self.y_val = y_val
         self.y_test = y_test
         self.model_params = model_params
         self.n_iter = n_iter
@@ -31,7 +33,8 @@ class StageTrainingManager:
         self.n_jobs = n_jobs
 
         # Initialize training strategy
-        self.training_strategy = OptunaBayesianOptimizationTraining()
+        print(f"Training strategy: {training_strategy}")
+        self.training_strategy = training_strategy or OptunaBayesianOptimizationTraining()
         self.progress_tracker = ProgressTracker()
 
     def execute_stage(self, model_name: str, selector_name: str) -> ClassificationModelMetrics:
@@ -67,12 +70,12 @@ class StageTrainingManager:
                 cv=self.cv,
                 scoring=self.scoring,
                 n_jobs=self.n_jobs,
-                selector_search_space=selector_search_space
+                selector_search_space=selector_search_space,
             )
 
             # Evaluate the model
             model_metrics = ModelEvaluator.evaluate_single_model(
-                trained_model_info['pipeline'], self.X_train, self.y_train, self.X_test, self.y_test, stage_name
+                trained_model_info['pipeline'], self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test, stage_name
             )
             model_metrics.execution_time = trained_model_info['execution_time']
             model_metrics.training_type = trained_model_info['training_type']
@@ -83,13 +86,14 @@ class StageTrainingManager:
             MetricsReporter.generate_stage_report(model_metrics)
 
             # Save trained model
-            ModelPersistence.save_model(pipeline, stage_name)
+            ModelPersistence.save_model(
+                trained_model_info['pipeline'], stage_name)
 
             return model_metrics
         except Exception as e:
             print(f"Error in {self.__class__.__name__}.execute_stage: {model_name} with {selector_name}. "
                   f"Exception: {str(e)}. Traceback: {traceback.format_exc()}")
-            return None
+            return None, None
 
     def execute_all_stages(self, stages: List[Tuple[str, str, str]]):
         completed_stages = []
@@ -120,13 +124,14 @@ class StageTrainingManager:
                 failed_stages.append(stage_name)
                 print(f"Error in stage {stage_name}: {str(e)}")
                 continue
-        
+
         # Cria o ensemble
         ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics)
-
+    
         # Adiciona as métricas do ensemble ao relatório final
         all_metrics.append(ensemble_metrics)
 
+        # Gera o relatório final com os modelos base e ensemble 
         MetricsReporter.generate_final_report(all_metrics)
         self._print_execution_summary(completed_stages, failed_stages)
 
@@ -145,8 +150,8 @@ class StageTrainingManager:
         # Treina e avalia o ensemble
         ensemble_metrics = VotingEnsembleBuilder.train_and_evaluate_ensemble(
             ensemble_info['ensemble'],
-            self.X_train, self.X_test,
-            self.y_train, self.y_test,
+            self.X_train, self.X_val, self.X_test,
+            self.y_train, self.y_val, self.y_test,
             stage_name="voting_ensemble"
         )
         

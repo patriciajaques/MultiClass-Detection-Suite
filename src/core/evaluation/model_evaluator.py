@@ -16,6 +16,8 @@ class ModelEvaluator:
                     pipeline: Pipeline,
                     X_train: pd.DataFrame,
                     y_train: pd.Series,
+                    X_val: pd.DataFrame,
+                    y_val: pd.Series,
                     X_test: pd.DataFrame,
                     y_test: pd.Series,
                     stage_name: str) -> ClassificationModelMetrics:
@@ -25,10 +27,13 @@ class ModelEvaluator:
 
             # Gerar predições
             train_pred, train_prob = ModelEvaluator._get_predictions(pipeline, X_train)
+            val_pred, val_prob = ModelEvaluator._get_predictions(
+                pipeline, X_val)
             test_pred, test_prob = ModelEvaluator._get_predictions(pipeline, X_test)
 
             # Calcular métricas
             train_metrics = ModelEvaluator._compute_metrics(y_train, train_pred)
+            val_metrics = ModelEvaluator._compute_metrics(y_val, val_pred)
             test_metrics = ModelEvaluator._compute_metrics(y_test, test_pred)
 
             # Obter informações sobre features se disponível
@@ -38,10 +43,13 @@ class ModelEvaluator:
             metrics = ClassificationModelMetrics(
                 stage_name=stage_name,
                 train_metrics=train_metrics['avg_metrics'],
+                val_metrics=val_metrics['avg_metrics'],
                 test_metrics=test_metrics['avg_metrics'],
                 class_report_train=train_metrics['class_report'],
+                class_report_val=val_metrics['class_report'],
                 class_report_test=test_metrics['class_report'],
                 confusion_matrix_train=train_metrics['conf_matrix'],
+                confusion_matrix_val=val_metrics['conf_matrix'],
                 confusion_matrix_test=test_metrics['conf_matrix'],
                 class_labels=list(np.unique(y_train)),
                 label_mapping=[{label: i for i, label in enumerate(np.unique(y_train))}],
@@ -80,7 +88,7 @@ class ModelEvaluator:
     def _get_feature_info(pipeline: Pipeline, X: pd.DataFrame) -> Dict[str, Any]:
         """Obtém informações sobre as features após seleção/transformação"""
         try:
-            if 'feature_selection' not in pipeline.named_steps:
+            if not hasattr(pipeline, 'named_steps') or 'feature_selection' not in pipeline.named_steps:
                 return {
                     'type': 'original',
                     'n_features': X.shape[1],

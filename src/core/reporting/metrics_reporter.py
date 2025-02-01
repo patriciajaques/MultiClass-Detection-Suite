@@ -13,6 +13,7 @@ class MetricsReporter:
     def generate_stage_report(model_metrics: ClassificationModelMetrics):
         """
         Gera relatório para um único modelo usando um objeto ClassificationModelMetrics.
+        Usa conjunto de valiadação para avaliação.
         
         Args:
             model_metrics: Objeto contendo todas as métricas do modelo
@@ -68,7 +69,7 @@ class MetricsReporter:
         metrics_df = MetricsReporter.assemble_metrics_summary(all_metrics)
 
         metrics_df.to_csv(
-            PathManager.get_path('output') / 'consolidated_metrics.csv',
+            os.path.join(PathManager.get_path('output'), 'consolidated_metrics.csv'),
             sep=';',
             index=False
         )
@@ -78,10 +79,11 @@ class MetricsReporter:
         METRIC_COLUMNS = ['balanced_accuracy','f1-score', 'precision', 'recall', 'kappa']
         metrics_df = pd.DataFrame([
             {
-                'Model': m.stage_name,
-                'CV Score': m.cv_score,
-                **{f'{k}-train': m.train_metrics[k] for k in METRIC_COLUMNS},
-                **{f'{k}-test': m.test_metrics[k] for k in METRIC_COLUMNS}
+            'Model': m.stage_name,
+            'CV Score': m.cv_score,
+            **({f'{k}-train': m.train_metrics[k] for k in METRIC_COLUMNS} if m.train_metrics else {}),
+            **({f'{k}-val': m.val_metrics[k] for k in METRIC_COLUMNS} if m.val_metrics else {}),
+            **({f'{k}-test': m.test_metrics[k] for k in METRIC_COLUMNS} if m.test_metrics else {}),
             }
             for m in all_metrics
         ])

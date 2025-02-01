@@ -1,9 +1,10 @@
+import logging
 import warnings
-import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, MinMaxScaler, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
 from core.preprocessors.column_selector import ColumnSelector
+
 
 class DataEncoder():
     def __init__(self, categorical_threshold: int = 10, scaling_strategy: str = 'standard', select_numerical: bool = True, select_nominal: bool = True, select_ordinal: bool = False):
@@ -20,14 +21,14 @@ class DataEncoder():
         self.nominal_columns = None
         self.ordinal_columns = None
         self.ordinal_categories = None
-
+        self.logger = logging.getLogger()  # Pega o logger root
 
     def initialize_encoder(self):
         """Inicializa os transformadores para cada tipo de coluna."""
         transformers = []
 
         if self.numerical_columns is not None:
-            print(
+            self.logger.info(
                 f"\nConfigurando transformação para {len(self.numerical_columns)} colunas numéricas")
             if self.scaling_strategy == 'standard':
                 transformers.append(
@@ -42,16 +43,16 @@ class DataEncoder():
                     ('num_minmax', MinMaxScaler(), self.numerical_columns))
 
         if self.nominal_columns is not None:
-            print(
+            self.logger.info(
                 f"\nConfigurando transformação para {len(self.nominal_columns)} colunas nominais")
             transformers.append(('nom', OneHotEncoder(sparse_output=False, handle_unknown='ignore', drop='first'),
                                 self.nominal_columns))
 
         if self.ordinal_columns is not None:
-            print(
+            self.logger.info(
                 f"\nConfigurando transformação para {len(self.ordinal_columns)} colunas ordinais")
             categories = [self.ordinal_categories[col]
-                        for col in self.ordinal_columns]
+                          for col in self.ordinal_columns]
             transformers.append(('ord', OrdinalEncoder(
                 categories=categories), self.ordinal_columns))
 
@@ -65,7 +66,7 @@ class DataEncoder():
     def select_columns(self, X: pd.DataFrame):
         """ Seleciona colunas numéricas, nominais e ordinais
         baseado em algumas heurísticas genéricas definidas em ColumnSelector.
-    
+
         Args:
             X (pd.DataFrame): O DataFrame de entrada.
             select_numerical (bool): Se True, seleciona colunas numéricas.
@@ -73,17 +74,17 @@ class DataEncoder():
             select_ordinal (bool): Se True, seleciona colunas ordinais.
         """
         self.column_selector = ColumnSelector(X, self.categorical_threshold)
-        
+
         if self.select_numerical:
             self.numerical_columns = self.column_selector.get_numerical_columns()
         else:
             self.numerical_columns = None
-    
+
         if self.select_nominal:
             self.nominal_columns = self.column_selector.get_nominal_columns()
         else:
             self.nominal_columns = None
-    
+
         if self.select_ordinal:
             self.ordinal_columns = self.column_selector.get_ordinal_columns()
             self.ordinal_categories = self.column_selector.get_ordinal_categories()
@@ -97,9 +98,9 @@ class DataEncoder():
         self.column_transformer.fit(X)
         return self
 
-
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        print(f"\nInicio da transformação - Shape entrada: {X.shape}")
+        self.logger.info(
+            f"\nInicio da transformação - Shape entrada: {X.shape}")
 
         if not isinstance(X, pd.DataFrame):
             raise ValueError("Input deve ser um pandas DataFrame")
@@ -108,20 +109,17 @@ class DataEncoder():
             X_transformed = self.column_transformer.transform(X)
             feature_names = self.column_transformer.get_feature_names_out()
 
-            print(f"Fim da transformação - Shape saída: {X_transformed.shape}")
-            print(f"Total de features após transformação: {len(feature_names)}")
-            print("Distribuição por tipo:")
-            print(
-                f"- Features numéricas transformadas: {sum(1 for name in feature_names if 'num_' in name)}")
-            print(
-                f"- Features nominais transformadas: {sum(1 for name in feature_names if 'nom_' in name)}")
-            print(
-                f"- Features ordinais transformadas: {sum(1 for name in feature_names if 'ord_' in name)}")
+            self.logger.info(
+                f"Fim da transformação - Shape saída: {X_transformed.shape}")
+            self.logger.info(
+                f"Total de features após transformação: {len(feature_names)}")
+            self.logger.info(f"Transformações realizadas:")
+            self.logger.info(self.column_transformer.transformers_)
 
             return pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
 
         except Exception as e:
-            print(f"Erro durante transformação: {e}")
+            self.logger.info(f"Erro durante transformação: {e}")
             raise
 
     def fit_transform(self, X: pd.DataFrame, y=None) -> pd.DataFrame:
@@ -131,10 +129,10 @@ class DataEncoder():
     def fit_transform_y(self, y):
         """
         Fit e transforma o target.
-        
+
         Args:
             y: array-like de shape (n_samples,)
-            
+
         Returns:
             array-like: Target codificado
         """

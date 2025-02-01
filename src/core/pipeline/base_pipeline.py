@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import logging
+from typing import Optional
 import pandas as pd
 from sklearn.pipeline import Pipeline
 
@@ -9,35 +11,62 @@ from core.reporting.feature_mapping_reporter import FeatureMappingReporter
 from core.reporting.report_formatter import ReportFormatter
 from core.utils.path_manager import PathManager
 
+
+from core.training.random_search_training import RandomSearchTraining
+from core.training.optuna_bayesian_optimization_training import OptunaBayesianOptimizationTraining
+from core.training.grid_search_training import GridSearchTraining
+
+
 class BasePipeline(ABC):
     """Classe base abstrata para pipelines de detecção."""
 
-    def __init__(self, target_column: str, n_iter=50, n_jobs=6, test_size=0.2):
+    def __init__(self, target_column: str, n_iter=50, n_jobs=6, val_size=None, test_size=0.2, training_strategy_name='optuna'):
         """
-        Inicializa o pipeline base.
-        
         Args:
-            n_iter (int): Número de iterações para otimização
-            n_jobs (int): Número de jobs paralelos
-            test_size (float): Tamanho do conjunto de teste
-            config_dir (str): Diretório de configurações
+            target_column: Nome da coluna alvo
+            n_iter: Número de iterações para otimização
+            n_jobs: Número de jobs paralelos
+            val_size: Tamanho da validação
+            test_size: Tamanho do teste
+            training_strategy: Estratégia de otimização ('optuna', 'random', 'grid')
         """
         self.target_column = target_column
         self.n_iter = n_iter
         self.n_jobs = n_jobs
+        self.val_size = val_size
         self.test_size = test_size
+
         self.paths = {
             'data': PathManager.get_path('data'),
             'output': PathManager.get_path('output'),
             'models': PathManager.get_path('models'),
             'src': PathManager.get_path('src')
         }
-        self.config = ConfigManager() 
+        self.config = ConfigManager()
         self.model_params = self._get_model_params()
         self.data_cleaner = DataCleaner(config_manager=self.config)
         self.X_encoder = None
         self.y_encoder = None
         ReportFormatter.setup_formatting(4)
+        self.logger = logging.getLogger()
+        self.training_strategy = self._initialize_training_manager(
+            training_strategy_name)
+
+    def _initialize_training_manager(self, strategy: str):
+        """Inicializa o gerenciador de treinamento apropriado."""
+        strategies = {
+            'optuna': OptunaBayesianOptimizationTraining,
+            'random': RandomSearchTraining,
+            'grid': GridSearchTraining
+        }
+
+        if strategy not in strategies:
+            self.logger.warning(
+                f"Estratégia {strategy} não encontrada. Usando optuna como fallback.")
+            return OptunaBayesianOptimizationTraining()
+
+        return strategies[strategy]()
+
 
     @staticmethod
     def create_pipeline(selector, model_config) -> Pipeline:
@@ -70,7 +99,8 @@ class BasePipeline(ABC):
             return stages
 
         except Exception as e:
-            print(f"Erro ao carregar configurações de treinamento: {str(e)}")
+            self.logger.info(
+                f"Erro ao carregar configurações de treinamento: {str(e)}")
             return [('naive_bayes_none', ['Naive Bayes'], ['none'])]
 
     @abstractmethod
@@ -88,47 +118,60 @@ class BasePipeline(ABC):
         """Prepara os dados para treinamento."""
         pass
 
-    def _verify_split_quality(self, train_data, test_data, tolerance: float = 0.15):
+    def _verify_split_quality(self, train_data, val_data, test_data, tolerance: float = 0.15):
         """
         Verifica se o split manteve as proporções de classes desejadas dentro da tolerância especificada.
 
         Args:
             train_data (pd.DataFrame): Dados de treino
+            val_data (pd.DataFrame): Dados de validação
             test_data (pd.DataFrame): Dados de teste
             tolerance (float): Tolerância máxima permitida para diferença na distribuição (0.0 a 1.0)
 
         Raises:
             ValueError: Se os dados não contiverem a coluna target
         """
-        if self.target_column not in train_data.columns or self.target_column not in test_data.columns:
+        if self.target_column not in train_data.columns or self.target_column not in val_data.columns or self.target_column not in test_data.columns:
             raise ValueError(
                 f"Coluna target '{self.target_column}' não encontrada nos dados")
 
         # Calcula distribuições
-        train_dist = train_data[self.target_column].value_counts(normalize=True)
+        train_dist = train_data[self.target_column].value_counts(
+            normalize=True)
+        val_dist = val_data[self.target_column].value_counts(normalize=True)
         test_dist = test_data[self.target_column].value_counts(normalize=True)
 
         # Verifica distribuição para cada classe
         for class_name in train_dist.index:
             train_prop = train_dist[class_name]
-            # Usa 0 se a classe não existir no teste
+            val_prop = val_dist.get(class_name, 0)
             test_prop = test_dist.get(class_name, 0)
-            diff = abs(train_prop - test_prop)
 
-            if diff >= tolerance:
-                print(
+            val_diff = abs(train_prop - val_prop)
+            test_diff = abs(train_prop - test_prop)
+
+            if val_diff >= tolerance:
+                self.logger.info(
+                    f"Aviso: Diferença significativa detectada para '{class_name}' "
+                    f"(treino: {train_prop:.2%}, validação: {val_prop:.2%}, "
+                    f"diferença: {val_diff:.2%}, tolerância: {tolerance:.2%})"
+                )
+
+            if test_diff >= tolerance:
+                self.logger.info(
                     f"Aviso: Diferença significativa detectada para '{class_name}' "
                     f"(treino: {train_prop:.2%}, teste: {test_prop:.2%}, "
-                    f"diferença: {diff:.2%}, tolerância: {tolerance:.2%})"
+                    f"diferença: {test_diff:.2%}, tolerância: {tolerance:.2%})"
                 )
 
     def balance_data(self, X_train, y_train, strategy='auto'):
-        print("\nIniciando balanceamento de dados...")
-        print(f"Tipo de X_train: {type(X_train)}")
-        print(f"Tipo de y_train: {type(y_train)}")
-        print(f"Shape de X_train antes do balanceamento: {X_train.shape}")
-        print(f"Distribuição de classes antes do balanceamento:")
-        print(y_train.value_counts())
+        self.logger.info("\nIniciando balanceamento de dados...")
+        self.logger.info(f"Tipo de X_train: {type(X_train)}")
+        self.logger.info(f"Tipo de y_train: {type(y_train)}")
+        self.logger.info(
+            f"Shape de X_train antes do balanceamento: {X_train.shape}")
+        self.logger.info(f"Distribuição de classes antes do balanceamento:")
+        self.logger.info(y_train.value_counts())
 
         # Garantir que os dados estão no formato correto
         if isinstance(X_train, pd.DataFrame):
@@ -143,47 +186,118 @@ class BasePipeline(ABC):
         X_resampled, y_resampled = data_balancer.apply_smote(
             X_train, y_train, strategy=strategy)
 
-        print(f"Shape de X_train após balanceamento: {X_resampled.shape}")
-        print(f"Distribuição de classes após balanceamento:")
-        print(pd.Series(y_resampled).value_counts())
+        self.logger.info(
+            f"Shape de X_train após balanceamento: {X_resampled.shape}")
+        self.logger.info(f"Distribuição de classes após balanceamento:")
+        self.logger.info(pd.Series(y_resampled).value_counts())
 
         return X_resampled, y_resampled
+
+    def _verify_stratified_split(self,data: pd.DataFrame,
+                                train_data: pd.DataFrame,
+                                val_data: Optional[pd.DataFrame],
+                                test_data: pd.DataFrame,
+                                target_column: str,
+                                tolerance: float = 0.05) -> None:
+        """
+        Verifica se o split estratificado manteve as proporções das classes.
+
+        Args:
+            data: DataFrame original
+            train_data: DataFrame de treino
+            val_data: DataFrame de validação (opcional)
+            test_data: DataFrame de teste
+            target_column: Nome da coluna target
+            tolerance: Tolerância máxima para diferença nas proporções
+        """
+        self.logger.info("\nVerificando distribuição das classes:")
+
+        # Calcula proporções
+        orig_dist = data[target_column].value_counts(normalize=True)
+        train_dist = train_data[target_column].value_counts(normalize=True)
+        test_dist = test_data[target_column].value_counts(normalize=True)
+
+        self.logger.info("\nDistribuição original:")
+        self.logger.info(orig_dist)
+        self.logger.info("\nDistribuição treino:")
+        self.logger.info(train_dist)
+
+        if val_data is not None:
+            val_dist = val_data[target_column].value_counts(normalize=True)
+            self.logger.info("\nDistribuição validação:")
+            self.logger.info(val_dist)
+
+        self.logger.info("\nDistribuição teste:")
+        self.logger.info(test_dist)
+
+        # Verifica diferenças
+        self.logger.info("\nVerificando diferenças nas proporções...")
+        max_diff_train = max(abs(orig_dist - train_dist))
+        max_diff_test = max(abs(orig_dist - test_dist))
+
+        self.logger.info(f"Máxima diferença no treino: {max_diff_train:.4f}")
+        self.logger.info(f"Máxima diferença no teste: {max_diff_test:.4f}")
+
+        if val_data is not None:
+            max_diff_val = max(abs(orig_dist - val_dist))
+            self.logger.info(
+                f"Máxima diferença na validação: {max_diff_val:.4f}")
+
+        # Alerta se diferenças excedem tolerância
+        if max_diff_train > tolerance or max_diff_test > tolerance:
+            self.logger.info(
+                "\nALERTA: Diferenças nas proporções excedem a tolerância!")
+
+        # Verifica tamanhos dos conjuntos
+        self.logger.info("\nTamanho dos conjuntos:")
+        self.logger.info(f"Original: {len(data)}")
+        self.logger.info(
+            f"Treino: {len(train_data)} ({len(train_data)/len(data):.2%})")
+        if val_data is not None:
+            self.logger.info(
+                f"Validação: {len(val_data)} ({len(val_data)/len(data):.2%})")
+        self.logger.info(
+            f"Teste: {len(test_data)} ({len(test_data)/len(data):.2%})")
 
     def run(self):
         from core.management.stage_training_manager import StageTrainingManager
 
         """Executa o pipeline completo."""
-        print(f"Iniciando pipeline de {self.__class__.__name__}...")
+        self.logger.info(f"Iniciando pipeline de {self.__class__.__name__}...")
 
         # Load and prepare data
-        print("\n1. Carregando e preparando dados...")
+        self.logger.info("\n1. Carregando e preparando dados...")
         data = self.load_and_clean_data()
 
         # Prepare data
-        print("\n2. Preparando dados para treinamento...")
-        X_train, X_test, y_train, y_test = self.prepare_data(data)
+        self.logger.info("\n2. Preparando dados para treinamento...")
+        X_train, X_val, X_test, y_train, y_val, y_test = self.prepare_data(
+            data)
 
         # Gerando report das features
         feature_report = FeatureMappingReporter()
         feature_report.log_feature_mappings(self.X_encoder)
         feature_report.log_target_mappings(self.y_encoder)
-        
+
         # Balance data
-        print("\n3. Balanceando dados de treino...")
+        self.logger.info("\n3. Balanceando dados de treino...")
         X_train, y_train = self.balance_data(X_train, y_train, strategy='auto')
 
         # Train models
-        print("\n4. Iniciando treinamento dos modelos...")
+        self.logger.info("\n4. Iniciando treinamento dos modelos...")
         training_manager = StageTrainingManager(
             X_train=X_train,
             X_test=X_test,
+            X_val=X_val,
             y_train=y_train,
+            y_val=y_val,
             y_test=y_test,
             model_params=self.model_params,
             n_iter=self.n_iter,
             cv=10,
             scoring='balanced_accuracy',
-            n_jobs=self.n_jobs)
+            n_jobs=self.n_jobs,
+            training_strategy=self.training_strategy)
 
         # Define training stages
         stages = self._get_training_stages()
@@ -191,4 +305,4 @@ class BasePipeline(ABC):
         # Execute training stages
         training_manager.execute_all_stages(stages)
 
-        print("\nPipeline concluído!")
+        self.logger.info("\nPipeline concluído!")

@@ -31,15 +31,15 @@ class DataBalancer:
         Returns:
             Tuple containing balanced (X, y)
         """
-        print("\nIniciando SMOTE...")
-        print(f"Distribuição original das classes:")
+        self.logger.info("\nIniciando SMOTE...")
+        self.logger.info(f"Distribuição original das classes:")
 
         # Antes de converter para numpy, mostramos as distribuições usando pandas
         if isinstance(y, pd.Series):
-            print(y.value_counts())
+            self.logger.info(y.value_counts())
         else:
             unique, counts = np.unique(y, return_counts=True)
-            print(pd.Series(counts, index=unique))
+            self.logger.info(pd.Series(counts, index=unique))
 
         # Convert data to numpy if needed
         X_array = X.values if isinstance(X, pd.DataFrame) else X
@@ -78,11 +78,11 @@ class DataBalancer:
         # Apply SMOTE
         X_resampled, y_resampled = smote.fit_resample(X_array, y_array)
 
-        print("\nDistribuição após SMOTE:")
+        self.logger.info("\nDistribuição após SMOTE:")
         # Converter para Series para mostrar a distribuição
         y_series = pd.Series(y_resampled)
-        print(y_series.value_counts())
-        print(
+        self.logger.info(y_series.value_counts())
+        self.logger.info(
             f"Shape após SMOTE - X: {X_resampled.shape}, y: {y_resampled.shape}")
 
         # Retornar como DataFrame/Series mantendo os nomes das colunas originais

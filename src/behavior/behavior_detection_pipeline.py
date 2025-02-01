@@ -1,3 +1,5 @@
+import logging
+from typing import Optional
 import numpy as np
 import pandas as pd
 
@@ -12,7 +14,7 @@ from behavior.behavior_model_params import BehaviorModelParams
 
 
 class BehaviorDetectionPipeline(BasePipeline):
-    def __init__(self, target_column='comportamento', n_iter=50, n_jobs=6, test_size=0.2):
+    def __init__(self, target_column='comportamento', n_iter=50, n_jobs=6, val_size=None, test_size=0.2):
         """
         Inicializa o pipeline de detecção de comportamentos.
 
@@ -26,9 +28,11 @@ class BehaviorDetectionPipeline(BasePipeline):
             target_column=target_column,
             n_iter=n_iter,
             n_jobs=n_jobs,
+            val_size=val_size,
             test_size=test_size,
         )
-        
+        self.logger = logging.getLogger()  # Pega o logger root
+
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
         return BehaviorModelParams()
@@ -38,12 +42,12 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Load data
         data = DataLoader.load_data(
             self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
-        print(f"Dataset inicial shape: {data.shape}")
+        self.logger.info(f"Dataset inicial shape: {data.shape}")
 
         # Remove undefined behaviors
         # data = self.data_cleaner.remove_instances_with_value(data, self.target_column, '?')
         # exibindo a quantidade de classes em comportamento
-        # print(f"Classes de comportamento: {data['comportamento'].unique()}")
+        # self.logger.info(f"Classes de comportamento: {data['comportamento'].unique()}")
 
         # Cria id único de sequencias
         data['sequence_id'] = self._create_sequence_ids(data)
@@ -51,17 +55,16 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Remove unnecessary columns usando configuração
         cleaned_data = self.data_cleaner.remove_columns(
             data, use_config=True)
-        
+
         # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
         # cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
         #     ['ON TASK OUT', 'ON TASK CONVERSATION'], 'ON TASK OUT')
         # exibindo a quantidade de classes em comportamento
-        print(
+        self.logger.info(
             f"Classes de comportamento: {cleaned_data[self.target_column].unique()}")
 
-
         return cleaned_data
-    
+
     def _create_sequence_ids(self, X: pd.DataFrame) -> np.ndarray:
         return (X['aluno'].astype(int) * 10000 +
                 X['num_dia'].astype(int) * 1000 +
@@ -77,64 +80,63 @@ class BehaviorDetectionPipeline(BasePipeline):
             - Remoção de colunas e transformações só após o split
         """
 
-        print("\nIniciando preparação dos dados...")
-        print(f"Dataset inicial - Shape: {data.shape}")
-        print("Tipos de dados:")
-        print(data.dtypes.value_counts())
+        self.logger.info("\nIniciando preparação dos dados...")
+        self.logger.info(f"Dataset inicial - Shape: {data.shape}")
+        self.logger.info("Tipos de dados:")
+        self.logger.info(data.dtypes.value_counts())
 
         # Validação inicial das colunas necessárias
         self._validate_split_columns(data)
 
         # 1. Criar features temporais [NOVO]
-        # print("\nCriando features temporais...")
+        # self.logger.info("\nCriando features temporais...")
         # temporal_processor = TemporalFeaturesProcessor()
         # data = temporal_processor.fit_transform(data)
-        # print(f"Shape após features temporais: {data.shape}")
+        # self.logger.info(f"Shape após features temporais: {data.shape}")
 
-    
         # 2. Encode target (generally, not needed for most models)
         y = data[self.target_column]
-        
+
         self.y_encoder = DataEncoder(
-            categorical_threshold=5,
-            scaling_strategy='standard',
-            select_numerical=True,
+            categorical_threshold=10,
+            scaling_strategy='none',
+            select_numerical=False,
             select_nominal=True,
             select_ordinal=False
-        )        
+        )
         y_encoded = self.y_encoder.fit_transform_y(y)
         data[self.target_column] = y_encoded
 
-        print(
+        self.logger.info(
             f"Distribuição original das classes:\n{data[self.target_column].value_counts()}")
 
-        # 3. Divide the data into train and test sets stratified by student ID and target
-
-        # Split estratificado usando novo identificador
-        train_data, test_data = DataSplitter.split_stratified_by_groups(
+        # 3. Divide the data into train, val and test sets stratified by student ID and target
+        train_data, val_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
+            val_data_size=0.15,
             test_size=self.test_size,
             group_column='aluno',
             target_column=self.target_column
         )
 
-        print(
-            f"Distribuição no conjunto de treino:\n{train_data[self.target_column].value_counts()}")
-        print(
-            f"Distribuição no conjunto de teste:\n{test_data[self.target_column].value_counts()}")
-
         # Verifica a qualidade do split aqui, logo após a divisão
-        self._verify_split_quality(train_data, test_data, 0.15)
+        self._verify_split_distribution(
+            data=data,
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data
+        )
 
-
-        # 5. Split features and target
+        # 4. Divide the data into features and target
         X_train, y_train = DataSplitter.split_into_x_y(
             train_data, self.target_column)
+        X_val, y_val = DataSplitter.split_into_x_y(
+            val_data, self.target_column)
         X_test, y_test = DataSplitter.split_into_x_y(
             test_data, self.target_column)
 
-        # 6. Impute missing values
-        print("\nRealizando imputação de valores faltantes...")
+        # 5. Impute missing values
+        self.logger.info("\nRealizando imputação de valores faltantes...")
         imputer = DataImputer(
             numerical_strategy='knn',
             categorical_strategy='most_frequent',
@@ -142,13 +144,15 @@ class BehaviorDetectionPipeline(BasePipeline):
         )
 
         # Importante: fit apenas no treino, transform em ambos
-        print("Ajustando imputador nos dados de treino...")
+        self.logger.info("Ajustando imputador nos dados de treino...")
         X_train_imputed = imputer.fit_transform(X_train)
-        print("Aplicando imputação nos dados de teste...")
+        self.logger.info("Aplicando imputação nos dados de teste...")
+        X_val_imputed = imputer.transform(X_val)
+        self.logger.info("Aplicando imputação nos dados de teste...")
         X_test_imputed = imputer.transform(X_test)
 
         # 6. Encode features
-        print("\nRealizando encoding das features...")
+        self.logger.info("\nRealizando encoding das features...")
         self.X_encoder = DataEncoder(
             categorical_threshold=5,
             scaling_strategy='standard',
@@ -158,34 +162,35 @@ class BehaviorDetectionPipeline(BasePipeline):
         )
         self.X_encoder.fit(X_train)
         X_train_encoded = self.X_encoder.transform(X_train_imputed)
+        X_val_encoded = self.X_encoder.transform(X_val_imputed)
         X_test_encoded = self.X_encoder.transform(X_test_imputed)
 
         # Após todas as transformações
-        print("\nResumo final do pré-processamento:")
-        print(
-            f"Shape final - X_train: {X_train_encoded.shape}, X_test: {X_test_encoded.shape}")
+        self.logger.info("\nResumo final do pré-processamento:")
+        self.logger.info(
+            f"Shape final - X_train: {X_train_encoded.shape}, X_val: {X_val_encoded.shape}, X_test: {X_test_encoded.shape}")
 
-        return X_train_encoded, X_test_encoded, y_train, y_test
+        return X_train_encoded, X_val_encoded, X_test_encoded, y_train, y_val, y_test
 
     def _log_dataset_changes(self, stage: str, data: pd.DataFrame):
         """Registra mudanças no dataset"""
-        print(f"\nDataset {stage} - Shape: {data.shape}")
-        print("Tipos de dados:")
-        print(data.dtypes.value_counts())
+        self.logger.info(f"\nDataset {stage} - Shape: {data.shape}")
+        self.logger.info("Tipos de dados:")
+        self.logger.info(data.dtypes.value_counts())
 
     def _log_removed_items(self, item_type: str, items: list):
         """Registra itens removidos"""
         if items:
-            print(f"\nRemovidos {len(items)} {item_type}:")
-            print(items)
+            self.logger.info(f"\nRemovidos {len(items)} {item_type}:")
+            self.logger.info(items)
 
     def _log_class_distribution(self, stage: str, y: pd.Series):
         """Registra distribuição das classes"""
-        print(f"\nDistribuição no conjunto de {stage}:")
+        self.logger.info(f"\nDistribuição no conjunto de {stage}:")
         dist = y.value_counts()
-        print(dist)
-        print("\nPorcentagens:")
-        print((dist/len(y)*100).round(2))
+        self.logger.info(dist)
+        self.logger.info("\nPorcentagens:")
+        self.logger.info((dist/len(y)*100).round(2))
 
     def _validate_split_columns(self, data):
         """
@@ -214,39 +219,37 @@ class BehaviorDetectionPipeline(BasePipeline):
         if not columns_with_nulls.empty:
             raise ValueError(
                 f"Valores nulos encontrados em colunas críticas:\n{columns_with_nulls}")
-    
-    def _verify_split_quality(self, train_data, test_data, tolerance: float = 0.15):
-        """
-        Verifica se o split manteve as proporções desejadas com tolerância ajustada
-        """
-        # Verifica se todos os alunos estão em apenas um conjunto
-        train_students = set(train_data['aluno'])
-        test_students = set(test_data['aluno'])
-        overlap = train_students & test_students
+
+    def _verify_split_distribution(data, train_data, val_data=None, test_data=None, group_col='aluno', target_col='comportamento'):
+        """Verifica a qualidade do split"""
+        self.logger.info("\nDistribuição de classes:")
+        self.logger.info("\nOriginal:")
+        self.logger.info(data[target_col].value_counts(normalize=True))
+
+        self.logger.info("\nTreino:")
+        self.logger.info(train_data[target_col].value_counts(normalize=True))
+
+        if val_data is not None:
+            self.logger.info("\nValidação:")
+            self.logger.info(val_data[target_col].value_counts(normalize=True))
+
+        self.logger.info("\nTeste:")
+        self.logger.info(test_data[target_col].value_counts(normalize=True))
+
+        # Verifica sobreposição de grupos
+        train_groups = set(train_data[group_col].unique())
+        test_groups = set(test_data[group_col].unique())
+        overlap = train_groups.intersection(test_groups)
+
         if len(overlap) > 0:
-            print(f"Aviso: Alunos presentes em ambos conjuntos: {overlap}")
+            self.logger.info(
+                f"\nALERTA: Existem {len(overlap)} grupos sobrepostos entre treino e teste!")
 
-        if self.target_column not in train_data.columns or self.target_column not in test_data.columns:
-            raise ValueError(
-                f"Coluna target '{self.target_column}' não encontrada nos dados")
+        if val_data is not None:
+            val_groups = set(val_data[group_col].unique())
+            overlap_val_train = val_groups.intersection(train_groups)
+            overlap_val_test = val_groups.intersection(test_groups)
 
-        # Calcula distribuições
-        train_dist = train_data[self.target_column].value_counts(normalize=True)
-        test_dist = test_data[self.target_column].value_counts(normalize=True)
-
-        # Verifica distribuição para cada classe
-        for class_name in train_dist.index:
-            train_prop = train_dist[class_name]
-            # Usa 0 se a classe não existir no teste
-            test_prop = test_dist.get(class_name, 0)
-            diff = abs(train_prop - test_prop)
-
-            if diff >= tolerance:
-                print(
-                    f"Aviso: Diferença significativa detectada para '{class_name}' "
-                    f"(treino: {train_prop:.2%}, teste: {test_prop:.2%}, "
-                    f"diferença: {diff:.2%}, tolerância: {tolerance:.2%})"
-                )
-
-
- 
+            if len(overlap_val_train) > 0 or len(overlap_val_test) > 0:
+                self.logger.info(
+                    f"\nALERTA: Existem grupos sobrepostos na validação!")

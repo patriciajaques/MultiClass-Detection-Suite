@@ -9,9 +9,9 @@ from core.management.stage_training_manager import StageTrainingManager
 
 
 class MNISTDetectionPipeline(BasePipeline):
-    def __init__(self, target_column='target', n_iter=50, n_jobs=6, test_size=0.2):
+    def __init__(self, target_column='target', n_iter=50, n_jobs=6, val_size=0.25, test_size=0.2, training_strategy_name='optuna'):
         super().__init__(target_column=target_column,
-                         n_iter=n_iter, n_jobs=n_jobs, test_size=test_size)
+                         n_iter=n_iter, n_jobs=n_jobs, test_size=test_size, training_strategy_name=training_strategy_name)
 
     def _get_model_params(self):
         """Implementação do método abstrato para obter parâmetros do modelo."""
@@ -34,15 +34,28 @@ class MNISTDetectionPipeline(BasePipeline):
 
     def prepare_data(self, data):
         print("Preparando dados...")
+        
         # Split data
-        print("Dividindo dados em treino e teste...")
-        train_data, test_data = DataSplitter.split_data_stratified(
-            data, test_size=self.test_size, target_column='target'
+        print("Dividindo dados em treino/val e teste...")
+        train_data, val_data, test_data = DataSplitter.split_data_stratified(
+            data=data,
+            target_column='target',
+            test_size=0.2,
+            val_size=0.25
+        )
+
+        self._verify_stratified_split(
+            data=data,
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            target_column='target'
         )
 
         # Split features and target
         print("Separando features e target...")
         X_train, y_train = DataSplitter.split_into_x_y(train_data, 'target')
+        X_val, y_val = DataSplitter.split_into_x_y(val_data, 'target')
         X_test, y_test = DataSplitter.split_into_x_y(test_data, 'target')
 
         # Scale features
@@ -55,9 +68,10 @@ class MNISTDetectionPipeline(BasePipeline):
             select_ordinal=False   # não selecionar colunas ordinais
         )
         X_train = encoder.fit_transform(X_train)
+        X_val = encoder.transform(X_val)
         X_test = encoder.transform(X_test)
 
-        return X_train, X_test, y_train, y_test
+        return X_train, X_val, X_test, y_train, y_val, y_test
 
     def run(self):
         print("Iniciando pipeline de detecção MNIST...")
@@ -68,7 +82,7 @@ class MNISTDetectionPipeline(BasePipeline):
 
         # Prepare data
         print("\n2. Preparando dados para treinamento...")
-        X_train, X_test, y_train, y_test = self.prepare_data(data)
+        X_train, X_val, X_test, y_train, y_val, y_test = self.prepare_data(data)
 
         # Balance data
         print("\n3. Balanceando dados de treino...")
@@ -78,14 +92,17 @@ class MNISTDetectionPipeline(BasePipeline):
         print("\n4. Iniciando treinamento dos modelos...")
         training_manager = StageTrainingManager(
             X_train=X_train,
+            X_val=X_val,
             X_test=X_test,
             y_train=y_train,
+            y_val=y_val,
             y_test=y_test,
             model_params=self.model_params,
             n_iter=self.n_iter,
             cv=10,
             scoring='balanced_accuracy',
-            n_jobs=self.n_jobs
+            n_jobs=self.n_jobs,
+            training_strategy=self.training_strategy
         )
 
         # Define training stages

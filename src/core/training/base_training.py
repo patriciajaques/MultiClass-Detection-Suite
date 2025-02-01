@@ -11,6 +11,8 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 from time import time
 
+from core.logging.logger_config import LoggerConfig
+
 
 class BaseTraining(ABC):
     """
@@ -21,6 +23,7 @@ class BaseTraining(ABC):
     def __init__(self):
         self.execution_time = 0
         self.trained_model_info = {}
+        self.logger = None
 
     def train_model(self,
                     pipeline: Pipeline,
@@ -88,7 +91,7 @@ class BaseTraining(ABC):
     def _log_execution_time(self, model_name: str, selector_name: str) -> None:
         """
         Registra o tempo de execução do treinamento.
-        
+
         Args:
             model_name: Nome do modelo treinado
             selector_name: Nome do seletor de features usado
@@ -106,7 +109,6 @@ class BaseTraining(ABC):
             f"Erro ao treinar {model_name} com {selector_name}: {str(error)}")
         import traceback
         self.logger.error(traceback.format_exc())
-
 
     def _filter_models(self, models: Dict[str, Any], selected_models: Optional[List[str]]) -> Dict[str, Any]:
         """
@@ -155,7 +157,7 @@ class BaseTraining(ABC):
     def log_parameter_error(self, model_name: str, params: dict) -> None:
         """
         Logs parameter-related errors during model optimization.
-        
+
         Args:
             model_name: Name of the model that encountered the error
             params: Parameters that caused the error
@@ -164,16 +166,16 @@ class BaseTraining(ABC):
             f"Parameter optimization failed for model {model_name}")
         self.logger.warning(f"Failed parameters configuration: {params}")
 
-    @staticmethod
-    def log_search_results(logger, search, model_name, selector_name):
+    def log_search_results(self, search, model_name, selector_name):
         """Log the results of the search process."""
         if hasattr(search, 'best_params_'):
-            logger.info(f"Best parameters: {search.best_params_}")
+            self.logger.info(f"Best parameters: {search.best_params_}")
         if hasattr(search, 'best_score_'):
-            logger.info(f"Best cross-validation score: {search.best_score_}")
+            self.logger.info(
+                f"Best cross-validation score: {search.best_score_}")
 
         # Log all hyperparameter combinations and their cross-validation results
-        logger.info(
+        self.logger.info(
             "All hyperparameter combinations and their cross-validation results:")
 
         if hasattr(search, 'cv_results_'):
@@ -182,10 +184,10 @@ class BaseTraining(ABC):
             for mean_score, params in zip(cv_results['mean_test_score'], cv_results['params']):
                 if not pd.isna(mean_score):
                     success_count += 1
-                    logger.info(
+                    self.logger.info(
                         f"Params: {params}, Mean Test Score: {mean_score}")
 
-            logger.info(
+            self.logger.info(
                 f"Number of successful trials for {model_name}: {success_count}")
-            logger.info(
+            self.logger.info(
                 f"Number of failed trials for {model_name}: {len(cv_results['mean_test_score']) - success_count}")

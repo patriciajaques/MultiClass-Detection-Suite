@@ -54,10 +54,9 @@ class ReportFormatter:
         report_output += f"Training Time: {ReportFormatter.format_float(model_metrics.execution_time)} seconds\n"
 
         # Train and test results
-        report_output += ReportFormatter._format_set_report(
-            "Train", model_metrics)
-        report_output += ReportFormatter._format_set_report(
-            "Test", model_metrics)
+        report_output += ReportFormatter._format_set_report("Train", model_metrics)
+        report_output += ReportFormatter._format_set_report("Validation", model_metrics)
+        report_output += ReportFormatter._format_set_report("Test", model_metrics)
 
         return report_output
 
@@ -80,21 +79,23 @@ class ReportFormatter:
 
     @staticmethod
     def _format_set_report(set_name: str, model_metrics: ClassificationModelMetrics) -> str:
-        """Formata o relatório para um conjunto específico (treino ou teste)"""
+        """Formata o relatório para um conjunto específico (treino, validação ou teste)"""
         output = f"\n{set_name} set class report:\n"
 
         # Seleciona o relatório correto baseado no conjunto
-        class_report = (model_metrics.class_report_train
-                        if set_name == "Train"
-                        else model_metrics.class_report_test)
-
-        metrics = (model_metrics.train_metrics
-                   if set_name == "Train"
-                   else model_metrics.test_metrics)
+        if set_name == "Train":
+            class_report = model_metrics.class_report_train
+            metrics = model_metrics.train_metrics
+        elif set_name == "Validation":
+            class_report = model_metrics.class_report_val
+            metrics = model_metrics.val_metrics
+        else:
+            class_report = model_metrics.class_report_test
+            metrics = model_metrics.test_metrics
 
         output += ReportFormatter._dict_to_df(class_report).to_string(index=True)
         output += f"\n\n{set_name} set average metrics:\n"
-        output += ReportFormatter._format_dict(metrics)+"\n"
+        output += ReportFormatter._format_dict(metrics) + "\n"
 
         return output
 
@@ -104,11 +105,11 @@ class ReportFormatter:
 
         # Criar DataFrames separados para treino e teste
         train_df = ReportFormatter._dict_to_df(model_metrics.class_report_train, '-train')
+        val_df = ReportFormatter._dict_to_df(model_metrics.class_report_val, '-val')
         test_df = ReportFormatter._dict_to_df(model_metrics.class_report_test, '-test')
 
         # Combinar os DataFrames
-        combined_df = train_df.join(test_df, how='outer')
-
+        combined_df = train_df.join(val_df, how='outer').join(test_df, how='outer')
         return combined_df.reset_index().rename(columns={'index': 'Class'})
 
     @staticmethod
@@ -118,11 +119,13 @@ class ReportFormatter:
         # Criar DataFrames separados para treino e teste
         train_df = pd.DataFrame.from_dict(
             model_metrics.train_metrics, orient='index', columns=['Train'])
+        val_df = pd.DataFrame.from_dict(
+            model_metrics.val_metrics, orient='index', columns=['Validation'])
         test_df = pd.DataFrame.from_dict(
             model_metrics.test_metrics, orient='index', columns=['Test'])
     
         # Combinar os DataFrames
-        combined_df = train_df.join(test_df, how='outer')
+        combined_df = train_df.join([val_df, test_df], how='outer')
     
         # Adicionar linha 'CV Score' na coluna 'Train'
         cv_score_df = pd.DataFrame({'Train': [model_metrics.cv_score]}, index=['CV Score'])
@@ -139,34 +142,32 @@ class ReportFormatter:
 
     @staticmethod
     def generate_confusion_matrix_report(model_metrics: ClassificationModelMetrics) -> str:
-        """Gera relatório formatado das matrizes de confusão"""
         report = f"\nModel: {model_metrics.stage_name}\n"
-
-        # Extrai os labels das classes
         labels = model_metrics.class_labels if model_metrics.class_labels else None
 
         # Processa matriz de treino
-        report += "\nTrain Confusion Matrix:\n"
-        report += "Predicted →\nActual ↓\n"
-        # Extrai matriz da tupla
-        cm_train = model_metrics.confusion_matrix_train[0]
-        cm_train_df = pd.DataFrame(
-            cm_train,
-            index=labels,
-            columns=labels
-        )
-        report += cm_train_df.to_string()
+        if model_metrics.confusion_matrix_train is not None:
+            report += "\nTrain Confusion Matrix:\n"
+            report += "Predicted →\nActual ↓\n"
+            cm_train = model_metrics.confusion_matrix_train[0]
+            cm_train_df = pd.DataFrame(cm_train, index=labels, columns=labels)
+            report += cm_train_df.to_string()
+
+        # Processa matriz de validação
+        if model_metrics.confusion_matrix_val is not None:
+            report += "\n\nValidation Confusion Matrix:\n"
+            report += "Predicted →\nActual ↓\n"
+            cm_val = model_metrics.confusion_matrix_val[0]
+            cm_val_df = pd.DataFrame(cm_val, index=labels, columns=labels)
+            report += cm_val_df.to_string()
 
         # Processa matriz de teste
-        report += "\n\nTest Confusion Matrix:\n"
-        report += "Predicted →\nActual ↓\n"
-        cm_test = model_metrics.confusion_matrix_test[0]  # Extrai matriz da tupla
-        cm_test_df = pd.DataFrame(
-            cm_test,
-            index=labels,
-            columns=labels
-        )
-        report += cm_test_df.to_string()
+        if model_metrics.confusion_matrix_test is not None:
+            report += "\n\nTest Confusion Matrix:\n"
+            report += "Predicted →\nActual ↓\n"
+            cm_test = model_metrics.confusion_matrix_test[0]
+            cm_test_df = pd.DataFrame(cm_test, index=labels, columns=labels)
+            report += cm_test_df.to_string()
 
         report += "\n" + "="*50 + "\n"
         return report

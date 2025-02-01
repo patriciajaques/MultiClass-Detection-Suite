@@ -4,10 +4,8 @@ from sklearn.ensemble import VotingClassifier
 from core.models.model_persistence import ModelPersistence
 
 
-from sklearn.metrics import balanced_accuracy_score, classification_report
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
 from core.evaluation.model_evaluator import ModelEvaluator
-
 
 class VotingEnsembleBuilder:
     """
@@ -18,15 +16,15 @@ class VotingEnsembleBuilder:
     @staticmethod
     def select_best_models(metrics_df: pd.DataFrame,
                            n_models: int = 3,
-                           metric: str = 'balanced_accuracy-test') -> List[str]:
+                           metric: str = 'balanced_accuracy-val') -> List[str]:
         """
         Seleciona os n melhores modelos baseado na métrica especificada.
-        
+
         Args:
             metrics_df: DataFrame com as métricas de todos os modelos
             n_models: Número de modelos a selecionar
             metric: Métrica para ordenar os modelos
-            
+
         Returns:
             Lista com os nomes dos melhores modelos
         """
@@ -41,11 +39,11 @@ class VotingEnsembleBuilder:
                                 voting: str = 'soft') -> VotingClassifier:
         """
         Constrói um VotingClassifier com os melhores modelos.
-        
+
         Args:
             best_model_names: Lista com nomes dos melhores modelos
             voting: Tipo de votação ('hard' ou 'soft')
-            
+
         Returns:
             VotingClassifier configurado com os melhores modelos
         """
@@ -61,17 +59,17 @@ class VotingEnsembleBuilder:
 
     @staticmethod
     def train_and_evaluate_ensemble(voting_classifier: VotingClassifier,
-                                    X_train, X_test, y_train, y_test,
+                                    X_train, X_val, X_test, y_train, y_val, y_test,
                                     stage_name: str = "voting_ensemble") -> ClassificationModelMetrics:
         """
         Treina e avalia o ensemble.
-        
+
         Args:
             voting_classifier: VotingClassifier configurado
             X_train, X_test: Features de treino e teste
             y_train, y_test: Labels de treino e teste
             stage_name: Nome para identificação do ensemble
-            
+
         Returns:
             ClassificationModelMetrics com os resultados da avaliação
         """
@@ -83,10 +81,11 @@ class VotingEnsembleBuilder:
         metrics = ModelEvaluator.evaluate_single_model(
             voting_classifier,
             X_train, y_train,
+            X_val, y_val,
             X_test, y_test,
             stage_name
         )
-
+        ModelPersistence.save_model(voting_classifier, stage_name)
         return metrics
 
     @staticmethod
@@ -96,13 +95,13 @@ class VotingEnsembleBuilder:
                                voting: str = 'soft') -> Dict[str, Any]:
         """
         Cria um ensemble completo selecionando os melhores modelos.
-        
+
         Args:
             metrics_df: DataFrame com métricas dos modelos
             n_models: Número de modelos para o ensemble
             metric: Métrica para seleção dos modelos
             voting: Tipo de votação
-            
+
         Returns:
             Dicionário com o ensemble e informações dos modelos selecionados
         """

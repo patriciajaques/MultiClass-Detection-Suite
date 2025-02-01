@@ -1,13 +1,13 @@
 from sklearn.model_selection import RandomizedSearchCV
-from core.logging.logger_config import with_logging
+from core.logging.logger_config import LoggerConfig
 from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.grid_search_param_converter import GridSearchParamConverter
 
 
-@with_logging('random_search')
 class RandomSearchTraining(BaseTraining):
     def __init__(self):
         super().__init__()
+        self.logger = LoggerConfig.get_logger('random_search_training')
 
     def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
         try:
@@ -41,7 +41,7 @@ class RandomSearchTraining(BaseTraining):
             # Log the results using ModelTraining's method
             self.log_search_results(random_search, model_name, selector_name)
 
-            self.trained_models[f"{model_name}_{selector_name}"] = {
+            self.trained_model_info = {
                 'pipeline': random_search.best_estimator_,
                 'training_type': "RandomizedSearchCV",
                 'hyperparameters': random_search.best_params_,

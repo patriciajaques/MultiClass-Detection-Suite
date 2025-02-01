@@ -10,10 +10,9 @@ import pandas as pd
 
 from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.optuna_param_converter import OptunaParamConverter
-from core.logging.logger_config import with_logging
+from core.logging.logger_config import LoggerConfig, with_logging
 
 
-@with_logging('optuna_training')
 class OptunaBayesianOptimizationTraining(BaseTraining):
     """
     Implementa otimização Bayesiana de hiperparâmetros usando Optuna.
@@ -21,6 +20,7 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
 
     def __init__(self):
         super().__init__()
+        self.logger = LoggerConfig.get_logger('optuna_training')
         self.logger.setLevel(logging.DEBUG)
 
     def optimize_model(self, pipeline, model_name, model_params, selector_name,
