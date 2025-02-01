@@ -14,27 +14,35 @@ class ModelEvaluator:
 
     @staticmethod
     def evaluate_single_model(
-                    pipeline: Pipeline,
-                    X_train: pd.DataFrame,
-                    y_train: pd.Series,
-                    X_val: pd.DataFrame,
-                    y_val: pd.Series,
-                    X_test: pd.DataFrame,
-                    y_test: pd.Series,
-                    stage_name: str) -> ClassificationModelMetrics:
+                        pipeline: Pipeline,
+                        X_train: pd.DataFrame,
+                        y_train: pd.Series,
+                        X_val: pd.DataFrame,
+                        y_val: pd.Series,
+                        X_test: pd.DataFrame,
+                        y_test: pd.Series,
+                        stage_name: str,
+                        use_voting_classifier) -> ClassificationModelMetrics:
         """Avalia um único modelo e retorna suas métricas"""
         try:
             print(f"\nAvaliando modelo: {stage_name}")
 
             # Gerar predições
             train_pred, train_prob = ModelEvaluator._get_predictions(pipeline, X_train)
-            val_pred, val_prob = ModelEvaluator._get_predictions(
-                pipeline, X_val)
+            if use_voting_classifier:
+                val_pred, val_prob = ModelEvaluator._get_predictions(pipeline, X_val)
             test_pred, test_prob = ModelEvaluator._get_predictions(pipeline, X_test)
 
             # Calcular métricas
             train_metrics = ModelEvaluator._compute_metrics(y_train, train_pred)
-            val_metrics = ModelEvaluator._compute_metrics(y_val, val_pred)
+            if use_voting_classifier:
+                val_metrics = ModelEvaluator._compute_metrics(y_val, val_pred)
+            else:
+                val_metrics = {
+                    'avg_metrics': None,
+                    'class_report': None,
+                    'conf_matrix': None
+                }
             test_metrics = ModelEvaluator._compute_metrics(y_test, test_pred)
 
             # Obter informações sobre features se disponível

@@ -136,7 +136,7 @@ class DataSplitter:
             )
             train_idx, test_idx = next(
                 splitter.split(data, data[target_column]))
-            return data.iloc[train_idx], data.iloc[test_idx]
+            return data.iloc[train_idx], None, data.iloc[test_idx]
 
         # Split em 3 conjuntos (train/val/test)
         else:

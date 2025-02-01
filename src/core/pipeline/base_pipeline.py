@@ -20,7 +20,7 @@ from core.training.grid_search_training import GridSearchTraining
 class BasePipeline(ABC):
     """Classe base abstrata para pipelines de detecção."""
 
-    def __init__(self, target_column: str, n_iter=50, n_jobs=6, val_size=None, test_size=0.2, training_strategy_name='optuna'):
+    def __init__(self, target_column: str, n_iter=50, n_jobs=6, val_size=None, test_size=0.2, training_strategy_name='optuna', use_voting_classifier=True):
         """
         Args:
             target_column: Nome da coluna alvo
@@ -51,6 +51,7 @@ class BasePipeline(ABC):
         self.logger = logging.getLogger()
         self.training_strategy = self._initialize_training_manager(
             training_strategy_name)
+        self.use_voting_classifier = use_voting_classifier
 
     def _initialize_training_manager(self, strategy: str):
         """Inicializa o gerenciador de treinamento apropriado."""
@@ -297,7 +298,8 @@ class BasePipeline(ABC):
             cv=10,
             scoring='balanced_accuracy',
             n_jobs=self.n_jobs,
-            training_strategy=self.training_strategy)
+            training_strategy=self.training_strategy,
+            use_voting_classifier=self.use_voting_classifier)
 
         # Define training stages
         stages = self._get_training_stages()

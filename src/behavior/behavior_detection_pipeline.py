@@ -14,7 +14,9 @@ from behavior.behavior_model_params import BehaviorModelParams
 
 
 class BehaviorDetectionPipeline(BasePipeline):
-    def __init__(self, target_column='comportamento', n_iter=50, n_jobs=6, val_size=None, test_size=0.2):
+    def __init__(self, target_column='comportamento', n_iter=50, n_jobs=6, 
+                 val_size=0.25, test_size=0.2, 
+                 training_strategy_name='optuna', use_voting_classifier=True):
         """
         Inicializa o pipeline de detecção de comportamentos.
 
@@ -28,10 +30,10 @@ class BehaviorDetectionPipeline(BasePipeline):
             target_column=target_column,
             n_iter=n_iter,
             n_jobs=n_jobs,
-            val_size=val_size,
-            test_size=test_size,
+            val_size=val_size, test_size=test_size, 
+            training_strategy_name=training_strategy_name, 
+            use_voting_classifier=use_voting_classifier
         )
-        self.logger = logging.getLogger()  # Pega o logger root
 
     def _get_model_params(self):
         """Obtém os parâmetros do modelo de comportamento."""
@@ -220,7 +222,7 @@ class BehaviorDetectionPipeline(BasePipeline):
             raise ValueError(
                 f"Valores nulos encontrados em colunas críticas:\n{columns_with_nulls}")
 
-    def _verify_split_distribution(data, train_data, val_data=None, test_data=None, group_col='aluno', target_col='comportamento'):
+    def _verify_split_distribution(self, data, train_data, val_data=None, test_data=None, group_col='aluno', target_col='comportamento'):
         """Verifica a qualidade do split"""
         self.logger.info("\nDistribuição de classes:")
         self.logger.info("\nOriginal:")

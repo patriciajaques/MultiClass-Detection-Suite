@@ -114,10 +114,11 @@ class ReportFormatter:
             class_report = model_metrics.class_report_test
             metrics = model_metrics.test_metrics
 
-        output += ReportFormatter._dict_to_df(
-            class_report).to_string(index=True)
-        output += f"\n\n{set_name} set average metrics:\n"
-        output += ReportFormatter._format_dict(metrics) + "\n"
+        if class_report:
+            output += ReportFormatter._dict_to_df(class_report).to_string(index=True)
+        if metrics:
+            output += f"\n\n{set_name} set average metrics:\n"
+            output += ReportFormatter._format_dict(metrics) + "\n"
 
         return output
 
@@ -144,13 +145,17 @@ class ReportFormatter:
         # Criar DataFrames separados para treino e teste
         train_df = pd.DataFrame.from_dict(
             model_metrics.train_metrics, orient='index', columns=['Train'])
-        val_df = pd.DataFrame.from_dict(
-            model_metrics.val_metrics, orient='index', columns=['Validation'])
+        if model_metrics.val_metrics:
+            val_df = pd.DataFrame.from_dict(
+                model_metrics.val_metrics, orient='index', columns=['Validation'])
         test_df = pd.DataFrame.from_dict(
             model_metrics.test_metrics, orient='index', columns=['Test'])
 
         # Combinar os DataFrames
-        combined_df = train_df.join([val_df, test_df], how='outer')
+        if model_metrics.val_metrics:
+            combined_df = train_df.join([val_df, test_df], how='outer')
+        else:
+            combined_df = train_df.join(test_df, how='outer')
 
         # Adicionar linha 'CV Score' na coluna 'Train'
         cv_score_df = pd.DataFrame(

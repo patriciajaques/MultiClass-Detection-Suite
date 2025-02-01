@@ -62,7 +62,11 @@ def main():
     pipeline = EmotionDetectionPipeline(
         n_iter=50,
         n_jobs=6,
-        test_size=0.2
+        val_size=0.25,
+        test_size=0.2,
+        # pode ser optuna (default), grid ou random
+        training_strategy_name='optuna',
+        use_voting_classifier=True
     )
     pipeline.run()
 

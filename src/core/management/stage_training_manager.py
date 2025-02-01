@@ -19,7 +19,7 @@ class StageTrainingManager:
     """Manages the execution of multiple training stages with different model and selector combinations."""
 
     def __init__(self, X_train, X_val, X_test, y_train, y_val, y_test,  model_params,
-                 n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1, training_strategy=None):
+                 n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1, training_strategy=None, use_voting_classifier=True):
         self.X_train = X_train
         self.X_val = X_val
         self.X_test = X_test
@@ -31,6 +31,7 @@ class StageTrainingManager:
         self.cv = cv
         self.scoring = scoring
         self.n_jobs = n_jobs
+        self.use_voting_classifier = use_voting_classifier
 
         # Initialize training strategy
         print(f"Training strategy: {training_strategy}")
@@ -75,7 +76,10 @@ class StageTrainingManager:
 
             # Evaluate the model
             model_metrics = ModelEvaluator.evaluate_single_model(
-                trained_model_info['pipeline'], self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test, stage_name
+                trained_model_info['pipeline'], 
+                self.X_train, self.y_train, self.X_val, 
+                self.y_val, self.X_test, self.y_test, 
+                stage_name, self.use_voting_classifier
             )
             model_metrics.execution_time = trained_model_info['execution_time']
             model_metrics.training_type = trained_model_info['training_type']
@@ -125,11 +129,12 @@ class StageTrainingManager:
                 print(f"Error in stage {stage_name}: {str(e)}")
                 continue
 
-        # Cria o ensemble
-        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics)
-    
-        # Adiciona as métricas do ensemble ao relatório final
-        all_metrics.append(ensemble_metrics)
+        if self.use_voting_classifier:
+            # Cria o ensemble
+            ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics)
+        
+            # Adiciona as métricas do ensemble ao relatório final
+            all_metrics.append(ensemble_metrics)
 
         # Gera o relatório final com os modelos base e ensemble 
         MetricsReporter.generate_final_report(all_metrics)

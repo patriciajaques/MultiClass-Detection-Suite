@@ -9,9 +9,12 @@ from core.management.stage_training_manager import StageTrainingManager
 
 
 class MNISTDetectionPipeline(BasePipeline):
-    def __init__(self, target_column='target', n_iter=50, n_jobs=6, val_size=0.25, test_size=0.2, training_strategy_name='optuna'):
+    def __init__(self, target_column='target', n_iter=50, n_jobs=6, val_size=0.25, test_size=0.2, training_strategy_name='optuna', use_voting_classifier=True):
         super().__init__(target_column=target_column,
-                         n_iter=n_iter, n_jobs=n_jobs, test_size=test_size, training_strategy_name=training_strategy_name)
+                         n_iter=n_iter, n_jobs=n_jobs, 
+                         val_size=val_size, test_size=test_size, 
+                         training_strategy_name=training_strategy_name, 
+                         use_voting_classifier=use_voting_classifier)
 
     def _get_model_params(self):
         """Implementação do método abstrato para obter parâmetros do modelo."""
@@ -36,12 +39,18 @@ class MNISTDetectionPipeline(BasePipeline):
         print("Preparando dados...")
         
         # Split data
+        if self.use_voting_classifier:
+            val_size = 0.25
+        else:
+            val_size = None # when not using voting classifier, don't split into val set
+
         print("Dividindo dados em treino/val e teste...")
         train_data, val_data, test_data = DataSplitter.split_data_stratified(
             data=data,
             target_column='target',
             test_size=0.2,
-            val_size=0.25
+            val_size=val_size,
+            random_state=42
         )
 
         self._verify_stratified_split(
@@ -55,7 +64,10 @@ class MNISTDetectionPipeline(BasePipeline):
         # Split features and target
         print("Separando features e target...")
         X_train, y_train = DataSplitter.split_into_x_y(train_data, 'target')
-        X_val, y_val = DataSplitter.split_into_x_y(val_data, 'target')
+        if val_size is None:
+            X_val, y_val = None, None
+        else:
+            X_val, y_val = DataSplitter.split_into_x_y(val_data, 'target')
         X_test, y_test = DataSplitter.split_into_x_y(test_data, 'target')
 
         # Scale features
@@ -68,7 +80,8 @@ class MNISTDetectionPipeline(BasePipeline):
             select_ordinal=False   # não selecionar colunas ordinais
         )
         X_train = encoder.fit_transform(X_train)
-        X_val = encoder.transform(X_val)
+        if X_val is not None:
+            X_val = encoder.transform(X_val)
         X_test = encoder.transform(X_test)
 
         return X_train, X_val, X_test, y_train, y_val, y_test
@@ -102,7 +115,8 @@ class MNISTDetectionPipeline(BasePipeline):
             cv=10,
             scoring='balanced_accuracy',
             n_jobs=self.n_jobs,
-            training_strategy=self.training_strategy
+            training_strategy=self.training_strategy,
+            use_voting_classifier=self.use_voting_classifier
         )
 
         # Define training stages

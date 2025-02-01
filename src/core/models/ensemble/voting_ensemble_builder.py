@@ -83,7 +83,8 @@ class VotingEnsembleBuilder:
             X_train, y_train,
             X_val, y_val,
             X_test, y_test,
-            stage_name
+            stage_name,
+            use_voting_classifier=True
         )
         ModelPersistence.save_model(voting_classifier, stage_name)
         return metrics
