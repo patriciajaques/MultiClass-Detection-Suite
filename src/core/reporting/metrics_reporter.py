@@ -1,4 +1,5 @@
 import os
+import traceback
 
 import pandas as pd
 from core.reporting.report_formatter import ReportFormatter
@@ -58,7 +59,6 @@ class MetricsReporter:
 
         except Exception as e:
             print(f"\nErro ao gerar relatórios para {stage_name}: {str(e)}")
-            import traceback
             print(traceback.format_exc())
       
 

@@ -5,6 +5,7 @@ from sklearn.metrics import balanced_accuracy_score, classification_report, cohe
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix
 from sklearn.pipeline import Pipeline
 
+from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
 
 
@@ -88,27 +89,38 @@ class ModelEvaluator:
     def _get_feature_info(pipeline: Pipeline, X: pd.DataFrame) -> Dict[str, Any]:
         """Obtém informações sobre as features após seleção/transformação"""
         try:
+            original_n_features = X.shape[1]
             if not hasattr(pipeline, 'named_steps') or 'feature_selection' not in pipeline.named_steps:
                 return {
-                    'type': 'original',
+                    'type': 'none',
+                    'original_n_features': original_n_features,
                     'n_features': X.shape[1],
-                    'description': f'Using all {X.shape[1]} original features'
+                    'description': f'Using all {X.shape[1]} original features',
+                    'features': list(X.columns)
                 }
 
             selector = pipeline.named_steps['feature_selection']
             X_transformed = selector.transform(X)
 
+            # Extrair features selecionadas usando o método existente
+            selected_features = FeatureSelectionFactory.extract_selected_features(
+                pipeline, list(X.columns)
+            )
+
             return {
                 'type': 'selector',
+                'original_n_features': original_n_features,
                 'n_features': X_transformed.shape[1],
-                'description': f'Using {X_transformed.shape[1]} selected features'
+                'description': f'Using {X_transformed.shape[1]} selected features',
+                'features': selected_features
             }
 
         except Exception as e:
             return {
                 'type': 'error',
                 'n_features': X.shape[1],
-                'description': f'Error getting feature info: {str(e)}'
+                'description': f'Error getting feature info: {str(e)}',
+                'features': []
             }
 
     @staticmethod 

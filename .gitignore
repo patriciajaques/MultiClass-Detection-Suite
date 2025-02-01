@@ -6,6 +6,7 @@ Thumbs.db
 *.log
 *.json
 output/
+execs_antigos/
 
 # Ignorar diretórios de ambientes virtuais (Python)
 venv/
