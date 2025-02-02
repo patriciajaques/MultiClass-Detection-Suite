@@ -1,3 +1,4 @@
+import logging
 from sklearn.impute import KNNImputer, SimpleImputer
 import pandas as pd
 from typing import Dict, List, Optional
@@ -32,6 +33,7 @@ class DataImputer(BaseEstimator, TransformerMixin):
         self.categorical_imputer = None
         self.numerical_columns = None
         self.categorical_columns = None
+        self.logger = logging.getLogger()
 
     def _identify_columns(self, X: pd.DataFrame) -> None:
         """Identifica colunas numéricas e categóricas com missing values."""

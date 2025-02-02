@@ -104,7 +104,7 @@ class ModelEvaluator:
                     'original_n_features': original_n_features,
                     'n_features': X.shape[1],
                     'description': f'Using all {X.shape[1]} original features',
-                    'features': list(X.columns)
+                    'features': ''
                 }
 
             selector = pipeline.named_steps['feature_selection']

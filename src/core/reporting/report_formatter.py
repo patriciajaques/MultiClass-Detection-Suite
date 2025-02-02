@@ -69,7 +69,8 @@ class ReportFormatter:
     @staticmethod
     def _format_feature_info(feature_info: dict) -> str:
         output = "\nFeature Selection Information:\n"
-        output += f"Total number of original features: {feature_info['original_n_features']}\n"
+        if 'original_n_features' in feature_info:
+            output += f"Total number of original features: {feature_info['original_n_features']}\n"
 
         # Primeiro identifica o tipo de processamento de features
         if feature_info['type'] == 'none':

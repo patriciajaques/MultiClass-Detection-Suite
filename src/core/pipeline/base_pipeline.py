@@ -166,7 +166,11 @@ class BasePipeline(ABC):
                 )
 
     def balance_data(self, X_train, y_train, strategy='auto'):
-        self.logger.info("\nIniciando balanceamento de dados...")
+        """
+        Balanceia apenas os dados de treino usando SMOTE.
+        Conjuntos de validação e teste devem manter sua distribuição original.
+        """
+        self.logger.info("\nIniciando balanceamento dos dados de treino...")
         self.logger.info(f"Tipo de X_train: {type(X_train)}")
         self.logger.info(f"Tipo de y_train: {type(y_train)}")
         self.logger.info(

@@ -115,7 +115,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         # 3. Divide the data into train, val and test sets stratified by student ID and target
         train_data, val_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
-            val_data_size=0.15,
+            val_size=0.15,
             test_size=self.test_size,
             group_column='aluno',
             target_column=self.target_column

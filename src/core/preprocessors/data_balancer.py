@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import numpy as np
 from imblearn.over_sampling import SMOTE
@@ -7,6 +8,7 @@ from typing import Tuple, Optional, Union, Dict
 class DataBalancer:
     def __init__(self, random_state: int = 42):
         self.random_state = random_state
+        self.logger = logging.getLogger()
 
     def apply_smote(
         self,
