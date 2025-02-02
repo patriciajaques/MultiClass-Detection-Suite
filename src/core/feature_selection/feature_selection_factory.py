@@ -48,26 +48,20 @@ class FeatureSelectionFactory:
         Extrai as características selecionadas pelo seletor de características no pipeline.
 
         Args:
-            pipeline: Pipeline treinado.
-            feature_names: Lista de nomes das características originais.
+            pipeline: Pipeline treinado
+            feature_names: Lista de nomes das características originais
 
         Returns:
-            List: Lista de características selecionadas.
+            List[str]: Lista de características selecionadas
         """
         if 'feature_selection' not in pipeline.named_steps:
             return feature_names
         
         selector = pipeline.named_steps['feature_selection']
-
-        if hasattr(selector, 'get_support'):
-            mask = selector.get_support()
-            selected_features = np.array(feature_names)[mask]
-        elif hasattr(selector, 'transform'):
-            # Para métodos como PCA que transformam as características
-            transformed = selector.transform(np.identity(len(feature_names)))
-            # Retornar os componentes principais como nomes
-            selected_features = [f'PC{i+1}' for i in range(transformed.shape[1])]
-        else:
-            raise ValueError("O seletor não tem métodos para extrair características.")
-
-        return selected_features
+        
+        try:
+            # Agora usa o novo método get_feature_names()
+            return selector.get_feature_names()
+        except Exception as e:
+            print(f"Erro ao extrair features: {str(e)}")
+            return feature_names  # Fallback seguro

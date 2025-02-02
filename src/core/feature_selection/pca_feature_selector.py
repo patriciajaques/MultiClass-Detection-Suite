@@ -17,7 +17,6 @@ class PCAFeatureSelector(BaseFeatureSelector):
         """
         self.n_components = n_components
         self.n_features_ = None  # Armazena número de features após fit
-        self.selector = None
         super().__init__()
 
     def fit(self, X, y=None):

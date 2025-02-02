@@ -11,8 +11,8 @@ training_settings:
     # - "MLP"
 
   selectors:
-    # - "none"
+    - "none"
     # - "pca"
     # - "rfe"
-    - "rf"
+    # - "rf"
     # - "mi"
