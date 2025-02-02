@@ -1,5 +1,3 @@
-import logging
-from typing import Optional
 import numpy as np
 import pandas as pd
 
@@ -46,10 +44,10 @@ class BehaviorDetectionPipeline(BasePipeline):
             self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
         self.logger.info(f"Dataset inicial shape: {data.shape}")
 
-        # Remove undefined behaviors
-        # data = self.data_cleaner.remove_instances_with_value(data, self.target_column, '?')
+        # Remove undefined behaviors (they were only 38 instances and they represent behaviors that even human annotators were not able to define)
+        data = self.data_cleaner.remove_instances_with_value(data, self.target_column, '?')
         # exibindo a quantidade de classes em comportamento
-        # self.logger.info(f"Classes de comportamento: {data['comportamento'].unique()}")
+        self.logger.info(f"Classes de comportamento: {data['comportamento'].unique()}")
 
         # Cria id único de sequencias
         data['sequence_id'] = self._create_sequence_ids(data)

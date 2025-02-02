@@ -9,7 +9,7 @@ training_settings:
         # - XGBoost
         # - MLP
     selectors:
-        # - none
+        - none
         # - pca
         # - rfe
         - rf

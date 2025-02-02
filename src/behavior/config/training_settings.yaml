@@ -14,5 +14,5 @@ training_settings:
     - "none"
     # - "pca"
     # - "rfe"
-    # - "rf"
+    - "rf"
     # - "mi"
