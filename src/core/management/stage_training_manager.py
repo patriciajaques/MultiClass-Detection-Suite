@@ -34,7 +34,6 @@ class StageTrainingManager:
         self.use_voting_classifier = use_voting_classifier
 
         # Initialize training strategy
-        print(f"Training strategy: {training_strategy}")
         self.training_strategy = training_strategy or OptunaBayesianOptimizationTraining()
         self.progress_tracker = ProgressTracker()
 
@@ -97,7 +96,7 @@ class StageTrainingManager:
         except Exception as e:
             print(f"Error in {self.__class__.__name__}.execute_stage: {model_name} with {selector_name}. "
                   f"Exception: {str(e)}. Traceback: {traceback.format_exc()}")
-            return None, None
+            return None
 
     def execute_all_stages(self, stages: List[Tuple[str, str, str]]):
         completed_stages = []
@@ -117,13 +116,18 @@ class StageTrainingManager:
                 if self.progress_tracker.is_completed(stage_name):
                     print(f"Stage {stage_name} already completed. Skipping...")
                     model_metrics = MetricsPersistence.load_metrics(stage_name)
+                    all_metrics.append(model_metrics)
                 else:
                     print(f"\n=== Executando estágio: {model_name} com {selector_name} ===")
                     model_metrics = self.execute_stage(model_name, selector_name)
-                    MetricsPersistence.save_metrics(model_metrics, stage_name)
-                    completed_stages.append(stage_name)
-                    self.progress_tracker.save_progress(stage_name)
-                all_metrics.append(model_metrics)
+                    if model_metrics is not None:
+                        MetricsPersistence.save_metrics(model_metrics, stage_name)
+                        completed_stages.append(stage_name)
+                        self.progress_tracker.save_progress(stage_name)
+                        all_metrics.append(model_metrics)
+                    else:
+                        failed_stages.append(stage_name)
+                        continue
             except Exception as e:
                 failed_stages.append(stage_name)
                 print(f"Error in stage {stage_name}: {str(e)}")

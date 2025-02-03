@@ -1,4 +1,5 @@
 import os
+import warnings
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
 
 from core.utils import file_utils
@@ -6,6 +7,10 @@ from core.utils.path_manager import PathManager
 
 def main():
     """Main function to run the behavior detection pipeline."""
+
+    warnings.filterwarnings(
+        "ignore",
+        message=".*does not have valid feature names.*")
 
     PathManager.set_module('behavior')
     

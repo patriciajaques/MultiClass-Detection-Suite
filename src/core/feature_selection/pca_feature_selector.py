@@ -1,3 +1,4 @@
+from typing import List
 from sklearn.decomposition import PCA
 from core.feature_selection.base_feature_selector import BaseFeatureSelector
 import numpy as np
@@ -99,3 +100,13 @@ class PCAFeatureSelector(BaseFeatureSelector):
         for param, value in params.items():
             setattr(self, param, value)
         return self
+    
+    def _get_selected_features(self) -> List[str]:
+        """
+        Para PCA, os "nomes" são PC1, PC2, etc.
+        """
+        if self.selector is None:
+            raise ValueError("PCA não foi ajustado. Execute fit primeiro.")
+        # n_components_ é o número final de componentes do PCA
+        n_components = self.selector.n_components_
+        return [f"PC{i+1}" for i in range(n_components)]
