@@ -179,10 +179,10 @@ class BasePipeline(ABC):
         self.logger.info(y_train.value_counts())
 
         # Garantir que os dados estão no formato correto
-        if isinstance(X_train, pd.DataFrame):
-            X_train = X_train.values
-        if isinstance(y_train, pd.Series):
-            y_train = y_train.values
+        # if isinstance(X_train, pd.DataFrame):
+        #     X_train = X_train.values
+        # if isinstance(y_train, pd.Series):
+        #     y_train = y_train.values
 
         data_balancer = DataBalancer()
 

@@ -45,8 +45,7 @@ class RandomForestFeatureSelector(BaseFeatureSelector):
         if self.selector is None:
             self.selector = self._create_selector()
 
-        # Fit usando os dados numéricos
-        self.selector.fit(X.values, y)
+        self.selector.fit(X, y)
 
         # Armazenar máscara de features selecionadas
         self.selected_features_mask_ = self.selector.get_support()
