@@ -161,3 +161,21 @@ class RFEFeatureSelector(BaseFeatureSelector):
             'min_features_to_select': self.min_features_to_select,
             'step': self.step
         }
+    
+    def _get_selected_features(self) -> list:
+        """
+        Retorna os nomes das features selecionadas pelo RFE.
+        Implementa o método abstrato definido em BaseFeatureSelector.
+        """
+        if not self._is_fitted:
+            raise ValueError("Seletor não foi ajustado. Execute fit primeiro.")
+
+        mask = self.get_support()
+
+        # Se você armazenou os nomes das colunas no self.feature_names_ no fit(),
+        # use-os para retornar algo como ['colA', 'colB']. Caso contrário,
+        # retorne nomes genéricos.
+        if getattr(self, 'feature_names_', None) is not None:
+            return [f for f, s in zip(self.feature_names_, mask) if s]
+        else:
+            return [f'feature_{i}' for i, s in enumerate(mask) if s]

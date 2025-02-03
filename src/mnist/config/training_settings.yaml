@@ -13,4 +13,4 @@ training_settings:
         - pca
         # - rfe
         - rf
-        # - mi
+        - mi
