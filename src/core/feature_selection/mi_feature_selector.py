@@ -1,18 +1,34 @@
-from sklearn.feature_selection import mutual_info_classif
-from sklearn.feature_selection import SelectKBest
+# mutual_information_feature_selector.py
+
+from typing import List
+import pandas as pd
+from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from core.feature_selection.base_feature_selector import BaseFeatureSelector
 
+
 class MutualInformationFeatureSelector(BaseFeatureSelector):
-    def __init__(self, X_train=None, y_train=None, k=10):
+    """
+    Seleciona `k` melhores features segundo mutual information.
+    """
+
+    def __init__(self, k=10):
+        super().__init__()  # chama o construtor base
         self.k = k
-        self.selector = None
-        super().__init__(X_train=X_train, y_train=y_train)
-        
 
-    def _create_selector(self, k=10):
-        selector = SelectKBest(mutual_info_classif, k=k)
-        selector.fit(self.X_train, self.y_train)
-        return selector
+    def _create_selector(self):
+        # Aqui instanciamos um SelectKBest
+        return SelectKBest(mutual_info_classif, k=self.k)
 
-    def get_search_space(self):
-        return {'feature_selection__k': [5, 10, 20, 30, 40, 50, 'all']}
+    def _get_selected_features(self) -> List[str]:
+        if not self._is_fitted:
+            raise ValueError("Seletor não foi ajustado. Execute fit primeiro.")
+        mask = self.selector.get_support()
+        if self.feature_names_ is not None:
+            return [name for name, m in zip(self.feature_names_, mask) if m]
+        return [f"feature_{i}" for i, m in enumerate(mask) if m]
+
+    def get_search_space(self) -> dict:
+        return {
+            "feature_selection__k": [5, 10, 20, 30, 40, 50, 'all']
+        }
+

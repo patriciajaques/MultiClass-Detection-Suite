@@ -7,9 +7,7 @@ from typing import Any, List
 class BaseFeatureSelector(BaseEstimator, TransformerMixin, ABC):
     """Abstract base class for feature selectors with sklearn compatibility."""
 
-    def __init__(self, X_train=None, y_train=None, **kwargs):
-        self.X_train = X_train
-        self.y_train = y_train
+    def __init__(self, **kwargs):
         self.feature_names_ = None
         self.selector = None
 
@@ -22,31 +20,7 @@ class BaseFeatureSelector(BaseEstimator, TransformerMixin, ABC):
     def get_search_space(self) -> dict:
         """Define the hyperparameter search space."""
         pass
-
-    def fit(self, X, y=None):
-        """Fit the selector to data with validation."""
-        self.X_train = X
-        self.y_train = y
-
-        # Guardar nomes das features
-        if isinstance(X, pd.DataFrame):
-            self.feature_names_ = list(X.columns)
-        else:
-            self.feature_names_ = [f'feature_{i}' for i in range(X.shape[1])]
-
-        # Inicializa o selector se necessário
-        if self.selector is None:
-            self.selector = self._create_selector()
-
-        self.selector.fit(X, y)
-        return self
-
-    def transform(self, X):
-        """Transform the data with validation."""
-        if self.selector is None:
-            raise ValueError("Selector not fitted. Call fit first.")
-        return self.selector.transform(X)
-
+    
     @abstractmethod
     def _get_selected_features(self) -> List[str]:
         """
@@ -58,20 +32,30 @@ class BaseFeatureSelector(BaseEstimator, TransformerMixin, ABC):
         """
         pass
 
-    def get_feature_names(self) -> List[str]:
-        """
-        Interface pública para obter nomes das features selecionadas.
-        
-        Returns:
-            List[str]: Lista com nomes das features selecionadas
-        
-        Raises:
-            ValueError: Se o seletor não foi fitted
-        """
+    def fit(self, X, y=None):
+        """Armazena feature_names_ e chama self.selector.fit(X, y)."""
+        if hasattr(X, 'columns'):
+            self.feature_names_ = list(X.columns)
+        else:
+            self.feature_names_ = None
+
         if self.selector is None:
-            raise ValueError("Selector not fitted. Call fit first.")
+            self.selector = self._create_selector()
 
-        if self.feature_names_ is None:
-            return [f'feature_{i}' for i in range(self.X_train.shape[1])]
+        self.selector.fit(X, y)
+        self._is_fitted = True
+        return self
 
-        return self._get_selected_features()
+    def transform(self, X):
+        if not self._is_fitted:
+            raise ValueError("Selector not fitted. Use fit first.")
+        return self.selector.transform(X)
+    
+    def get_support(self):
+        if not self._is_fitted:
+            raise ValueError("Selector not fitted. Use fit first.")
+        return self.selector.get_support()
+
+    def _more_tags(self):
+        # se quiser dizer que esse selector é "requires_y"
+        return {'requires_y': True}

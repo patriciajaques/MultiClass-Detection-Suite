@@ -174,8 +174,8 @@ class StageTrainingManager:
         # Create feature selector if needed
         selector = None
         if selector_name != 'none':
-            selector = FeatureSelectionFactory.create_selector(
-                selector_name, self.X_train, self.y_train
+            selector = selector = FeatureSelectionFactory.create_selector(
+                method=selector_name
             )
 
         return BasePipeline.create_pipeline(selector, model_config)
@@ -185,8 +185,8 @@ class StageTrainingManager:
         if selector_name == 'none':
             return {}
 
-        selector = FeatureSelectionFactory.create_selector(
-            selector_name, self.X_train, self.y_train
+        selector = selector = FeatureSelectionFactory.create_selector(
+            method=selector_name
         )
         return selector.get_search_space()
 
