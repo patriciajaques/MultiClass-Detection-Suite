@@ -5,6 +5,7 @@ from sklearn.metrics import balanced_accuracy_score, classification_report, cohe
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix
 from sklearn.pipeline import Pipeline
 
+from core.feature_selection.base_feature_selector import BaseFeatureSelector
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
 
@@ -110,10 +111,11 @@ class ModelEvaluator:
             selector = pipeline.named_steps['feature_selection']
             X_transformed = selector.transform(X)
 
-            # Extrair features selecionadas usando o método existente
-            selected_features = FeatureSelectionFactory.extract_selected_features(
-                pipeline, list(X.columns)
-            )
+            if isinstance(selector, BaseFeatureSelector):
+                selected_features = selector._get_selected_features()
+            else:
+                selected_features = list(range(X_transformed.shape[1]))
+
 
             return {
                 'type': 'selector',
@@ -130,6 +132,8 @@ class ModelEvaluator:
                 'description': f'Error getting feature info: {str(e)}',
                 'features': []
             }
+        
+    
 
     @staticmethod 
     def _compute_avg_metrics(y_true: pd.Series, y_pred: np.ndarray) -> Dict[str, float]:
