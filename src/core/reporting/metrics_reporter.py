@@ -61,7 +61,6 @@ class MetricsReporter:
             print(f"\nErro ao gerar relatórios para {stage_name}: {str(e)}")
             print(traceback.format_exc())
       
-
     @staticmethod
     def generate_final_report(all_metrics: list[ClassificationModelMetrics]):
         """Generates a consolidated report of all metrics in a structured format."""
@@ -89,3 +88,37 @@ class MetricsReporter:
         ])
         metrics_df = ReportFormatter.format_dataframe(metrics_df)
         return metrics_df
+
+    @staticmethod
+    def export_trials(study, model_name: str, selector_name: str):
+        """
+        Exporta os trials do estudo do Optuna para um arquivo CSV.
+        """
+        try:
+            trials_df = study.trials_dataframe()
+            output_dir = PathManager.get_path('output')
+            filename = f"{model_name}_{selector_name}_optuna_trials.csv"
+            filepath = output_dir / filename
+            trials_df.to_csv(filepath, sep=';', index=False)
+            print(f"Trials exportados para: {filepath}")
+        except Exception as e:
+            print(f"Erro ao exportar trials: {str(e)}")
+            print(traceback.format_exc())
+
+    @staticmethod
+    def export_cv_results(search_object, model_name: str, selector_name: str):
+        try:
+            # Extrai os resultados da busca
+            cv_results = search_object.cv_results_
+            # Converte para DataFrame
+            results_df = pd.DataFrame(cv_results)
+            output_dir = PathManager.get_path('output')
+            filename = f"{model_name}_{selector_name}_cv_results.csv"
+            filepath = output_dir / filename
+            results_df.to_csv(filepath, sep=';', index=False)
+            print(f"CV results exportados para: {filepath}")
+        except Exception as e:
+            print(f"Erro ao exportar cv_results: {str(e)}")
+            print(traceback.format_exc())
+
+

@@ -2,6 +2,7 @@ import traceback
 from typing import List, Tuple, Dict, Any
 
 import pandas as pd
+from sklearn.model_selection import cross_val_score
 
 from core.evaluation.model_evaluator import ModelEvaluator
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
@@ -134,37 +135,101 @@ class StageTrainingManager:
                 continue
 
         if self.use_voting_classifier:
-            # Cria o ensemble
-            ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics)
-        
-            # Adiciona as métricas do ensemble ao relatório final
-            all_metrics.append(ensemble_metrics)
+            all_metrics = self.evaluate_and_report_all_ensembles(all_metrics)
 
         # Gera o relatório final com os modelos base e ensemble 
         MetricsReporter.generate_final_report(all_metrics)
         self._print_execution_summary(completed_stages, failed_stages)
 
-    def _create_and_evaluate_ensemble(self, all_metrics):
+    def evaluate_and_report_all_ensembles(self, all_metrics):
+        # Cria o ensemble que escolhe os k melhores modelos automaticamente
+        ensemble_metrics = self._create_and_evaluate_ensemble(
+            all_metrics=all_metrics, n_models=4, voting='soft')
+        # Adiciona as métricas do ensemble ao relatório final
+        if ensemble_metrics is not None:
+            all_metrics.append(ensemble_metrics)
+            MetricsReporter.generate_stage_report(ensemble_metrics)
+
+        # Cria ensemble com seleção manual com 4 modelos e soft
+        manual_models = ['Naive Bayes_mi', 'Logistic Regression_rfe',
+                             'Random Forest_rf', 'KNN_mi']
+        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=len(manual_models),
+                                                                  manual_selection=manual_models, voting='soft')
+        if ensemble_metrics is not None:
+            all_metrics.append(ensemble_metrics)
+            # MetricsReporter.generate_stage_report(ensemble_metrics)
+
+            #Cria ensemble com seleção manual com 4 modelos e hard
+        manual_models = ['Logistic Regression_rfe', 'Random Forest_rf', 'XGBoost_rfe',
+                             'MLP_pca', 'KNN_rf', 'Gradient Boosting_rfe', 'Decision Tree_pca']
+        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=4, 
+                                                                  manual_selection=manual_models, voting='soft')
+        if ensemble_metrics is not None:
+            all_metrics.append(ensemble_metrics)
+            # MetricsReporter.generate_stage_report(ensemble_metrics)
+
+            # Cria ensemble com seleção manual com 5 modelos
+        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=5,
+                                                                  manual_selection=manual_models, voting='soft')
+        if ensemble_metrics is not None:
+            all_metrics.append(ensemble_metrics)
+            # MetricsReporter.generate_stage_report(ensemble_metrics)
+
+            # Cria ensemble com seleção manual com 6 modelos
+        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=6,
+                                                                  manual_selection=manual_models, voting='soft')
+        if ensemble_metrics is not None:
+            all_metrics.append(ensemble_metrics)
+            # MetricsReporter.generate_stage_report(ensemble_metrics)
+
+            # Cria ensemble com seleção manual com 7 modelos
+            
+        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=7,
+                                                                  manual_selection=manual_models, voting='soft')
+        if ensemble_metrics is not None:
+            all_metrics.append(ensemble_metrics)
+        
+        return all_metrics
+
+    def _create_and_evaluate_ensemble(self, all_metrics, n_models=3, manual_selection=None, voting='soft'):
+        # Constrói um DataFrame consolidado a partir das métricas
+        metrics_df = MetricsReporter.assemble_metrics_summary(all_metrics)
+
+        # Cria o ensemble utilizando a opção manual se fornecida; caso contrário, a seleção será automática.
         ensemble_info = VotingEnsembleBuilder.create_voting_ensemble(
-            MetricsReporter.assemble_metrics_summary(all_metrics),
-            n_models=3,
+            metrics_df,
+            n_models=n_models,
             metric='balanced_accuracy-test',
-            voting='soft'
+            voting=voting,
+            manual_selection=manual_selection
         )
 
         print("\nEnsemble criado com os seguintes modelos:")
         for model in ensemble_info['selected_models']:
             print(f"- {model}")
 
+        # Define o stage_name de acordo com a estratégia utilizada
+        if manual_selection is None:
+            stage_name = f"Voting_{n_models}_best_{voting}"
+        else:
+            stage_name = f"Voting_manual_{n_models}_{voting}"
+
         # Treina e avalia o ensemble
         ensemble_metrics = VotingEnsembleBuilder.train_and_evaluate_ensemble(
             ensemble_info['ensemble'],
             self.X_train, self.X_val, self.X_test,
             self.y_train, self.y_val, self.y_test,
-            stage_name="voting_ensemble"
+            stage_name=stage_name
         )
-        
-        return ensemble_metrics    
+        ensemble_cv_score = VotingEnsembleBuilder._evaluate_ensemble_cv(
+            ensemble_info['ensemble'], self.X_train, self.y_train)
+
+
+        ensemble_metrics.cv_score = ensemble_cv_score
+
+        return ensemble_metrics
+    
+
 
     def _create_pipeline(self, model_name: str, selector_name: str):
         """Creates a pipeline with specified model and selector."""

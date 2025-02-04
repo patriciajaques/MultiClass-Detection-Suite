@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 import pandas as pd
 from sklearn.ensemble import VotingClassifier
+from sklearn.model_selection import cross_val_score
 from core.models.model_persistence import ModelPersistence
 
 
@@ -93,30 +94,40 @@ class VotingEnsembleBuilder:
     def create_voting_ensemble(metrics_df: pd.DataFrame,
                                n_models: int = 3,
                                metric: str = 'balanced_accuracy-test',
-                               voting: str = 'soft') -> Dict[str, Any]:
+                               voting: str = 'soft',
+                               manual_selection: List[str] = None) -> Dict[str, Any]:
         """
-        Cria um ensemble completo selecionando os melhores modelos.
-
-        Args:
-            metrics_df: DataFrame com métricas dos modelos
-            n_models: Número de modelos para o ensemble
-            metric: Métrica para seleção dos modelos
-            voting: Tipo de votação
-
-        Returns:
-            Dicionário com o ensemble e informações dos modelos selecionados
+        Cria um ensemble de voting de duas formas:
+          1) Se manual_selection for None, os melhores modelos serão selecionados automaticamente
+             com base na métrica definida no DataFrame metrics_df.
+          2) Se manual_selection for fornecido (lista de nomes de modelos), essa lista será utilizada.
+        
+        Retorna:
+          Um dicionário contendo:
+            - 'ensemble': o objeto VotingClassifier criado
+            - 'selected_models': a lista de nomes dos modelos usados
+            - 'selection_metric': a métrica utilizada para seleção (se automática)
+            - 'voting_type': o tipo de votação configurado
         """
-        # Seleciona os melhores modelos
-        best_models = VotingEnsembleBuilder.select_best_models(
-            metrics_df, n_models, metric)
+        # Se for seleção manual, utilize a lista fornecida; caso contrário, selecione automaticamente.
+        if manual_selection is None:
+            selected_models = VotingEnsembleBuilder.select_best_models(
+                metrics_df, n_models, metric)
+        else:
+            selected_models = manual_selection
 
-        # Cria o voting classifier
+        # Constrói o VotingClassifier com os modelos selecionados.
         voting_clf = VotingEnsembleBuilder.build_voting_classifier(
-            best_models, voting)
+            selected_models, voting)
 
         return {
             'ensemble': voting_clf,
-            'selected_models': best_models,
-            'selection_metric': metric,
+            'selected_models': selected_models,
+            'selection_metric': metric if manual_selection is None else 'manual',
             'voting_type': voting
         }
+
+    @staticmethod
+    def _evaluate_ensemble_cv(ensemble, X, y, cv=5, scoring='balanced_accuracy'):
+        scores = cross_val_score(ensemble, X, y, cv=cv, scoring=scoring)
+        return scores.mean()

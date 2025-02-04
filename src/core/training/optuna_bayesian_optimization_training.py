@@ -8,6 +8,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.base import clone
 import pandas as pd
 
+from core.reporting.metrics_reporter import MetricsReporter
 from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.optuna_param_converter import OptunaParamConverter
 from core.logging.logger_config import LoggerConfig, with_logging
@@ -84,6 +85,9 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
         )
 
         study.optimize(objective, n_trials=n_iter)
+
+        # Chama o método do ReportManager para exportar os trials
+        MetricsReporter.export_trials(study, model_name, selector_name)
 
         # Treina modelo final com melhores hiperparâmetros
         best_pipeline = clone(pipeline)

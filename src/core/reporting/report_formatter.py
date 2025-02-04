@@ -15,7 +15,8 @@ class ReportFormatter:
 
     @staticmethod
     def format_float(value):
-        """Formata um valor float com a precisão especificada."""
+        if value is None:
+            return "None"
         return f"{value:.{ReportFormatter.DEFAULT_PRECISION}f}"
 
     @staticmethod

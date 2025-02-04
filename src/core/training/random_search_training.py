@@ -1,5 +1,6 @@
 from sklearn.model_selection import RandomizedSearchCV
 from core.logging.logger_config import LoggerConfig
+from core.reporting.metrics_reporter import MetricsReporter
 from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.grid_search_param_converter import GridSearchParamConverter
 
@@ -37,6 +38,10 @@ class RandomSearchTraining(BaseTraining):
             )
 
             random_search.fit(X_train, y_train)
+
+            # Exporta os resultados do CV utilizando o método específico
+            MetricsReporter.export_cv_results(
+                random_search, model_name, selector_name)
 
             # Log the results using ModelTraining's method
             self.log_search_results(random_search, model_name, selector_name)

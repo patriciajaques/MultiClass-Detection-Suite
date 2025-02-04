@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
 from core.logging.logger_config import LoggerConfig, with_logging
+from core.reporting.metrics_reporter import MetricsReporter
 from core.training.base_training import BaseTraining
 from core.models.parameter_handlers.grid_search_param_converter import GridSearchParamConverter
 
@@ -36,6 +37,10 @@ class GridSearchTraining(BaseTraining):
             )
 
             grid_search.fit(X_train, y_train)
+
+            # Chama a exportação dos resultados do CV (através do MetricsReporter)
+            MetricsReporter.export_cv_results(
+                grid_search, model_name, selector_name)
 
             # Log the results using ModelTraining's method
             self.log_search_results(

@@ -13,6 +13,6 @@ training_settings:
   selectors:
     - "none"
     - "pca"
-    # - "rfe"
+    - "rfe"
     - "rf"
     - "mi"
