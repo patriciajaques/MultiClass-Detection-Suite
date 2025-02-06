@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 
 from core.config.config_manager import ConfigManager
+from core.logging.logger_config import LoggerConfig
 from core.preprocessors.data_balancer import DataBalancer
 from core.preprocessors.data_cleaner import DataCleaner
 from core.reporting.feature_mapping_reporter import FeatureMappingReporter
@@ -30,6 +31,10 @@ class BasePipeline(ABC):
             test_size: Tamanho do teste
             training_strategy: Estratégia de otimização ('optuna', 'random', 'grid')
         """
+        # Configurar logger no início
+        self.logger = LoggerConfig.get_logger('preprocessing')
+        self.logger.info("Iniciando pipeline...")
+
         self.target_column = target_column
         self.n_iter = n_iter
         self.n_jobs = n_jobs
@@ -42,13 +47,12 @@ class BasePipeline(ABC):
             'models': PathManager.get_path('models'),
             'src': PathManager.get_path('src')
         }
-        self.config = ConfigManager()
+        self.config_manager = ConfigManager()
         self.model_params = self._get_model_params()
-        self.data_cleaner = DataCleaner(config_manager=self.config)
+        self.data_cleaner = DataCleaner()
         self.X_encoder = None
         self.y_encoder = None
         ReportFormatter.setup_formatting(4)
-        self.logger = logging.getLogger()
         self.training_strategy = self._initialize_training_manager(
             training_strategy_name)
         self.use_voting_classifier = use_voting_classifier
@@ -70,7 +74,7 @@ class BasePipeline(ABC):
 
 
     @staticmethod
-    def create_pipeline(selector, model_config) -> Pipeline:
+    def create_pipeline(selector, model_config_manager) -> Pipeline:
         """
         Cria um pipeline com seleção de características e classificador.
         """
@@ -80,16 +84,16 @@ class BasePipeline(ABC):
             if hasattr(selector, 'selector'):
                 delattr(selector, 'selector')
             steps.append(('feature_selection', selector))
-        steps.append(('classifier', model_config))
+        steps.append(('classifier', model_config_manager))
         return Pipeline(steps)
 
     def _get_training_stages(self):
-        """Define os stages (algoritmo e seletor) de treinamento usando configuração."""
+        """Define os stages (algoritmo e seletor) de treinamento usando config_manageruração."""
         try:
-            training_config = self.config.get_config('training_settings')
+            training_config_manager = self.config_manager.get_config('training_settings')
 
-            models = training_config.get('models', ['Naive Bayes'])
-            selectors = training_config.get('selectors', ['none'])
+            models = training_config_manager.get('models', ['Naive Bayes'])
+            selectors = training_config_manager.get('selectors', ['none'])
 
             stages = []
 
@@ -102,7 +106,7 @@ class BasePipeline(ABC):
         except Exception as e:
             self.logger.info(
                 f"Erro ao carregar configurações de treinamento: {str(e)}")
-            return [('naive_bayes_none', ['Naive Bayes'], ['none'])]
+            return [['Naive Bayes'], ['none']]
 
     @abstractmethod
     def _get_model_params(self):
@@ -165,38 +169,6 @@ class BasePipeline(ABC):
                     f"diferença: {test_diff:.2%}, tolerância: {tolerance:.2%})"
                 )
 
-    def balance_data(self, X_train, y_train, strategy='auto'):
-        """
-        Balanceia apenas os dados de treino usando SMOTE.
-        Conjuntos de validação e teste devem manter sua distribuição original.
-        """
-        self.logger.info("\nIniciando balanceamento dos dados de treino...")
-        self.logger.info(f"Tipo de X_train: {type(X_train)}")
-        self.logger.info(f"Tipo de y_train: {type(y_train)}")
-        self.logger.info(
-            f"Shape de X_train antes do balanceamento: {X_train.shape}")
-        self.logger.info(f"Distribuição de classes antes do balanceamento:")
-        self.logger.info(y_train.value_counts())
-
-        # Garantir que os dados estão no formato correto
-        # if isinstance(X_train, pd.DataFrame):
-        #     X_train = X_train.values
-        # if isinstance(y_train, pd.Series):
-        #     y_train = y_train.values
-
-        data_balancer = DataBalancer()
-
-        # Na função balance_data do BasePipeline
-        strategy = 0.75  # Gera 75% do número de amostras da classe majoritária
-        X_resampled, y_resampled = data_balancer.apply_smote(
-            X_train, y_train, strategy=strategy)
-
-        self.logger.info(
-            f"Shape de X_train após balanceamento: {X_resampled.shape}")
-        self.logger.info(f"Distribuição de classes após balanceamento:")
-        self.logger.info(pd.Series(y_resampled).value_counts())
-
-        return X_resampled, y_resampled
 
     def _verify_stratified_split(self,data: pd.DataFrame,
                                 train_data: pd.DataFrame,
@@ -278,6 +250,9 @@ class BasePipeline(ABC):
         self.logger.info("\n2. Preparando dados para treinamento...")
         X_train, X_val, X_test, y_train, y_val, y_test = self.prepare_data(
             data)
+        self.logger.info(f"X_train shape: {X_train.shape}")
+        self.logger.info(f"X_val shape: {X_val.shape}")
+        self.logger.info(f"X_test shape: {X_test.shape}")
 
         # Gerando report das features
         feature_report = FeatureMappingReporter()
@@ -286,7 +261,13 @@ class BasePipeline(ABC):
 
         # Balance data
         self.logger.info("\n3. Balanceando dados de treino...")
-        X_train, y_train = self.balance_data(X_train, y_train, strategy='auto')
+        self.logger.info(f"X_train shape antes balanceamento: {X_train.shape}")
+        self.logger.info(
+            f"Distribuição original das classes:\n{y_train.value_counts()}")
+        X_train, y_train = DataBalancer().balance_data(X_train, y_train, strategy='auto')
+        self.logger.info(f"X_train shape após balanceamento: {X_train.shape}")
+        self.logger.info(
+            f"Distribuição após balanceamento das classes:\n{y_train.value_counts()}")
 
         # Train models
         self.logger.info("\n4. Iniciando treinamento dos modelos...")

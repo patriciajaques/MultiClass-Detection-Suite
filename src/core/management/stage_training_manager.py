@@ -2,7 +2,6 @@ import traceback
 from typing import List, Tuple, Dict, Any
 
 import pandas as pd
-from sklearn.model_selection import cross_val_score
 
 from core.evaluation.model_evaluator import ModelEvaluator
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
@@ -99,7 +98,7 @@ class StageTrainingManager:
                   f"Exception: {str(e)}. Traceback: {traceback.format_exc()}")
             return None
 
-    def execute_all_stages(self, stages: List[Tuple[str, str, str]]):
+    def execute_all_stages(self, stages: List[Tuple[str, str]]):
         completed_stages = []
         failed_stages = []
         all_metrics = []
@@ -157,7 +156,7 @@ class StageTrainingManager:
                                                                   manual_selection=manual_models, voting='soft')
         if ensemble_metrics is not None:
             all_metrics.append(ensemble_metrics)
-            # MetricsReporter.generate_stage_report(ensemble_metrics)
+            MetricsReporter.generate_stage_report(ensemble_metrics)
 
             #Cria ensemble com seleção manual com 4 modelos e hard
         manual_models = ['Logistic Regression_rfe', 'Random Forest_rf', 'XGBoost_rfe',
@@ -166,21 +165,21 @@ class StageTrainingManager:
                                                                   manual_selection=manual_models, voting='soft')
         if ensemble_metrics is not None:
             all_metrics.append(ensemble_metrics)
-            # MetricsReporter.generate_stage_report(ensemble_metrics)
+            MetricsReporter.generate_stage_report(ensemble_metrics)
 
             # Cria ensemble com seleção manual com 5 modelos
         ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=5,
                                                                   manual_selection=manual_models, voting='soft')
         if ensemble_metrics is not None:
             all_metrics.append(ensemble_metrics)
-            # MetricsReporter.generate_stage_report(ensemble_metrics)
+            MetricsReporter.generate_stage_report(ensemble_metrics)
 
             # Cria ensemble com seleção manual com 6 modelos
         ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=6,
                                                                   manual_selection=manual_models, voting='soft')
         if ensemble_metrics is not None:
             all_metrics.append(ensemble_metrics)
-            # MetricsReporter.generate_stage_report(ensemble_metrics)
+            MetricsReporter.generate_stage_report(ensemble_metrics)
 
             # Cria ensemble com seleção manual com 7 modelos
             

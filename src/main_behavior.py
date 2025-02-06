@@ -17,8 +17,8 @@ def main():
     pipeline = BehaviorDetectionPipeline(
         n_iter=50, 
         n_jobs=6, 
-        val_size=0.25,
-        test_size=0.2,
+        val_size=0.30,
+        test_size=0.15,
         # pode ser optuna (default), grid ou random
         training_strategy_name='optuna',
         use_voting_classifier=True

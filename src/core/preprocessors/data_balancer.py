@@ -1,96 +1,87 @@
-import logging
-import pandas as pd
 import numpy as np
+import pandas as pd
+from typing import Union, Tuple
 from imblearn.over_sampling import SMOTE
-from typing import Tuple, Optional, Union, Dict
 
 
 class DataBalancer:
-    def __init__(self, random_state: int = 42):
+    def __init__(self, random_state: int = 42, logger=None):
         self.random_state = random_state
-        self.logger = logging.getLogger()
+        self.logger = logger or print  # Usa print se não for fornecido logger
 
-    def apply_smote(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        strategy: Union[str, float, Dict] = 'auto',
-        target_ratio: float = 1.0
-    ) -> Tuple[pd.DataFrame, pd.Series]:
+    def balance_data(
+            self,
+            X: pd.DataFrame,
+            y: pd.Series,
+            strategy: Union[str, float] = 'auto'
+        ) -> Tuple[pd.DataFrame, pd.Series]:
         """
-        Applies SMOTE balancing with flexible strategies.
+        Applies SMOTE for oversampling, accepting the following 'strategy' forms:
 
+        1. String: 'auto', 'minority', 'majority', 'not minority', 'not majority', or 'all'.
+        - 'minority': Only oversample the minority classes.
+        - 'majority': Only oversample the majority classes.
+        - 'all': Oversample all classes except the absolute majority class.
+        - 'auto': (default) Oversample all minority classes so that they match the majority class.
+        - 'not minority' and 'not majority': Variants recognized by SMOTE to handle different class sets.
+        2. Float: Defines the ratio (minority/majority). For example, 0.75 means that the minority classes
+        will be oversampled until they reach 75% of the majority class size.
+        
+        Any other value will result in an error.
+        
         Args:
-            X: Features DataFrame
-            y: Target Series
-            strategy: Strategy for resampling:
-                     - 'auto': Balances all classes to match the majority class
-                     - 'minority': Balances only minority classes
-                     - float: Proportion of the majority class to aim for (e.g., 0.75)
-                     - dict: Specific number of samples for each class
-            target_ratio: Target ratio for minority classes (default 1.0 means equal to majority)
-
+            X (pd.DataFrame): Input features.
+            y (pd.Series): Classification target.
+            strategy (str|float): Oversampling strategy.
+        
         Returns:
-            Tuple containing balanced (X, y)
+            (X_res, y_res) (pd.DataFrame, pd.Series): Data after oversampling via SMOTE.
         """
-        self.logger.info("\nIniciando SMOTE...")
-        self.logger.info(f"Distribuição original das classes:")
 
-        # Antes de converter para numpy, mostramos as distribuições usando pandas
-        if isinstance(y, pd.Series):
-            self.logger.info(y.value_counts())
-        else:
-            unique, counts = np.unique(y, return_counts=True)
-            self.logger.info(pd.Series(counts, index=unique))
-
-        # Convert data to numpy if needed
         X_array = X.values if isinstance(X, pd.DataFrame) else X
         y_array = y.values if isinstance(y, pd.Series) else y
 
-        # Calculate class distribution
-        class_counts = np.bincount(y_array)
-        majority_class_count = np.max(class_counts)
+        # Verifica se strategy é uma das strings válidas OU um float
+        valid_strings = {
+            'auto',
+            'minority',
+            'majority',
+            'not minority',
+            'not majority',
+            'all'
+        }
 
-        # Determine sampling strategy
-        if isinstance(strategy, dict):
+        if isinstance(strategy, str):
+            if strategy not in valid_strings:
+                raise ValueError(
+                    f"Strategy '{strategy}' inválida. Escolha entre: {valid_strings} "
+                    "ou forneça um float."
+                )
             sampling_strategy = strategy
         elif isinstance(strategy, float):
-            target_count = int(majority_class_count * strategy)
-            sampling_strategy = {
-                i: min(target_count, count) if count < majority_class_count else count
-                for i, count in enumerate(class_counts)
-            }
-        elif strategy == 'minority':
-            sampling_strategy = {
-                i: int(majority_class_count * target_ratio)
-                for i, count in enumerate(class_counts)
-                if count < majority_class_count
-            }
-        else:  # 'auto' ou qualquer outra string
-            sampling_strategy = 'auto'
+            sampling_strategy = strategy  # SMOTE interpretará esse valor como a razão da minoria
+        else:
+            raise ValueError(
+                "strategy deve ser uma string (auto, minority, majority, etc.) ou float ex.: 0.75"
+            )
 
-        # Configure SMOTE
+        # Determina k_neighbors com base no menor tamanho de classe
+        class_counts = np.bincount(y_array)
         k_neighbors = min(5, min(class_counts) - 1)
+
         smote = SMOTE(
             sampling_strategy=sampling_strategy,
             random_state=self.random_state,
             k_neighbors=k_neighbors
         )
 
-        # Apply SMOTE
         X_resampled, y_resampled = smote.fit_resample(X_array, y_array)
 
-        self.logger.info("\nDistribuição após SMOTE:")
-        # Converter para Series para mostrar a distribuição
-        y_series = pd.Series(y_resampled)
-        self.logger.info(y_series.value_counts())
-        self.logger.info(
-            f"Shape após SMOTE - X: {X_resampled.shape}, y: {y_resampled.shape}")
-
-        # Retornar como DataFrame/Series mantendo os nomes das colunas originais
+        # Reconstrói DataFrame/Series com nomes originais
         if isinstance(X, pd.DataFrame):
             X_resampled = pd.DataFrame(X_resampled, columns=X.columns)
         if isinstance(y, pd.Series):
             y_resampled = pd.Series(y_resampled, name=y.name)
+
 
         return X_resampled, y_resampled

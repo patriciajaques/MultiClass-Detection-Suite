@@ -44,21 +44,18 @@ class BehaviorDetectionPipeline(BasePipeline):
             self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
         self.logger.info(f"Dataset inicial shape: {data.shape}")
 
-        # Remove undefined behaviors (they were only 38 instances and they represent behaviors that even human annotators were not able to define)
-        data = self.data_cleaner.remove_instances_with_value(data, self.target_column, '?')
-        # exibindo a quantidade de classes em comportamento
-        self.logger.info(f"Classes de comportamento: {data['comportamento'].unique()}")
-
         # Cria id único de sequencias
         data['sequence_id'] = self._create_sequence_ids(data)
-
-        # Remove unnecessary columns usando configuração
-        cleaned_data = self.data_cleaner.remove_columns(
-            data, use_config=True)
+        
+        # Remove unnecessary columns 
+        columns_to_keep = ['aluno', 'num_dia', 'num_log', 'sequence_id', 'comportamento']
+        columns_to_remove = self.data_cleaner.get_columns_to_remove(self.config_manager)
+        cleaned_data = self.data_cleaner.clean_data(data, target_column=self.target_column, undefined_value='?', columns_to_remove=columns_to_remove, columns_to_keep=columns_to_keep, handle_multicollinearity=True)
+        # cleaned_data = self.data_cleaner.remove_columns(cleaned_data, columns_to_remove=['aluno', 'num_dia', 'num_log'])
 
         # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
-        # cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
-        #     ['ON TASK OUT', 'ON TASK CONVERSATION'], 'ON TASK OUT')
+        cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
+            ['ON TASK OUT', 'ON TASK', 'ON SYSTEM', 'ON TASK CONVERSATION'], 'ON TASK')
         # exibindo a quantidade de classes em comportamento
         self.logger.info(
             f"Classes de comportamento: {cleaned_data[self.target_column].unique()}")
@@ -107,13 +104,11 @@ class BehaviorDetectionPipeline(BasePipeline):
         y_encoded = self.y_encoder.fit_transform_y(y)
         data[self.target_column] = y_encoded
 
-        self.logger.info(
-            f"Distribuição original das classes:\n{data[self.target_column].value_counts()}")
 
         # 3. Divide the data into train, val and test sets stratified by student ID and target
         train_data, val_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
-            val_size=0.15,
+            val_size=0.30,
             test_size=self.test_size,
             group_column='aluno',
             target_column=self.target_column
@@ -146,7 +141,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         # Importante: fit apenas no treino, transform em ambos
         self.logger.info("Ajustando imputador nos dados de treino...")
         X_train_imputed = imputer.fit_transform(X_train)
-        self.logger.info("Aplicando imputação nos dados de teste...")
+        self.logger.info("Aplicando imputação nos dados de validação...")
         X_val_imputed = imputer.transform(X_val)
         self.logger.info("Aplicando imputação nos dados de teste...")
         X_test_imputed = imputer.transform(X_test)

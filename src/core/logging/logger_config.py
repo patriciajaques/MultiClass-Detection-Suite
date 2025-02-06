@@ -20,6 +20,8 @@ class LoggerConfig:
         Returns:
             logging.Logger: Logger configurado
         """
+
+
         # Se o logger já existe no cache, retorna ele
         if logger_name in LoggerConfig._loggers:
             return LoggerConfig._loggers[logger_name]
