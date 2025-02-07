@@ -18,8 +18,8 @@ class VotingEnsembleBuilder:
                         n_models: int = 3,
                         metric: str = 'balanced_accuracy-val') -> List[str]:
         """
-        Seleciona os melhores modelos baseado na métrica especificada,
-        garantindo diversidade ao escolher apenas o melhor de cada tipo de algoritmo.
+        Seleciona os melhores modelos base (excluindo ensembles anteriores)
+        baseado na métrica especificada.
 
         Args:
             metrics_df: DataFrame com as métricas de todos os modelos
@@ -27,16 +27,19 @@ class VotingEnsembleBuilder:
             metric: Métrica para ordenar os modelos
 
         Returns:
-            Lista com os nomes dos melhores modelos, um de cada tipo
+            Lista com os nomes dos melhores modelos base
         """
+        # Filtra ensembles anteriores
+        base_models_df = metrics_df[~metrics_df['Model'].str.startswith('Voting_')]
+        
         # Ordena pelo valor da métrica em ordem decrescente
-        sorted_models = metrics_df.sort_values(by=metric, ascending=False)
+        sorted_models = base_models_df.sort_values(by=metric, ascending=False)
         
         # Extrai o tipo base do modelo (parte antes do '_')
         sorted_models['base_model'] = sorted_models['Model'].apply(
             lambda x: x.split('_')[0])
         
-        # Seleciona o melhor modelo de cada tipo (por exemplo, não vai repetir RanfomForest_None e RandomForest_PCA)
+        # Seleciona o melhor modelo de cada tipo
         best_models = []
         used_base_models = set()
         
@@ -46,7 +49,6 @@ class VotingEnsembleBuilder:
                 best_models.append(row['Model'])
                 used_base_models.add(base_model)
                 
-                # Para se já tivermos o número desejado de modelos
                 if len(best_models) == n_models:
                     break
                     
