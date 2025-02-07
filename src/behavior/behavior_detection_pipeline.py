@@ -51,7 +51,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         columns_to_keep = ['aluno', 'num_dia', 'num_log', 'sequence_id', 'comportamento']
         columns_to_remove = self.data_cleaner.get_columns_to_remove(self.config_manager)
         cleaned_data = self.data_cleaner.clean_data(data, target_column=self.target_column, undefined_value='?', columns_to_remove=columns_to_remove, columns_to_keep=columns_to_keep, handle_multicollinearity=True)
-        # cleaned_data = self.data_cleaner.remove_columns(cleaned_data, columns_to_remove=['aluno', 'num_dia', 'num_log'])
+        
 
         # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
         cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
@@ -122,6 +122,15 @@ class BehaviorDetectionPipeline(BasePipeline):
             test_data=test_data
         )
 
+        # Removing column 'aluno' and 'num_dia' after strratified split (they are necessary for the split).
+        # I'm suspecting that the model is learning the student ID and the day number.
+        train_data = self.data_cleaner.remove_columns(
+            train_data, columns_to_remove=['aluno', 'num_dia'])
+        val_data = self.data_cleaner.remove_columns(
+            val_data, columns_to_remove=['aluno', 'num_dia'])
+        test_data = self.data_cleaner.remove_columns(
+            test_data, columns_to_remove=['aluno', 'num_dia'])
+
         # 4. Divide the data into features and target
         X_train, y_train = DataSplitter.split_into_x_y(
             train_data, self.target_column)
@@ -159,11 +168,6 @@ class BehaviorDetectionPipeline(BasePipeline):
         X_train_encoded = self.X_encoder.transform(X_train_imputed)
         X_val_encoded = self.X_encoder.transform(X_val_imputed)
         X_test_encoded = self.X_encoder.transform(X_test_imputed)
-
-        # Após todas as transformações
-        self.logger.info("\nResumo final do pré-processamento:")
-        self.logger.info(
-            f"Shape final - X_train: {X_train_encoded.shape}, X_val: {X_val_encoded.shape}, X_test: {X_test_encoded.shape}")
 
         return X_train_encoded, X_val_encoded, X_test_encoded, y_train, y_val, y_test
 
