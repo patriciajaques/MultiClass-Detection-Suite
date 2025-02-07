@@ -14,12 +14,12 @@ class VotingEnsembleBuilder:
     com os melhores modelos treinados.
     """
 
-    @staticmethod
     def select_best_models(metrics_df: pd.DataFrame,
-                           n_models: int = 3,
-                           metric: str = 'balanced_accuracy-val') -> List[str]:
+                        n_models: int = 3,
+                        metric: str = 'balanced_accuracy-val') -> List[str]:
         """
-        Seleciona os n melhores modelos baseado na métrica especificada.
+        Seleciona os melhores modelos baseado na métrica especificada,
+        garantindo diversidade ao escolher apenas o melhor de cada tipo de algoritmo.
 
         Args:
             metrics_df: DataFrame com as métricas de todos os modelos
@@ -27,13 +27,30 @@ class VotingEnsembleBuilder:
             metric: Métrica para ordenar os modelos
 
         Returns:
-            Lista com os nomes dos melhores modelos
+            Lista com os nomes dos melhores modelos, um de cada tipo
         """
         # Ordena pelo valor da métrica em ordem decrescente
         sorted_models = metrics_df.sort_values(by=metric, ascending=False)
-
-        # Retorna os n primeiros nomes de modelos
-        return sorted_models['Model'].head(n_models).tolist()
+        
+        # Extrai o tipo base do modelo (parte antes do '_')
+        sorted_models['base_model'] = sorted_models['Model'].apply(
+            lambda x: x.split('_')[0])
+        
+        # Seleciona o melhor modelo de cada tipo (por exemplo, não vai repetir RanfomForest_None e RandomForest_PCA)
+        best_models = []
+        used_base_models = set()
+        
+        for _, row in sorted_models.iterrows():
+            base_model = row['base_model']
+            if base_model not in used_base_models:
+                best_models.append(row['Model'])
+                used_base_models.add(base_model)
+                
+                # Para se já tivermos o número desejado de modelos
+                if len(best_models) == n_models:
+                    break
+                    
+        return best_models
 
     @staticmethod
     def build_voting_classifier(best_model_names: List[str],

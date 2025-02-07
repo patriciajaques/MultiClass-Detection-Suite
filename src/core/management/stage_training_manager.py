@@ -141,52 +141,15 @@ class StageTrainingManager:
         self._print_execution_summary(completed_stages, failed_stages)
 
     def evaluate_and_report_all_ensembles(self, all_metrics):
-        # Cria o ensemble que escolhe os k melhores modelos automaticamente
-        ensemble_metrics = self._create_and_evaluate_ensemble(
-            all_metrics=all_metrics, n_models=4, voting='soft')
-        # Adiciona as métricas do ensemble ao relatório final
-        if ensemble_metrics is not None:
-            all_metrics.append(ensemble_metrics)
-            MetricsReporter.generate_stage_report(ensemble_metrics)
 
-        # Cria ensemble com seleção manual com 4 modelos e soft
-        manual_models = ['Naive Bayes_mi', 'Logistic Regression_rfe',
-                             'Random Forest_rf', 'KNN_mi']
-        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=len(manual_models),
-                                                                  manual_selection=manual_models, voting='soft')
-        if ensemble_metrics is not None:
-            all_metrics.append(ensemble_metrics)
-            MetricsReporter.generate_stage_report(ensemble_metrics)
-
-            #Cria ensemble com seleção manual com 4 modelos e hard
-        manual_models = ['Logistic Regression_rfe', 'Random Forest_rf', 'XGBoost_rfe',
-                             'MLP_pca', 'KNN_rf', 'Gradient Boosting_rfe', 'Decision Tree_pca']
-        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=4, 
-                                                                  manual_selection=manual_models, voting='soft')
-        if ensemble_metrics is not None:
-            all_metrics.append(ensemble_metrics)
-            MetricsReporter.generate_stage_report(ensemble_metrics)
-
-            # Cria ensemble com seleção manual com 5 modelos
-        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=5,
-                                                                  manual_selection=manual_models, voting='soft')
-        if ensemble_metrics is not None:
-            all_metrics.append(ensemble_metrics)
-            MetricsReporter.generate_stage_report(ensemble_metrics)
-
-            # Cria ensemble com seleção manual com 6 modelos
-        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=6,
-                                                                  manual_selection=manual_models, voting='soft')
-        if ensemble_metrics is not None:
-            all_metrics.append(ensemble_metrics)
-            MetricsReporter.generate_stage_report(ensemble_metrics)
-
-            # Cria ensemble com seleção manual com 7 modelos
-            
-        ensemble_metrics = self._create_and_evaluate_ensemble(all_metrics, n_models=7,
-                                                                  manual_selection=manual_models, voting='soft')
-        if ensemble_metrics is not None:
-            all_metrics.append(ensemble_metrics)
+        for n_models in range(4, 8):
+            # Cria o ensemble que escolhe os k melhores modelos automaticamente
+            ensemble_metrics = self._create_and_evaluate_ensemble(
+                all_metrics=all_metrics, n_models=n_models, voting='soft')
+            # Adiciona as métricas do ensemble ao relatório final
+            if ensemble_metrics is not None:
+                all_metrics.append(ensemble_metrics)
+                MetricsReporter.generate_stage_report(ensemble_metrics)
         
         return all_metrics
 
