@@ -256,8 +256,8 @@ class BasePipeline(ABC):
 
         # Gerando report das features
         feature_report = FeatureMappingReporter()
-        feature_report.log_feature_mappings(self.X_encoder)
-        feature_report.log_target_mappings(self.y_encoder)
+        feature_report.log_feature_mappings(self.X_encoder, X=data.drop(columns=[self.target_column]))
+        feature_report.log_target_mappings(self.y_encoder, y=data[self.target_column])
 
         # Balance data
         self.logger.info("\n3. Balanceando dados de treino...")
