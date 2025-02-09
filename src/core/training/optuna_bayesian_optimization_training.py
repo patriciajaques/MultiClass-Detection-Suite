@@ -26,7 +26,7 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
 
     def optimize_model(self, pipeline, model_name, model_params, selector_name,
                        X_train, y_train, n_iter, cv, scoring, n_jobs=-1,
-                       selector_search_space=None) -> None:
+                       selector_search_space=None, groups=None) -> None:
         """
         Otimiza hiperparâmetros usando Optuna e treina o modelo final.
         """
@@ -47,16 +47,6 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
                 hyperparams = {**model_hyperparams, **selector_hyperparams}
                 pipeline.set_params(**hyperparams)
 
-                # checa quantas features foram mantidas:se for muito baixa, retorne um score muito baixo 
-                # isso tambem faz com que o optuna aprenda
-                # removido porque  a chamada do transform gerava erro: Cross-validation failed: 'PCAFeatureSelector' object has no attribute '_is_fitted'
-                # if 'feature_selection' in pipeline.named_steps:
-                #     feature_selector = pipeline.named_steps['feature_selection']
-                #     X_transformed = feature_selector.transform(X_train)
-                #     if X_transformed.shape[1] == 0:
-                #         trial.set_user_attr("warning", "Nenhuma feature selecionada")
-                #         return float('-inf')
-
                 # Avalia performance usando validação cruzada
                 cv_mean_score = cross_val_score(
                     estimator=pipeline,
@@ -64,6 +54,7 @@ class OptunaBayesianOptimizationTraining(BaseTraining):
                     y=y_train,
                     scoring=scoring,
                     cv=cv,
+                    groups=groups,
                     n_jobs=n_jobs
                 ).mean()
                 self.logger.info(

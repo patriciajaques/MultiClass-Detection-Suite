@@ -34,6 +34,7 @@ class BaseTraining(ABC):
                     selector_name: str,
                     n_iter: int = 50,
                     cv: int = 5,
+                    groups: Optional[pd.Series] = None,
                     scoring: str = 'balanced_accuracy',
                     n_jobs: int = -1,
                     selector_search_space: Dict = None) -> Dict[str, Any]:
@@ -56,7 +57,8 @@ class BaseTraining(ABC):
                 cv=cv,
                 scoring=scoring,
                 n_jobs=n_jobs,
-                selector_search_space=selector_search_space
+                selector_search_space=selector_search_space,
+                groups=groups
             )
 
             self.execution_time = time() - start_time

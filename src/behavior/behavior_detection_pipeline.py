@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+from behavior.behavior_feature_engineer import BehaviorFeatureEngineer
 from behavior.temporal_features_processor import TemporalFeaturesProcessor
 from core.preprocessors.data_encoder import DataEncoder
 from core.preprocessors.data_imputer import DataImputer
@@ -45,7 +46,12 @@ class BehaviorDetectionPipeline(BasePipeline):
         self.logger.info(f"Dataset inicial shape: {data.shape}")
 
         # Cria id único de sequencias
-        data['sequence_id'] = self._create_sequence_ids(data)
+        # data['sequence_id'] = self._create_sequence_ids(data)
+
+        # 1. Fazer engenharia de features
+        self.logger.info("\nRealizando engenharia de features...")
+        feature_engineer = BehaviorFeatureEngineer()
+        data = feature_engineer.transform(data)
         
         # Remove unnecessary columns 
         columns_to_keep = ['aluno', 'num_dia', 'num_log', 'sequence_id', 'comportamento']
@@ -122,14 +128,14 @@ class BehaviorDetectionPipeline(BasePipeline):
             test_data=test_data
         )
 
-        # Removing column 'aluno' and 'num_dia' after strratified split (they are necessary for the split).
-        # I'm suspecting that the model is learning the student ID and the day number.
-        train_data = self.data_cleaner.remove_columns(
-            train_data, columns_to_remove=['aluno', 'num_dia'])
-        val_data = self.data_cleaner.remove_columns(
-            val_data, columns_to_remove=['aluno', 'num_dia'])
-        test_data = self.data_cleaner.remove_columns(
-            test_data, columns_to_remove=['aluno', 'num_dia'])
+        # # Removing column 'aluno' and 'num_dia' after strratified split (they are necessary for the split).
+        # # I'm suspecting that the model is learning the student ID and the day number.
+        # train_data = self.data_cleaner.remove_columns(
+        #     train_data, columns_to_remove=['aluno', 'num_dia'])
+        # val_data = self.data_cleaner.remove_columns(
+        #     val_data, columns_to_remove=['aluno', 'num_dia'])
+        # test_data = self.data_cleaner.remove_columns(
+        #     test_data, columns_to_remove=['aluno', 'num_dia'])
 
         # 4. Divide the data into features and target
         X_train, y_train = DataSplitter.split_into_x_y(
@@ -138,6 +144,10 @@ class BehaviorDetectionPipeline(BasePipeline):
             val_data, self.target_column)
         X_test, y_test = DataSplitter.split_into_x_y(
             test_data, self.target_column)
+        
+        self.logger.info(f"No prepare_data: Distribuição de logs por aluno e comportamento:\n{train_data.groupby(['aluno', self.target_column]).size()}")
+        self.logger.info(
+            f"No prepare_data: Número mínimo de logs por aluno: {train_data.groupby(['aluno']).size().min()}")
 
         # 5. Impute missing values
         self.logger.info("\nRealizando imputação de valores faltantes...")

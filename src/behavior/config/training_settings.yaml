@@ -4,7 +4,7 @@ training_settings:
     - "Logistic Regression"
     # - "Decision Tree"
     - "Random Forest"
-    - "Gradient Boosting"
+    # - "Gradient Boosting"
     # - "SVM"
     - "KNN"
     # - "XGBoost"

@@ -257,6 +257,7 @@ class BasePipeline(ABC):
         # Gerando report das features
         feature_report = FeatureMappingReporter()
         feature_report.log_feature_mappings(self.X_encoder, X=data.drop(columns=[self.target_column]))
+        feature_report.log_numeric_feature_mappings(X=data.drop(columns=[self.target_column]))
         feature_report.log_target_mappings(self.y_encoder, y=data[self.target_column])
 
         # Balance data
@@ -281,6 +282,7 @@ class BasePipeline(ABC):
             model_params=self.model_params,
             n_iter=self.n_iter,
             cv=10,
+            group_feature='aluno',
             scoring='balanced_accuracy',
             n_jobs=self.n_jobs,
             training_strategy=self.training_strategy,

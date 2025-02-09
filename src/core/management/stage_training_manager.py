@@ -1,7 +1,6 @@
+from sklearn.model_selection import GroupKFold
 import traceback
 from typing import List, Tuple, Dict, Any
-
-import pandas as pd
 
 from core.evaluation.model_evaluator import ModelEvaluator
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
@@ -19,7 +18,7 @@ class StageTrainingManager:
     """Manages the execution of multiple training stages with different model and selector combinations."""
 
     def __init__(self, X_train, X_val, X_test, y_train, y_val, y_test,  model_params,
-                 n_iter=50, cv=5, scoring='balanced_accuracy', n_jobs=-1, training_strategy=None, use_voting_classifier=True):
+                 n_iter=50, cv=5, group_feature=None, scoring='balanced_accuracy', n_jobs=-1, training_strategy=None, use_voting_classifier=True):
         self.X_train = X_train
         self.X_val = X_val
         self.X_test = X_test
@@ -29,6 +28,7 @@ class StageTrainingManager:
         self.model_params = model_params
         self.n_iter = n_iter
         self.cv = cv
+        self.group_feature = group_feature
         self.scoring = scoring
         self.n_jobs = n_jobs
         self.use_voting_classifier = use_voting_classifier
@@ -58,6 +58,13 @@ class StageTrainingManager:
             selector_search_space = self._get_selector_search_space(
                 selector_name)
 
+            # Criação do GroupKFold
+            cv = GroupKFold(n_splits=5)
+            if self.group_feature is not None:
+                groups = self.X_train[self.group_feature].values
+            else:
+                groups = None
+
             # Train the model
             trained_model_info = self.training_strategy.train_model(
                 pipeline=pipeline,
@@ -67,7 +74,8 @@ class StageTrainingManager:
                 model_params=self.model_params,
                 selector_name=selector_name,
                 n_iter=self.n_iter,
-                cv=self.cv,
+                cv=cv,
+                groups=groups,
                 scoring=self.scoring,
                 n_jobs=self.n_jobs,
                 selector_search_space=selector_search_space,
@@ -191,8 +199,6 @@ class StageTrainingManager:
 
         return ensemble_metrics
     
-
-
     def _create_pipeline(self, model_name: str, selector_name: str):
         """Creates a pipeline with specified model and selector."""
         # Get base model configuration

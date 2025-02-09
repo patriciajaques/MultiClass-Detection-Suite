@@ -25,7 +25,7 @@ class FeatureMappingReporter:
                 self._add_counts_to_row(row, value, value_counts, X)
                 rows.append(row)
 
-            self._print_distribution(feature, value_counts, X)
+            # self._print_distribution(feature, value_counts, X)
 
         self._save_mapping_csv(rows, filename_prefix)
 
@@ -107,8 +107,7 @@ class FeatureMappingReporter:
             row = {"feature": col, "codigo": tipo, "valor": faixa}
             rows.append(row)
 
-            print(
-                f"Variável numérica '{col}' ({tipo}): de {min_value} a {max_value}")
+            # print(f"Variável numérica '{col}' ({tipo}): de {min_value} a {max_value}")
 
         self._save_mapping_csv(rows, filename_prefix)
 
