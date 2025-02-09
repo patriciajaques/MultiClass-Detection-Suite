@@ -36,7 +36,8 @@ class GridSearchTraining(BaseTraining):
                 cv=cv,
                 n_jobs=n_jobs,
                 scoring=scoring,
-                verbose=1
+                verbose=1,
+                error_score=float('-inf')
             )
 
             grid_search.fit(X_train, y_train)

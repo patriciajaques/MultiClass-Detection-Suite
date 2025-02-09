@@ -21,7 +21,7 @@ def main():
         test_size=0.15,
         # pode ser optuna (default), grid ou random
         training_strategy_name='grid',
-        use_voting_classifier=True
+        use_voting_classifier=False
     )
     pipeline.run()
 
