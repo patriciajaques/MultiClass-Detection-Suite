@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
 from core.logging.logger_config import LoggerConfig, with_logging
@@ -11,19 +12,23 @@ class GridSearchTraining(BaseTraining):
         super().__init__()
         self.logger = LoggerConfig.get_logger('gridsearch_training')
 
-    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None, groups=None):
         try:
             self.logger.info(
                 f"Training and evaluating {model_name} with GridSearchCV and {selector_name}")
 
             param_grid = GridSearchParamConverter.convert_param_space(
                 model_params, model_name)
+            print("Parâmetros finais para GridSearchCV:", param_grid)
+
             if selector_search_space:
+                converted_selector_space = GridSearchParamConverter.convert_selector_param_space(
+                    selector_search_space)
                 if isinstance(param_grid, list):
                     for subspace in param_grid:
-                        subspace.update(selector_search_space)
+                        subspace.update(converted_selector_space)
                 else:
-                    param_grid.update(selector_search_space)
+                    param_grid.update(converted_selector_space)
 
             grid_search = GridSearchCV(
                 estimator=pipeline,
@@ -31,9 +36,7 @@ class GridSearchTraining(BaseTraining):
                 cv=cv,
                 n_jobs=n_jobs,
                 scoring=scoring,
-                verbose=0,
-                # Retorna -inf em vez de levantar erro
-                error_score=float('-inf')
+                verbose=1
             )
 
             grid_search.fit(X_train, y_train)
@@ -55,3 +58,7 @@ class GridSearchTraining(BaseTraining):
 
         except Exception as e:
             self.log_parameter_error(model_name, param_grid)
+            self.trained_model_info = {
+                'pipeline': None, 'training_type': "GridSearchCV"}
+
+            

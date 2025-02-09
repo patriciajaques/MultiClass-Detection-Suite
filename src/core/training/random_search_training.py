@@ -10,7 +10,7 @@ class RandomSearchTraining(BaseTraining):
         super().__init__()
         self.logger = LoggerConfig.get_logger('random_search_training')
 
-    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None):
+    def optimize_model(self, pipeline, model_name, model_params, selector_name, X_train, y_train, n_iter, cv, scoring, n_jobs=-1, selector_search_space=None, groups=None):
         try:
             self.logger.info(
                 f"Training and evaluating {model_name} with RandomizedSearchCV and {selector_name}")
@@ -29,6 +29,7 @@ class RandomSearchTraining(BaseTraining):
                 param_distributions=param_grid,
                 n_iter=n_iter,
                 cv=cv,
+                groups=groups,
                 n_jobs=n_jobs,
                 scoring=scoring,
                 verbose=0,

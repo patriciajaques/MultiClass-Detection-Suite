@@ -20,7 +20,7 @@ def main():
         val_size=0.30,
         test_size=0.15,
         # pode ser optuna (default), grid ou random
-        training_strategy_name='optuna',
+        training_strategy_name='grid',
         use_voting_classifier=True
     )
     pipeline.run()

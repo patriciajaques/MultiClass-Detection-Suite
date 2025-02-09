@@ -22,8 +22,8 @@ def main():
         n_jobs=6,
         val_size=0.25,
         test_size=0.2,
-        training_strategy_name='optuna', # pode ser optuna (default), grid ou random
-        use_voting_classifier=True
+        training_strategy_name='grid', # pode ser optuna (default), grid ou random
+        use_voting_classifier=False
     )
 
     print("Executando pipeline...")

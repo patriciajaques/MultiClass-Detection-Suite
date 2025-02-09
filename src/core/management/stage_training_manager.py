@@ -57,12 +57,12 @@ class StageTrainingManager:
             # Get selector search space if applicable
             selector_search_space = self._get_selector_search_space(
                 selector_name)
-
-            # Criação do GroupKFold
-            cv = GroupKFold(n_splits=5)
+            
             if self.group_feature is not None:
+                cv = GroupKFold(n_splits=5)
                 groups = self.X_train[self.group_feature].values
             else:
+                cv = self.cv
                 groups = None
 
             # Train the model

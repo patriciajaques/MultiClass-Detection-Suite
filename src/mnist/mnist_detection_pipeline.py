@@ -112,7 +112,7 @@ class MNISTDetectionPipeline(BasePipeline):
             y_test=y_test,
             model_params=self.model_params,
             n_iter=self.n_iter,
-            cv=10,
+            cv=5,
             scoring='balanced_accuracy',
             n_jobs=self.n_jobs,
             training_strategy=self.training_strategy,
