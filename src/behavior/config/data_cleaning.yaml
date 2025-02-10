@@ -8,7 +8,7 @@ columns_to_remove:
 
   # "Estados emocionais que podem ser redundantes ou não relevantes"
   emotions:
-    - estado_afetivo
+    # - estado_afetivo
     - estado_engajamento_concentrado
     - estado_confusao
     - estado_frustracao
@@ -36,6 +36,7 @@ columns_to_remove:
 
   # "Comportamentos derivados ou redundantes"
   behaviors:
+    - comportamento
     - comportamento_on_task
     - comportamento_on_task_conversation
     - comportamento_on_task_out

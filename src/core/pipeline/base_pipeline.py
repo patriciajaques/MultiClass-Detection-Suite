@@ -114,7 +114,12 @@ class BasePipeline(ABC):
         pass
 
     @abstractmethod
-    def load_and_clean_data(self):
+    def load_data(self):
+        """Carrega e prepara os dados específicos do pipeline."""
+        pass
+
+    @abstractmethod
+    def clean_data(self, data):
         """Carrega e prepara os dados específicos do pipeline."""
         pass
 
@@ -243,8 +248,12 @@ class BasePipeline(ABC):
         self.logger.info(f"Iniciando pipeline de {self.__class__.__name__}...")
 
         # Load and prepare data
-        self.logger.info("\n1. Carregando e preparando dados...")
-        data = self.load_and_clean_data()
+        self.logger.info("\n1. Carregando  dados...")
+        data = self.load_data()
+
+        # Load and prepare data
+        self.logger.info("\n1. Limpando dados...")
+        data = self.clean_data(data)
 
         # Prepare data
         self.logger.info("\n2. Preparando dados para treinamento...")

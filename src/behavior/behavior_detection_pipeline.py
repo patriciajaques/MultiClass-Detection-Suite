@@ -38,13 +38,15 @@ class BehaviorDetectionPipeline(BasePipeline):
         """Obtém os parâmetros do modelo de comportamento."""
         return BehaviorModelParams()
 
-    def load_and_clean_data(self):
-        """Carrega e limpa o dataset."""
-        # Load data
+    def load_data(self):
+        """Carrega o dataset."""
         data = DataLoader.load_data(
             self.paths['data'] / 'new_logs_labels.csv', delimiter=';')
         self.logger.info(f"Dataset inicial shape: {data.shape}")
+        return data
 
+    def clean_data(self, data):
+        """Limpa o dataset."""
         # Cria id único de sequencias
         # data['sequence_id'] = self._create_sequence_ids(data)
 
@@ -58,7 +60,6 @@ class BehaviorDetectionPipeline(BasePipeline):
         columns_to_remove = self.data_cleaner.get_columns_to_remove(self.config_manager)
         cleaned_data = self.data_cleaner.clean_data(data, target_column=self.target_column, undefined_value='?', columns_to_remove=columns_to_remove, columns_to_keep=columns_to_keep, handle_multicollinearity=True)
         
-
         # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
         cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
             ['ON TASK OUT', 'ON TASK', 'ON SYSTEM', 'ON TASK CONVERSATION'], 'ON TASK')
