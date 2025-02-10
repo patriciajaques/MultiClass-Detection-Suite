@@ -21,7 +21,7 @@ from core.training.grid_search_training import GridSearchTraining
 class BasePipeline(ABC):
     """Classe base abstrata para pipelines de detecção."""
 
-    def __init__(self, target_column: str, n_iter=50, n_jobs=6, val_size=None, test_size=0.2, training_strategy_name='optuna', use_voting_classifier=True):
+    def __init__(self, target_column: str, n_iter=50, n_jobs=6, val_size=None, test_size=0.2, group_feature=None, training_strategy_name='optuna', use_voting_classifier=True):
         """
         Args:
             target_column: Nome da coluna alvo
@@ -40,6 +40,7 @@ class BasePipeline(ABC):
         self.n_jobs = n_jobs
         self.val_size = val_size
         self.test_size = test_size
+        self.group_feature = group_feature
 
         self.paths = {
             'data': PathManager.get_path('data'),
@@ -291,7 +292,7 @@ class BasePipeline(ABC):
             model_params=self.model_params,
             n_iter=self.n_iter,
             cv=10,
-            group_feature='aluno',
+            group_feature=None,
             scoring='balanced_accuracy',
             n_jobs=self.n_jobs,
             training_strategy=self.training_strategy,

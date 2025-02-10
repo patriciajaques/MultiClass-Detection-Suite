@@ -13,8 +13,8 @@ from behavior.behavior_model_params import BehaviorModelParams
 
 
 class BehaviorDetectionPipeline(BasePipeline):
-    def __init__(self, target_column='comportamento', n_iter=50, n_jobs=6, 
-                 val_size=0.25, test_size=0.2, 
+    def __init__(self, target_column='comportamento', n_iter=50, n_jobs=6,
+                 val_size=0.25, test_size=0.2, group_feature='aluno',
                  training_strategy_name='optuna', use_voting_classifier=True):
         """
         Inicializa o pipeline de detecção de comportamentos.
@@ -29,8 +29,9 @@ class BehaviorDetectionPipeline(BasePipeline):
             target_column=target_column,
             n_iter=n_iter,
             n_jobs=n_jobs,
-            val_size=val_size, test_size=test_size, 
-            training_strategy_name=training_strategy_name, 
+            val_size=val_size, test_size=test_size,
+            group_feature=group_feature,
+            training_strategy_name=training_strategy_name,
             use_voting_classifier=use_voting_classifier
         )
 
@@ -54,12 +55,15 @@ class BehaviorDetectionPipeline(BasePipeline):
         self.logger.info("\nRealizando engenharia de features...")
         feature_engineer = BehaviorFeatureEngineer()
         data = feature_engineer.transform(data)
-        
-        # Remove unnecessary columns 
-        columns_to_keep = ['aluno', 'num_dia', 'num_log', 'sequence_id', 'comportamento']
-        columns_to_remove = self.data_cleaner.get_columns_to_remove(self.config_manager)
-        cleaned_data = self.data_cleaner.clean_data(data, target_column=self.target_column, undefined_value='?', columns_to_remove=columns_to_remove, columns_to_keep=columns_to_keep, handle_multicollinearity=True)
-        
+
+        # Remove unnecessary columns
+        columns_to_keep = ['aluno', 'num_dia',
+                           'num_log', 'sequence_id', 'comportamento']
+        columns_to_remove = self.data_cleaner.get_columns_to_remove(
+            self.config_manager)
+        cleaned_data = self.data_cleaner.clean_data(data, target_column=self.target_column, undefined_value='?',
+                                                    columns_to_remove=columns_to_remove, columns_to_keep=columns_to_keep, handle_multicollinearity=True)
+
         # Substitui comportamentos on-task-resource (chamado de on task out no algoritmo) e on-task-conversation por on-task-out
         cleaned_data[self.target_column] = cleaned_data[self.target_column].replace(
             ['ON TASK OUT', 'ON TASK', 'ON SYSTEM', 'ON TASK CONVERSATION'], 'ON TASK')
@@ -112,7 +116,6 @@ class BehaviorDetectionPipeline(BasePipeline):
         y_encoded = self.y_encoder.fit_transform_y(y)
         data[self.target_column] = y_encoded
 
-
         # 3. Divide the data into train, val and test sets stratified by student ID and target
         train_data, val_data, test_data = DataSplitter.split_stratified_by_groups(
             data=data,
@@ -146,8 +149,9 @@ class BehaviorDetectionPipeline(BasePipeline):
             val_data, self.target_column)
         X_test, y_test = DataSplitter.split_into_x_y(
             test_data, self.target_column)
-        
-        self.logger.info(f"No prepare_data: Distribuição de logs por aluno e comportamento:\n{train_data.groupby(['aluno', self.target_column]).size()}")
+
+        self.logger.info(
+            f"No prepare_data: Distribuição de logs por aluno e comportamento:\n{train_data.groupby(['aluno', self.target_column]).size()}")
         self.logger.info(
             f"No prepare_data: Número mínimo de logs por aluno: {train_data.groupby(['aluno']).size().min()}")
 
@@ -231,36 +235,43 @@ class BehaviorDetectionPipeline(BasePipeline):
             raise ValueError(
                 f"Valores nulos encontrados em colunas críticas:\n{columns_with_nulls}")
 
-    def _verify_split_distribution(self, data, train_data, val_data=None, test_data=None, group_col='aluno', target_col='comportamento'):
+    def _verify_split_distribution(self, data, train_data, val_data=None, test_data=None):
         """Verifica a qualidade do split"""
         self.logger.info("\nDistribuição de classes:")
         self.logger.info("\nOriginal:")
-        self.logger.info(data[target_col].value_counts(normalize=True))
+        self.logger.info(data[self.target_column].value_counts(normalize=True))
 
         self.logger.info("\nTreino:")
-        self.logger.info(train_data[target_col].value_counts(normalize=True))
+        self.logger.info(
+            train_data[self.target_column].value_counts(normalize=True))
 
         if val_data is not None:
             self.logger.info("\nValidação:")
-            self.logger.info(val_data[target_col].value_counts(normalize=True))
+            self.logger.info(
+                val_data[self.target_column].value_counts(normalize=True))
 
         self.logger.info("\nTeste:")
-        self.logger.info(test_data[target_col].value_counts(normalize=True))
+        self.logger.info(
+            test_data[self.target_column].value_counts(normalize=True))
 
-        # Verifica sobreposição de grupos
-        train_groups = set(train_data[group_col].unique())
-        test_groups = set(test_data[group_col].unique())
-        overlap = train_groups.intersection(test_groups)
+        if self.group_feature is not None:
+            # Verifica sobreposição de grupos
+            train_groups = set(train_data[self.group_feature].unique())
+            test_groups = set(test_data[self.group_feature].unique())
+            overlap = train_groups.intersection(test_groups)
 
-        if len(overlap) > 0:
-            self.logger.info(
-                f"\nALERTA: Existem {len(overlap)} grupos sobrepostos entre treino e teste!")
-
-        if val_data is not None:
-            val_groups = set(val_data[group_col].unique())
-            overlap_val_train = val_groups.intersection(train_groups)
-            overlap_val_test = val_groups.intersection(test_groups)
-
-            if len(overlap_val_train) > 0 or len(overlap_val_test) > 0:
+            if len(overlap) > 0:
                 self.logger.info(
-                    f"\nALERTA: Existem grupos sobrepostos na validação!")
+                    f"\nALERTA: Existem {len(overlap)} grupos sobrepostos entre treino e teste!")
+
+            if val_data is not None:
+                val_groups = set(val_data[self.group_feature].unique())
+                overlap_val_train = val_groups.intersection(train_groups)
+                overlap_val_test = val_groups.intersection(test_groups)
+
+                if len(overlap_val_train) > 0 or len(overlap_val_test) > 0:
+                    self.logger.info(
+                        f"\nALERTA: Existem grupos sobrepostos na validação!")
+        else:
+            self.logger.info(
+                "\ngroup_feature is None, pulando verificações de grupo.")

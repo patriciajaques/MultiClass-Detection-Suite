@@ -19,16 +19,16 @@ class GridSearchTraining(BaseTraining):
 
             param_grid = GridSearchParamConverter.convert_param_space(
                 model_params, model_name)
-            print("Parâmetros finais para GridSearchCV:", param_grid)
+            self.logger.info("Parameter grid before conversion:")
+            self.logger.info(param_grid)
 
             if selector_search_space:
-                converted_selector_space = GridSearchParamConverter.convert_selector_param_space(
-                    selector_search_space)
-                if isinstance(param_grid, list):
-                    for subspace in param_grid:
-                        subspace.update(converted_selector_space)
-                else:
-                    param_grid.update(converted_selector_space)
+                param_grid = GridSearchParamConverter.combine_with_selector_space(
+                    param_grid, selector_search_space)
+            self.logger.info(
+                "Final parameter grid after conversion chamando método GridSearchParamConverter.combine_with_selector_space:")
+            self.logger.info(param_grid)
+            
 
             grid_search = GridSearchCV(
                 estimator=pipeline,
@@ -58,8 +58,14 @@ class GridSearchTraining(BaseTraining):
             }
 
         except Exception as e:
-            self.log_parameter_error(model_name, param_grid)
+            self.logger.warning(
+                f"Parameter optimization failed for model {model_name}")
+            self.logger.warning(f"Failed parameters configuration: {param_grid}")
+            self.logger.error(f"Error details: {str(e)}")
+            self.logger.error("Full error traceback:", exc_info=True)
             self.trained_model_info = {
-                'pipeline': None, 'training_type': "GridSearchCV"}
+                'pipeline': None,
+                'training_type': "GridSearchCV"
+            }
 
             

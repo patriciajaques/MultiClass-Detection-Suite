@@ -7,7 +7,7 @@ from core.utils.path_manager import PathManager
 
 class EmotionDetectionPipeline(BehaviorDetectionPipeline):
     def __init__(self, target_column='estado_afetivo', n_iter=50, n_jobs=6,
-                 val_size=0.25, test_size=0.2,
+                 val_size=0.25, test_size=0.2, group_feature=None,
                  training_strategy_name='optuna', use_voting_classifier=True):
         """
         Inicializa o pipeline de detecção de emoções.
@@ -27,6 +27,7 @@ class EmotionDetectionPipeline(BehaviorDetectionPipeline):
             n_jobs=n_jobs,
             val_size=val_size,
             test_size=test_size,
+            group_feature=group_feature,
             training_strategy_name=training_strategy_name,
             use_voting_classifier=use_voting_classifier
         )
@@ -68,12 +69,13 @@ def main():
     pipeline = EmotionDetectionPipeline(
         target_column='estado_afetivo',
         n_iter=50,
-        n_jobs=6,
+        n_jobs=4,
         val_size=0.2,
         test_size=0.2,
-        # pode ser optuna (default), grid ou random
+        group_feature=None,
+        # pode ser 'optuna' (default), 'grid' ou 'random'
         training_strategy_name='optuna',
-        use_voting_classifier=False
+        use_voting_classifier=True
     )
     pipeline.run()
 
