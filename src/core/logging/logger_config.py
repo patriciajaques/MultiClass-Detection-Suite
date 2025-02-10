@@ -10,9 +10,10 @@ class LoggerConfig:
     _loggers = {}  # Cache para armazenar loggers já criados
 
     @staticmethod
-    def get_logger(logger_name):
+    def get_logger(logger_name=None):
         """
-        Obtém ou cria um logger com o nome especificado.
+        Obtém ou cria um logger com o nome especificado. Se o logger_name for None,
+        retorna o último logger criado.
         
         Args:
             logger_name (str): Nome do logger a ser obtido/criado
@@ -20,7 +21,12 @@ class LoggerConfig:
         Returns:
             logging.Logger: Logger configurado
         """
-
+        if logger_name is None:
+            if LoggerConfig._loggers:
+                # Retorna o último logger criado
+                return list(LoggerConfig._loggers.values())[-1]
+            else:
+                raise ValueError("Nenhum logger foi criado ainda.")
 
         # Se o logger já existe no cache, retorna ele
         if logger_name in LoggerConfig._loggers:

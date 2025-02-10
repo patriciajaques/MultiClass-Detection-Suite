@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict, Any
 
 from core.evaluation.model_evaluator import ModelEvaluator
 from core.feature_selection.feature_selection_factory import FeatureSelectionFactory
+from core.logging.logger_config import LoggerConfig
 from core.management.progress_tracker import ProgressTracker
 from core.models.ensemble.voting_ensemble_builder import VotingEnsembleBuilder
 from core.models.model_persistence import ModelPersistence
@@ -36,6 +37,7 @@ class StageTrainingManager:
         # Initialize training strategy
         self.training_strategy = training_strategy or OptunaBayesianOptimizationTraining()
         self.progress_tracker = ProgressTracker()
+        self.logger = LoggerConfig.get_logger()
 
     def execute_stage(self, model_name: str, selector_name: str) -> ClassificationModelMetrics:
         """Executes a single training stage with specified model and selector.
@@ -61,6 +63,7 @@ class StageTrainingManager:
             if self.group_feature is not None:
                 cv = GroupKFold(n_splits=5)
                 groups = self.X_train[self.group_feature].values
+                self.logger.info(f"Using GroupKFold with groups: {groups}")
             else:
                 cv = self.cv
                 groups = None

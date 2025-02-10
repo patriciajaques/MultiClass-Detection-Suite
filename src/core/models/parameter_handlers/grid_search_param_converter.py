@@ -1,3 +1,5 @@
+import numpy as np
+
 class GridSearchParamConverter:
     @staticmethod
     def convert_param_space(model_params, model_name):
@@ -26,21 +28,23 @@ class GridSearchParamConverter:
             elif space.get('type') == 'float' and 'values' in space:
                 return space['values']
             elif space.get('type') == 'float' and 'range' in space:
-                # Aqui você pode definir como gerar valores para floats sem 'values'
-                # Por exemplo, gerar 3 valores igualmente espaçados:
                 start, end = space['range']
-                return [start, (start + end) / 2, end]
+                # Gera 5 valores igualmente espaçados para melhor busca.
+                return np.linspace(start, end, num=5).tolist()
             else:
-                # Se não corresponder a nenhum padrão conhecido, retorna o dicionário encapsulado em lista
-                return [space]
+                # Retorne o próprio dicionário sem encapsulá-lo para objetos não primitivos.
+                return space
         elif isinstance(space, tuple):
             if isinstance(space[0], int):
                 return list(range(space[0], space[1] + 1))
             return [space[0], (space[0] + space[1]) / 2, space[1]]
         elif isinstance(space, list):
             return space
-        return [space]
-
+        else:
+            # Se for primitivo, encapsula num lista; senão, retorna como está.
+            if isinstance(space, (int, float, str, bool)):
+                return [space]
+            return space
 
     @staticmethod
     def convert_selector_param_space(selector_space):

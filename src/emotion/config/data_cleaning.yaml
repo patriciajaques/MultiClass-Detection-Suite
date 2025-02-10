@@ -36,6 +36,7 @@ columns_to_remove:
 
   # "Comportamentos derivados ou redundantes"
   behaviors:
+    - comportamento
     - comportamento_on_task
     - comportamento_on_task_conversation
     - comportamento_on_task_out

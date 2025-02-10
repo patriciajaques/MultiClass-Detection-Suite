@@ -70,9 +70,10 @@ class BehaviorDetectionPipeline(BasePipeline):
         return cleaned_data
 
     def _create_sequence_ids(self, X: pd.DataFrame) -> np.ndarray:
-        return (X['aluno'].astype(int) * 10000 +
-                X['num_dia'].astype(int) * 1000 +
-                X['num_log'].astype(int))
+        return (
+            # X['aluno'].astype(int) * 10000 +
+            X['num_dia'].astype(int) * 1000 +
+            X['num_log'].astype(int))
 
     def prepare_data(self, data):
         """
