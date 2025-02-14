@@ -2,6 +2,8 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 from sklearn.metrics import balanced_accuracy_score
+
+from core.logging.logger_config import LoggerConfig
 from .lstm_dataset import LSTMDataset
 from .lstm_model import LSTMModel
 
@@ -31,6 +33,13 @@ class LSTMTrainer:
             self.model.parameters(), lr=learning_rate)
         self.batch_size = batch_size
         self.num_epochs = num_epochs
+        self.training_history = {
+            'train_loss': [],
+            'train_accuracy': [],
+            'val_accuracy': [],
+            'epoch_times': []
+        }
+
 
     def train(self, train_dataset, val_dataset=None):
         train_loader = DataLoader(

@@ -13,7 +13,7 @@ class DataEncoder():
         self.select_numerical = select_numerical
         self.select_nominal = select_nominal
         self.select_ordinal = select_ordinal
-        self.label_encoder = LabelEncoder()
+        self.target_label_encoder = LabelEncoder()
         self._is_fitted = False
         self.column_selector = None
         self.column_transformer = None
@@ -145,7 +145,7 @@ class DataEncoder():
                 "LabelEncoder já foi ajustado. Usando fit_transform novamente.")
 
         # Encoding
-        y_encoded = self.label_encoder.fit_transform(y)
+        y_encoded = self.target_label_encoder.fit_transform(y)
         self._is_fitted = True
 
         return y_encoded
@@ -155,14 +155,14 @@ class DataEncoder():
         if not self._is_fitted:
             raise RuntimeError(
                 "Encoder não foi ajustado. Use fit_transform_y primeiro.")
-        return self.label_encoder.transform(y)
+        return self.target_label_encoder.transform(y)
 
     def inverse_transform_y(self, y_encoded):
         """Recupera labels originais"""
         if not self._is_fitted:
             raise RuntimeError(
                 "Encoder não foi ajustado. Use fit_transform_y primeiro.")
-        return self.label_encoder.inverse_transform(y_encoded)
+        return self.target_label_encoder.inverse_transform(y_encoded)
 
     def get_feature_mapping(self):
         """Retorna o mapeamento das features categóricas após encoding"""
@@ -178,6 +178,6 @@ class DataEncoder():
 
     def get_class_mapping(self):
         """Retorna o mapeamento das classes target após encoding"""
-        if not hasattr(self, 'label_encoder') or not hasattr(self.label_encoder, 'classes_'):
+        if not hasattr(self, 'target_label_encoder') or not hasattr(self.target_label_encoder, 'classes_'):
             return {}
-        return dict(enumerate(self.label_encoder.classes_))
+        return dict(enumerate(self.target_label_encoder.classes_))
