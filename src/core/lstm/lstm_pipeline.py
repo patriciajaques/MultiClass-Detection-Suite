@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.metrics import balanced_accuracy_score, classification_report, cohen_kappa_score, confusion_matrix, f1_score, precision_score, recall_score
 
 from core.evaluation.model_evaluator import ModelEvaluator
+from core.reporting.classification_model_metrics import ClassificationModelMetrics
 from core.reporting.metrics_reporter import MetricsReporter
 from .lstm_dataset import LSTMDataset
 from .lstm_trainer import LSTMTrainer
@@ -38,6 +40,7 @@ class LSTMPipeline(BaseEstimator, ClassifierMixin):
         self.trainer = None
         self.target_column = target_column
         self.data_encoder = data_encoder
+        self.metrics_reporter = MetricsReporter()
 
     def fit(self, X, y):
         """
@@ -74,6 +77,19 @@ class LSTMPipeline(BaseEstimator, ClassifierMixin):
         )
 
         self.trainer.train(train_dataset)
+
+        # Generate train metrics report
+        train_pred = self.predict(X)
+        metrics = self._generate_metrics_report(
+            y_true=y,
+            y_pred=train_pred,
+            training_history=self.trainer.training_history,
+            execution_time=self.trainer.execution_time
+        )
+
+        # Generate and log the training report
+        self.metrics_reporter.generate_stage_report(metrics)
+        return self
         return self
 
     def predict(self, X, return_encoded=True):
@@ -142,3 +158,40 @@ class LSTMPipeline(BaseEstimator, ClassifierMixin):
             return None
         class_mapping = self.data_encoder.get_class_mapping()
         return [class_mapping[i] for i in range(len(class_mapping))]
+
+    def _generate_metrics_report(self, y_true, y_pred, training_history, execution_time):
+        """Gera relatório de métricas no formato esperado pelo sistema"""
+
+        train_metrics = {
+            'balanced_accuracy': balanced_accuracy_score(y_true, y_pred),
+            'precision': precision_score(y_true, y_pred, average='weighted'),
+            'recall': recall_score(y_true, y_pred, average='weighted'),
+            'f1-score': f1_score(y_true, y_pred, average='weighted'),
+            'kappa': cohen_kappa_score(y_true, y_pred)
+        }
+
+        metrics = ClassificationModelMetrics(
+            stage_name="lstm_model",
+            train_metrics=train_metrics,
+            val_metrics=None,  # Não temos validação neste momento
+            test_metrics=None,  # Não temos teste neste momento
+            class_report_train=classification_report(
+                y_true, y_pred, output_dict=True),
+            class_report_val=None,
+            class_report_test=None,
+            confusion_matrix_train=(confusion_matrix(y_true, y_pred),),
+            confusion_matrix_val=None,
+            confusion_matrix_test=None,
+            class_labels=list(np.unique(y_true)),
+            training_type="LSTM",
+            hyperparameters={
+                'hidden_size': self.hidden_size,
+                'num_layers': self.num_layers,
+                'batch_size': self.batch_size,
+                'learning_rate': self.learning_rate,
+                'num_epochs': self.num_epochs
+            },
+            execution_time=execution_time
+        )
+
+        return metrics

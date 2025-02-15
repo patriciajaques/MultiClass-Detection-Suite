@@ -1,3 +1,4 @@
+import time
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -39,19 +40,28 @@ class LSTMTrainer:
             'val_accuracy': [],
             'epoch_times': []
         }
+        self.logger = LoggerConfig.get_logger('lstm_training')
+        self.start_time = None
+        self.execution_time = None
 
 
     def train(self, train_dataset, val_dataset=None):
+        self.start_time = time.time()
         train_loader = DataLoader(
             train_dataset, batch_size=self.batch_size, shuffle=True)
         if val_dataset:
             val_loader = DataLoader(val_dataset, batch_size=self.batch_size)
 
         best_val_acc = 0
+
         for epoch in range(self.num_epochs):
+            epoch_start = time.time()
             self.model.train()
             total_loss = 0
+            train_predictions = []
+            train_labels = []
 
+            # Training loop
             for sequences, labels in train_loader:
                 sequences = sequences.to(self.device)
                 labels = labels.to(self.device)
@@ -63,15 +73,36 @@ class LSTMTrainer:
                 self.optimizer.step()
 
                 total_loss += loss.item()
+                _, predicted = torch.max(outputs.data, 1)
+                train_predictions.extend(predicted.cpu().numpy())
+                train_labels.extend(labels.cpu().numpy())
 
+            # Calcular métricas de treino
             avg_loss = total_loss / len(train_loader)
+            train_acc = balanced_accuracy_score(train_labels, train_predictions)
 
+            # Atualizar histórico
+            self.training_history['train_loss'].append(avg_loss)
+            self.training_history['train_accuracy'].append(train_acc)
+
+            # Validação se existir conjunto de validação
             if val_dataset:
                 val_acc = self.evaluate(val_loader)
+                self.training_history['val_accuracy'].append(val_acc)
+
                 if val_acc > best_val_acc:
                     best_val_acc = val_acc
                     torch.save(self.model.state_dict(), 'best_model.pth')
 
+                self.logger.info(
+                    f"Epoch {epoch}: Loss={avg_loss:.4f}, Train Acc={train_acc:.4f}, Val Acc={val_acc:.4f}")
+            else:
+                self.logger.info(
+                    f"Epoch {epoch}: Loss={avg_loss:.4f}, Train Acc={train_acc:.4f}")
+
+            self.training_history['epoch_times'].append(time.time() - epoch_start)
+
+        self.execution_time = time.time() - self.start_time
     def evaluate(self, data_loader):
         self.model.eval()
         all_preds = []
