@@ -117,7 +117,7 @@ class BehaviorDetectionPipeline(BasePipeline):
         data[self.target_column] = y_encoded
 
         # 3. Divide the data into train, val and test sets stratified by student ID and target
-        train_data, val_data, test_data = DataSplitter.split_stratified_by_groups(
+        train_data, val_data, test_data = DataSplitter.split_stratified_by_groups_and_target(
             data=data,
             val_size=0.30,
             test_size=self.test_size,
@@ -143,11 +143,11 @@ class BehaviorDetectionPipeline(BasePipeline):
         #     test_data, columns_to_remove=['aluno', 'num_dia'])
 
         # 4. Divide the data into features and target
-        X_train, y_train = DataSplitter.split_into_x_y(
+        X_train, y_train = DataSplitter.separate_features_and_target(
             train_data, self.target_column)
-        X_val, y_val = DataSplitter.split_into_x_y(
+        X_val, y_val = DataSplitter.separate_features_and_target(
             val_data, self.target_column)
-        X_test, y_test = DataSplitter.split_into_x_y(
+        X_test, y_test = DataSplitter.separate_features_and_target(
             test_data, self.target_column)
 
         self.logger.info(
