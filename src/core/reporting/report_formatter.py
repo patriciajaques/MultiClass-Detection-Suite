@@ -142,37 +142,69 @@ class ReportFormatter:
 
     @staticmethod
     def generate_avg_metrics_report_dataframe(model_metrics: ClassificationModelMetrics) -> pd.DataFrame:
-        """Gera DataFrame com métricas médias do modelo"""
-
-        # Criar DataFrames separados para treino e teste
-        train_df = pd.DataFrame.from_dict(
-            model_metrics.train_metrics, orient='index', columns=['Train'])
+        """
+        Generates a DataFrame containing average metrics from the model.
+        Handles metrics data safely and ensures proper column naming.
+        
+        Args:
+            model_metrics: ClassificationModelMetrics object containing training results
+            
+        Returns:
+            pd.DataFrame: DataFrame with metrics in columns and values for train/val/test
+        """
+        metrics_data = {}
+        
+        # Collect all unique metric names
+        metric_names = set()
+        if model_metrics.train_metrics:
+            metric_names.update(model_metrics.train_metrics.keys())
         if model_metrics.val_metrics:
-            val_df = pd.DataFrame.from_dict(
-                model_metrics.val_metrics, orient='index', columns=['Validation'])
-        test_df = pd.DataFrame.from_dict(
-            model_metrics.test_metrics, orient='index', columns=['Test'])
-
-        # Combinar os DataFrames
-        if model_metrics.val_metrics:
-            combined_df = train_df.join([val_df, test_df], how='outer')
-        else:
-            combined_df = train_df.join(test_df, how='outer')
-
-        # Adicionar linha 'CV Score' na coluna 'Train'
-        cv_score_df = pd.DataFrame(
-            {'Train': [model_metrics.cv_score]}, index=['CV Score'])
-        combined_df = pd.concat([combined_df, cv_score_df])
-
-        # Adicionar linha 'Execution Time' na coluna 'Train'
-        exec_time_df = pd.DataFrame(
-            {'Train': [model_metrics.execution_time]}, index=['Execution Time'])
-        combined_df = pd.concat([combined_df, exec_time_df])
-
-        combined_df = ReportFormatter.format_dataframe(combined_df.reset_index().rename(
-            columns={'index': 'Metric'}))
-
-        return combined_df
+            metric_names.update(model_metrics.val_metrics.keys())
+        if model_metrics.test_metrics:
+            metric_names.update(model_metrics.test_metrics.keys())
+        
+        # Initialize dictionary for all metrics
+        for metric in metric_names:
+            metrics_data[metric] = {}
+            if model_metrics.train_metrics and metric in model_metrics.train_metrics:
+                metrics_data[metric]['Train'] = model_metrics.train_metrics[metric]
+            if model_metrics.val_metrics and metric in model_metrics.val_metrics:
+                metrics_data[metric]['Validation'] = model_metrics.val_metrics[metric]
+            if model_metrics.test_metrics and metric in model_metrics.test_metrics:
+                metrics_data[metric]['Test'] = model_metrics.test_metrics[metric]
+        
+        # Create DataFrame
+        df = pd.DataFrame.from_dict(metrics_data, orient='index')
+        
+        # Add extra metrics if they exist
+        extra_rows = []
+        
+        if hasattr(model_metrics, 'cv_score') and model_metrics.cv_score is not None:
+            extra_rows.append({
+                'Metric': 'CV Score',
+                'Train': model_metrics.cv_score
+            })
+        
+        if hasattr(model_metrics, 'execution_time') and model_metrics.execution_time is not None:
+            extra_rows.append({
+                'Metric': 'Execution Time',
+                'Train': model_metrics.execution_time
+            })
+        
+        # Reset index to create Metric column
+        df = df.reset_index().rename(columns={'index': 'Metric'})
+        
+        # Add extra rows if they exist
+        if extra_rows:
+            extra_df = pd.DataFrame(extra_rows)
+            df = pd.concat([df, extra_df], ignore_index=True)
+        
+        # Format numeric columns
+        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+        for col in numeric_cols:
+            df[col] = df[col].round(4)
+        
+        return df
 
     @staticmethod
     def generate_confusion_matrix_report(model_metrics: ClassificationModelMetrics) -> str:

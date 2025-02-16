@@ -1,8 +1,14 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {}
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "notebook.defaultFormatter": "ms-python.black-formatter",
+        "notebook.formatOnSave.enabled": true
+    }
 }

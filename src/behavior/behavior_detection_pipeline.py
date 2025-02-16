@@ -106,14 +106,15 @@ class BehaviorDetectionPipeline(BasePipeline):
         # 2. Encode target (generally, not needed for most models)
         y = data[self.target_column]
 
-        self.y_encoder = DataEncoder(
+        self.encoder = DataEncoder(
             categorical_threshold=10,
             scaling_strategy='none',
             select_numerical=False,
             select_nominal=True,
-            select_ordinal=False
+            select_ordinal=False,
+            target_column=self.target_column
         )
-        y_encoded = self.y_encoder.fit_transform_y(y)
+        y_encoded = self.encoder.fit_transform_y(y)
         data[self.target_column] = y_encoded
 
         # 3. Divide the data into train, val and test sets stratified by student ID and target
@@ -173,17 +174,10 @@ class BehaviorDetectionPipeline(BasePipeline):
 
         # 6. Encode features
         self.logger.info("\nRealizando encoding das features...")
-        self.X_encoder = DataEncoder(
-            categorical_threshold=5,
-            scaling_strategy='standard',
-            select_numerical=True,
-            select_nominal=True,
-            select_ordinal=False
-        )
-        self.X_encoder.fit(X_train)
-        X_train_encoded = self.X_encoder.transform(X_train_imputed)
-        X_val_encoded = self.X_encoder.transform(X_val_imputed)
-        X_test_encoded = self.X_encoder.transform(X_test_imputed)
+        self.encoder.fit(X_train)
+        X_train_encoded = self.encoder.transform(X_train_imputed)
+        X_val_encoded = self.encoder.transform(X_val_imputed)
+        X_test_encoded = self.encoder.transform(X_test_imputed)
 
         return X_train_encoded, X_val_encoded, X_test_encoded, y_train, y_val, y_test
 

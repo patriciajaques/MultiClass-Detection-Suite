@@ -51,8 +51,7 @@ class BasePipeline(ABC):
         self.config_manager = ConfigManager()
         self.model_params = self._get_model_params()
         self.data_cleaner = DataCleaner()
-        self.X_encoder = None
-        self.y_encoder = None
+        self.encoder = None
         ReportFormatter.setup_formatting(4)
         self.training_strategy = self._initialize_training_manager(
             training_strategy_name)
@@ -266,9 +265,9 @@ class BasePipeline(ABC):
 
         # Gerando report das features
         feature_report = FeatureMappingReporter()
-        feature_report.log_feature_mappings(self.X_encoder, X=data.drop(columns=[self.target_column]))
+        feature_report.log_feature_mappings(self.encoder, X=data.drop(columns=[self.target_column]))
         feature_report.log_numeric_feature_mappings(X=data.drop(columns=[self.target_column]))
-        feature_report.log_target_mappings(self.y_encoder, y=data[self.target_column])
+        feature_report.log_target_mappings(self.encoder, y=data[self.target_column])
 
         # Balance data
         self.logger.info("\n3. Balanceando dados de treino...")

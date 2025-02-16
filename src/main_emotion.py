@@ -70,7 +70,7 @@ def main():
         target_column='estado_afetivo',
         n_iter=50,
         n_jobs=4,
-        val_size=0.2,
+        val_size=None,
         test_size=0.2,
         group_feature=None,
         # pode ser 'optuna' (default), 'grid' ou 'random'

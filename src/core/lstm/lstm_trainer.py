@@ -44,15 +44,22 @@ class LSTMTrainer:
         self.start_time = None
         self.execution_time = None
 
-
-    def train(self, train_dataset, val_dataset=None):
+    def train(self, train_dataset, patience=5, min_delta=1e-4):
+        """
+        Trains the LSTM model with early stopping based on training loss.
+        
+        Args:
+            train_dataset: Dataset for training
+            patience: Number of epochs to wait before early stopping
+            min_delta: Minimum change in loss to be considered as improvement
+        """
         self.start_time = time.time()
         train_loader = DataLoader(
             train_dataset, batch_size=self.batch_size, shuffle=True)
-        if val_dataset:
-            val_loader = DataLoader(val_dataset, batch_size=self.batch_size)
 
-        best_val_acc = 0
+        best_loss = float('inf')
+        patience_counter = 0
+        best_model_path = 'best_model.pth'
 
         for epoch in range(self.num_epochs):
             epoch_start = time.time()
@@ -85,24 +92,34 @@ class LSTMTrainer:
             self.training_history['train_loss'].append(avg_loss)
             self.training_history['train_accuracy'].append(train_acc)
 
-            # Validação se existir conjunto de validação
-            if val_dataset:
-                val_acc = self.evaluate(val_loader)
-                self.training_history['val_accuracy'].append(val_acc)
-
-                if val_acc > best_val_acc:
-                    best_val_acc = val_acc
-                    torch.save(self.model.state_dict(), 'best_model.pth')
-
-                self.logger.info(
-                    f"Epoch {epoch}: Loss={avg_loss:.4f}, Train Acc={train_acc:.4f}, Val Acc={val_acc:.4f}")
+            # Early stopping check
+            if avg_loss < best_loss - min_delta:
+                best_loss = avg_loss
+                patience_counter = 0
+                # Salvar melhor modelo
+                torch.save(self.model.state_dict(), best_model_path)
             else:
-                self.logger.info(
-                    f"Epoch {epoch}: Loss={avg_loss:.4f}, Train Acc={train_acc:.4f}")
+                patience_counter += 1
+
+            self.logger.info(
+                f"Epoch {epoch}: Loss={avg_loss:.4f}, Train Acc={train_acc:.4f}")
+
+            # Early stopping
+            if patience_counter >= patience:
+                self.logger.info(f"Early stopping triggered after {epoch + 1} epochs")
+                # Carregar melhor modelo
+                self.model.load_state_dict(torch.load(best_model_path))
+                break
 
             self.training_history['epoch_times'].append(time.time() - epoch_start)
 
+        # Limpar arquivo temporário do modelo
+        import os
+        if os.path.exists(best_model_path):
+            os.remove(best_model_path)
+
         self.execution_time = time.time() - self.start_time
+
     def evaluate(self, data_loader):
         self.model.eval()
         all_preds = []
@@ -134,7 +151,7 @@ class LSTMTrainer:
                 predictions.extend(predicted.cpu().numpy())
 
         return np.array(predictions)
-    
+
     def predict_proba(self, test_dataset):
         """
         Retorna probabilidades para cada classe.

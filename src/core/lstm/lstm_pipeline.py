@@ -1,9 +1,8 @@
 import numpy as np
-import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import balanced_accuracy_score, classification_report, cohen_kappa_score, confusion_matrix, f1_score, precision_score, recall_score
 
-from core.evaluation.model_evaluator import ModelEvaluator
+from core.logging.logger_config import LoggerConfig
 from core.reporting.classification_model_metrics import ClassificationModelMetrics
 from core.reporting.metrics_reporter import MetricsReporter
 from .lstm_dataset import LSTMDataset
@@ -44,28 +43,30 @@ class LSTMPipeline(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y):
         """
-        Train the LSTM model.
-        
-        Args:
-            X: numpy array of shape (n_samples, sequence_length, n_features)
-               containing the prepared sequences
-            y: numpy array of shape (n_samples,) containing the encoded labels
-        
-        Returns:
-            self: Returns the instance itself
-        """
-        print(f"Input sequences shape: {X.shape}")
-        print(f"Input labels shape: {y.shape}")
+        Trains the LSTM model using pre-processed sequences and encoded labels.
 
-        # Create training dataset
+        Args:
+            X (np.ndarray): Input array with shape (n_samples, sequence_length, n_features)
+            y (np.ndarray): Encoded labels array with shape (n_samples,)
+
+        Returns:
+            self: The trained LSTMPipeline instance
+        """
+        # Obtain the logger for recording training information
+        self.logger = LoggerConfig.get_logger("lstm_training") if not hasattr(self, "logger") else self.logger
+        self.logger.info(f"Starting training: X shape: {X.shape}, y shape: {y.shape}")
+
+        # Create the training dataset from the pre-processed sequences
         train_dataset = LSTMDataset(X, y)
 
-        input_size = X.shape[2]  # number of features
+        # Get the input size (number of features per time step) from X's last dimension
+        input_size = X.shape[2]
+        # Determine the number of classes from the unique labels in y
         num_classes = len(np.unique(y))
+        self.logger.info(f"Input size: {input_size}")
+        self.logger.info(f"Number of classes: {num_classes}")
 
-        print(f"Input size: {input_size}")
-        print(f"Number of classes: {num_classes}")
-
+        # Initialize the LSTM trainer with the configured parameters
         self.trainer = LSTMTrainer(
             input_size=input_size,
             hidden_size=self.hidden_size,
@@ -76,9 +77,10 @@ class LSTMPipeline(BaseEstimator, ClassifierMixin):
             learning_rate=self.learning_rate
         )
 
+        # Run the training process on the dataset
         self.trainer.train(train_dataset)
 
-        # Generate train metrics report
+        # After training, predict on the training data to generate metrics
         train_pred = self.predict(X)
         metrics = self._generate_metrics_report(
             y_true=y,
@@ -87,9 +89,8 @@ class LSTMPipeline(BaseEstimator, ClassifierMixin):
             execution_time=self.trainer.execution_time
         )
 
-        # Generate and log the training report
+        # Log the generated metrics report using the MetricsReporter
         self.metrics_reporter.generate_stage_report(metrics)
-        return self
         return self
 
     def predict(self, X, return_encoded=True):

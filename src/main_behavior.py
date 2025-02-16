@@ -21,7 +21,7 @@ def main():
         test_size=0.15,
         # pode ser optuna (default), grid ou random
         group_feature=None,
-        training_strategy_name='grid',
+        training_strategy_name='optuna',
         use_voting_classifier=False
     )
     pipeline.run()

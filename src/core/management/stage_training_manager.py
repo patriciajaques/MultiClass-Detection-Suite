@@ -151,6 +151,16 @@ class StageTrainingManager:
         MetricsReporter.generate_final_report(all_metrics)
         self._print_execution_summary(completed_stages, failed_stages)
 
+        # remove this code - just for testing
+        print("\nTesting metrics format:")
+        print(f"Train metrics type: {type(model_metrics.train_metrics)}")
+        print(f"Train metrics content: {model_metrics.train_metrics}")
+        if model_metrics.val_metrics:
+            print(f"Val metrics type: {type(model_metrics.val_metrics)}")
+            print(f"Val metrics content: {model_metrics.val_metrics}")
+        print(f"Test metrics type: {type(model_metrics.test_metrics)}")
+        print(f"Test metrics content: {model_metrics.test_metrics}")
+
     def evaluate_and_report_all_ensembles(self, all_metrics):
 
         for n_models in range(4, 8):
