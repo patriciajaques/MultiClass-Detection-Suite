@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2025 Patricia Jaques
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 
+International License. To view a copy of this license, visit:
+https://creativecommons.org/licenses/by-nc/4.0/
+"""
+
 import pandas as pd
 from typing import Any, Dict, List, Optional, Union
 from core.preprocessors.data_encoder import DataEncoder

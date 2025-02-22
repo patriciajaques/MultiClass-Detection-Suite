@@ -1,7 +1,12 @@
+"""
+Copyright (c) 2025 Patricia Jaques
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 
+International License. To view a copy of this license, visit:
+https://creativecommons.org/licenses/by-nc/4.0/
+"""
+
 import os
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
-from core.preprocessors.data_loader import DataLoader
-from core.utils import file_utils
 from core.utils.path_manager import PathManager
 
 
@@ -82,6 +87,6 @@ def main():
 
 if __name__ == "__main__":
     os.system('clear')
-    output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
-    file_utils.clear_output_directory(output_dir)
+    # output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
+    # file_utils.clear_output_directory(output_dir)
     main()

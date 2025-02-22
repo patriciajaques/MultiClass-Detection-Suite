@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2025 Patricia Jaques
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 
+International License. To view a copy of this license, visit:
+https://creativecommons.org/licenses/by-nc/4.0/
+"""
+
 from core.models.multiclass.multiclass_model_params import MulticlassModelParams
 
 class DigitsModelParams(MulticlassModelParams):

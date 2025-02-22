@@ -1,51 +1,184 @@
-# Multiclass Detection Suite
+# MultiClass Detection Suite
 
-This repository contains a generic multiclass classifier designed to solve classification problems with more than two classes. It is used in three distinct applications, all based on logs of actions from an Intelligent Tutoring System:
+*Read this in other languages: [Portuguese](README.pt-br.md)*
 
-1. **Learning Behavior Detection** (`main_behavior.py`): Classifies different types of student behavior during interaction.
-2. **Emotion Classification** (`main_emotion.py`): Identifies emotions based on logged actions.
-3. **Image Classification using the MNIST dataset** (`main_mnist.py`): Handwritten digit recognition.
+A comprehensive Python framework for multiclass detection and classification, focusing on three main applications:
 
-The code structure is modular and reusable, with most classes and functions shared between the three problems.
+1. **Learning Behavior Detection** (`main_behavior.py`): Classifies different types of student behaviors during interactions with an Intelligent Tutoring System.
+2. **Emotion Classification** (`main_emotion.py`): Identifies students' emotional states based on their logged actions.
+3. **MNIST Image Classification** (`main_mnist.py`): Handwritten digit recognition using the MNIST dataset.
 
-⚠️ **Note:** The datasets used for behavior and emotion classification are **not provided** in this repository due to privacy and confidentiality restrictions. Only the MNIST dataset is available for testing.
+⚠️ **Note:** The behavior and emotion datasets are not included in this repository due to privacy and confidentiality restrictions. The MNIST dataset is available for testing.
 
 ## Features
 
-- **Supported Models:** 
-  - Logistic Regression
-  - Decision Tree
-  - Random Forest
-  - Gradient Boosting
-  - Support Vector Machines (SVM)
-  - K-Nearest Neighbors (KNN)
-  - XGBoost
-  - Multilayer Perceptron (MLP)
-  - Naive Bayes
-  
-- **Feature Selection Techniques:** 
-  - None (default)
-  - PCA (Principal Component Analysis)
-  - RFE (Recursive Feature Elimination)
-  - RF (Random Forest-based selection)
-  - MI (Mutual Information)
+### Supported Classification Algorithms
 
-- **Hyperparameter Optimization:** 
-  - **GridSearchCV**
-  - **Random Search**
-  - **Optuna** (for more efficient Bayesian-based search).
+1. **Logistic Regression**
+   - Linear model that estimates class probabilities using the sigmoid function
+   - Efficient for linear problems and large datasets
+   - Offers good coefficient interpretability
 
-- **Cross-Validation and Stratification:** 
-  - Configurable cross-validation support.
-  - Stratification by **class** and **group** (useful to maintain balanced distribution across subgroups).
+2. **Decision Trees**
+   - Model based on hierarchical decision rules
+   - Easy visual interpretation of classification logic
+   - Capable of capturing non-linear relationships
 
-## Project Organization and Configuration
+3. **Random Forest**
+   - Ensemble of decision trees
+   - Reduces overfitting through random sampling
+   - Robust to outliers and data noise
 
-Each new project must be configured by creating a new folder inside the main directory. For example, for the **mnist** project, create a folder named `mnist` containing two YAML configuration files:
+4. **Gradient Boosting**
+   - Ensemble that sequentially combines weak models
+   - Iteratively optimizes errors from previous models
+   - Excellent performance on various data types
 
-1. **File for independent variables to be removed** (`columns_to_remove.yaml`): lists the features that should be excluded during training.
+5. **SVM (Support Vector Machines)**
+   - Finds optimal hyperplanes for class separation
+   - Efficient in high-dimensional spaces
+   - Robust on small to medium datasets
 
-   Example:
+6. **KNN (K-Nearest Neighbors)**
+   - Classification based on similarity to nearby examples
+   - Non-parametric and intuitive
+   - Good for data with complex decision boundaries
+
+7. **XGBoost**
+   - Optimized implementation of Gradient Boosting
+   - Excellent performance and speed
+   - Native support for missing data
+
+8. **MLP (Multilayer Perceptron)**
+   - Basic feed-forward neural network
+   - Capable of learning complex non-linear patterns
+   - Versatile for various data types
+
+9. **Naive Bayes**
+   - Probabilistic classifier based on Bayes' theorem
+   - Fast and efficient on large datasets
+   - Good for text classification
+
+10. **LSTM (Long Short-Term Memory)**
+    - Recurrent neural network for temporal sequences
+    - Capable of learning long-term dependencies
+    - Ideal for sequential or temporal data
+
+### Feature Selection Techniques
+
+1. **PCA (Principal Component Analysis)**
+   - Reduces dimensionality while maintaining maximum variance
+   - Transforms features into orthogonal principal components
+   - Useful for high-dimensional and correlated data
+
+2. **RFE (Recursive Feature Elimination)**
+   - Eliminates features recursively based on importance
+   - Uses a base model to rank features
+   - Allows fine control of desired number of features
+
+3. **Random Forest-based Selection**
+   - Uses Random Forest feature importance
+   - Robust to outliers and non-linear data
+   - Considers feature interactions
+
+4. **MI (Mutual Information)**
+   - Measures statistical dependence between features and target
+   - Works well with non-linear relationships
+   - Doesn't assume specific data distribution
+
+### Hyperparameter Optimization
+
+- **GridSearchCV**: Exhaustive grid search
+  - Tests all possible combinations
+  - Guarantees finding the best parameter set
+  - Computationally intensive
+
+- **Random Search**: Random search
+  - Random sampling of parameter space
+  - More efficient than GridSearch for large spaces
+  - Good balance between exploration and time
+
+- **Optuna**: Bayesian optimization
+  - Uses machine learning to guide the search
+  - More efficient than random searches
+  - Adaptive and parallelizable
+
+### Feature Engineering
+
+- Temporal feature processing
+- Sequence aggregation
+- Automatic normalization and encoding
+- Missing data handling
+- Class balancing
+
+### Evaluation and Reporting
+
+- Balanced metrics
+- Confusion matrices
+- Classification reports
+- Result visualization
+- Metrics export
+
+### Education-Specific Features
+
+- Learning behavior detection
+- Emotional state classification
+- Temporal sequence analysis
+- Educational log processing
+
+## Behavior/Emotion Dataset
+
+The main dataset contains:
+- **5,525 instances**
+- **372 features**
+- **10 sessions** of 50 minutes
+- **30 students**
+
+Features include:
+- System interactions
+- Performance metrics
+- Mathematical operations
+- Behavioral/affective states
+- Personality traits
+
+## Project Structure
+
+```
+src/
+├── behavior/              # Behavior detection module
+├── emotion/              # Emotion classification module
+├── mnist/               # MNIST classification module
+└── core/                # Core components
+    ├── config/         # Configuration management
+    ├── evaluation/     # Model evaluation
+    ├── feature_selection/  # Feature selection
+    ├── lstm/           # LSTM implementation
+    ├── models/         # Model definitions
+    ├── preprocessors/  # Data processing
+    ├── reporting/      # Report generation
+    └── utils/          # Utilities
+```
+
+## Setup
+
+### Requirements
+
+- Python 3.x
+- Main dependencies:
+  - scikit-learn
+  - pandas
+  - numpy
+  - matplotlib
+  - tensorflow
+  - optuna
+  - PyYAML
+  - torch (for LSTM)
+
+### Project Configuration
+
+Each new project requires two YAML files in the configuration folder:
+
+1. **data_cleaning.yaml**: Defines columns to be removed
    ```yaml
    columns_to_remove:
      - "student_id"
@@ -53,70 +186,104 @@ Each new project must be configured by creating a new folder inside the main dir
      - "session_id"
    ```
 
-2. **Configuration file for models and selectors** (`config.yaml`): defines which algorithms and selectors will be executed for the project.
-
-   Example:
+2. **training_settings.yaml**: Defines models and selectors to be used
    ```yaml
    training_settings:
      models:
        - "Logistic Regression"
        - "Random Forest"
        - "XGBoost"
-       - "MLP"
      selectors:
        - "none"
        - "pca"
        - "rfe"
    ```
 
-⚠️ **Note:** You can comment or uncomment algorithms and selectors in the YAML file to customize which ones will be executed. The code will only consider the active lines (without `#`).
-
-## Cross-Validation and Stratification
-
-The code uses configurable cross-validation, allowing stratification by class and groups as needed. This ensures that each dataset split maintains the original proportion of classes and specific groups, avoiding biases during training.
-
-The main validation strategies include:
-
-- **Stratified Cross-Validation (Stratified K-Fold):** ensures each fold maintains the original class proportion.
-- **Group Stratification:** useful when data has a natural grouping structure, such as different sessions for the same student.
-
-## Dataset
-
-The main dataset contains **5,525 instances** and **372 features**, collected during **10 sessions of 50 minutes with 30 students**. The features include:
-
-- **System interactions** (clicks, checks, idle time)
-- **Performance and progress** (number of correct steps, time spent, effectiveness)
-- **Mathematical operations performed** (addition, subtraction, multiplication, simplification)
-- **Behavior and affective state** (engagement, concentration, confusion, frustration, boredom)
-- **Personality traits** (agreeableness, extroversion, neuroticism)
-
-⚠️ **Note:** The behavior and emotion datasets are not available in this repository.
-
-## How to Run
+## How to Use
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/patriciajaques/multiclass_detection_suite.git
-    ```
+```bash
+git clone https://github.com/patriciajaques/multiclass_detection_suite.git
+```
 
-2. Navigate to the project directory:
-    ```bash
-    cd multiclass_detection_suite
-    ```
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-3. Install the required dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+3. Configure YAML files as needed
 
-4. Configure the YAML files as explained in the previous section.
+4. Run the desired pipeline:
+```bash
+# For behaviors
+python main_behavior.py
 
-5. Run the desired script:
-    ```bash
-    python main_behavior.py
-    ```
+# For emotions
+python main_emotion.py
 
-## Requirements
+# For MNIST
+python main_mnist.py
+```
 
-- Python 3.x
-- Recommended libraries: `scikit-learn`, `pandas`, `numpy`, `matplotlib`, `tensorflow` (for MNIST), `optuna`, `yaml`
+## Advanced Features
+
+### LSTM for Temporal Sequences
+
+- Bidirectional model with attention
+- Temporal sequence processing
+- Sequence-based class balancing
+
+### Ensemble Learning
+
+- Soft/hard voting
+- Automatic model selection
+- Different algorithm combination
+
+### Stratified Cross-Validation
+
+- Class stratification
+- Group stratification
+- Temporal validation
+
+### Model Persistence
+
+- Automatic model saving
+- Version management
+- Dynamic loading
+
+## Contributing
+
+1. Fork the project
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0). This license allows non-commercial use, including academic research, with appropriate attribution. For commercial use, please contact the authors.
+
+For more details, see [Creative Commons BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
+## Permitted Use
+
+This software is freely available for:
+- Academic research
+- Teaching and education
+- Personal non-commercial use
+
+For any commercial or production use, please contact the authors to obtain a commercial license.
+
+## Citation
+
+If you use this code in your research, please cite:
+
+```bibtex
+@software{jaques2024multiclass,
+  author = {Jaques, Patricia A. M.},
+  title = {MultiClass Detection Suite},
+  year = {2024},
+  publisher = {GitHub},
+  url = {https://github.com/patriciajaques/multiclass_detection_suite}
+}
+```
