@@ -7,6 +7,7 @@ https://creativecommons.org/licenses/by-nc/4.0/
 
 import os
 from behavior.behavior_detection_pipeline import BehaviorDetectionPipeline
+from core.utils import file_utils
 from core.utils.path_manager import PathManager
 
 
@@ -80,13 +81,13 @@ def main():
         group_feature=None,
         # pode ser 'optuna' (default), 'grid' ou 'random'
         training_strategy_name='optuna',
-        use_voting_classifier=True
+        use_voting_classifier=False
     )
     pipeline.run()
 
 
 if __name__ == "__main__":
     os.system('clear')
-    # output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
-    # file_utils.clear_output_directory(output_dir)
+    output_dir = "/Users/patricia/Documents/code/python-code/behavior-detection/output"
+    file_utils.clear_output_directory(output_dir)
     main()

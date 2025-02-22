@@ -27,7 +27,7 @@ class MNISTDetectionPipeline(BasePipeline):
         """Implementação do método abstrato para obter parâmetros do modelo."""
         return DigitsModelParams()
 
-    def load_and_clean_data(self):
+    def load_data(self):
         """Implementação do método abstrato para carregar e limpar dados."""
         # Carregar dataset MNIST
         print("Carregando dataset MNIST...")
@@ -41,6 +41,9 @@ class MNISTDetectionPipeline(BasePipeline):
 
         print(f"Dataset shape: {data.shape}")
         return data
+    
+    def clean_data(self, data):
+        pass
 
     def prepare_data(self, data):
         print("Preparando dados...")
@@ -101,7 +104,7 @@ class MNISTDetectionPipeline(BasePipeline):
 
         # Load and prepare data
         print("\n1. Carregando e preparando dados...")
-        data = self.load_and_clean_data()
+        data = self.load_data()
 
         # Prepare data
         print("\n2. Preparando dados para treinamento...")
