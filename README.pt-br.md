@@ -31,7 +31,7 @@ Um framework abrangente em Python para detecção e classificação multiclasse,
 
 4. **Gradient Boosting**
    - Ensemble que combina modelos fracos sequencialmente
-   - Otimiza iterativamente os erros do modelo anterior
+   - Otimiza iterativamente os erros dos modelos anteriores
    - Excelente performance em diversos tipos de dados
 
 5. **SVM (Support Vector Machines)**
@@ -58,11 +58,6 @@ Um framework abrangente em Python para detecção e classificação multiclasse,
    - Classificador probabilístico baseado no teorema de Bayes
    - Rápido e eficiente em datasets grandes
    - Bom para classificação de texto
-
-10. **LSTM (Long Short-Term Memory)**
-    - Rede neural recorrente para sequências temporais
-    - Capaz de aprender dependências de longo prazo
-    - Ideal para dados sequenciais ou temporais
 
 ### Técnicas de Seleção de Features
 
@@ -94,7 +89,7 @@ Um framework abrangente em Python para detecção e classificação multiclasse,
   - Computacionalmente intensivo
 
 - **Random Search**: Busca aleatória
-  - Amostra aleatória do espaço de parâmetros
+  - Amostragem aleatória do espaço de parâmetros
   - Mais eficiente que GridSearch para grandes espaços
   - Bom equilíbrio entre exploração e tempo
 
@@ -105,8 +100,6 @@ Um framework abrangente em Python para detecção e classificação multiclasse,
 
 ### Engenharia de Features
 
-- Processamento de features temporais
-- Agregação de sequências
 - Normalização e codificação automática
 - Tratamento de dados faltantes
 - Balanceamento de classes
@@ -119,17 +112,38 @@ Um framework abrangente em Python para detecção e classificação multiclasse,
 - Visualização de resultados
 - Exportação de métricas
 
+## Recursos Avançados
+
+### Ensemble Learning
+
+- Votação soft/hard
+- Seleção automática de modelos
+- Combinação de diferentes algoritmos
+- Estratégias de seleção dos melhores modelos
+
+### Validação Cruzada
+
+- Estratificação por classe
+- Validação baseada em grupos
+- Métricas de avaliação de performance
+
+### Persistência de Modelos
+
+- Salvamento automático de modelos
+- Gerenciamento de versões
+- Carregamento dinâmico
+
 ### Features Específicas para Educação
 
-- Detecção de comportamentos de aprendizagem
+- Detecção de padrões de comportamento de aprendizagem
 - Classificação de estados emocionais
-- Análise de sequências temporais
 - Processamento de logs educacionais
+- Análise de interação do estudante
 
 ## Dataset de Comportamentos/Emoções
 
 O dataset principal contém:
-- **5,525 instâncias** 
+- **5.525 instâncias**
 - **372 features**
 - **10 sessões** de 50 minutos
 - **30 estudantes**
@@ -152,7 +166,6 @@ src/
     ├── config/         # Gerenciamento de configurações
     ├── evaluation/     # Avaliação de modelos
     ├── feature_selection/  # Seleção de features
-    ├── lstm/           # Implementação LSTM
     ├── models/         # Definições de modelos
     ├── preprocessors/  # Processamento de dados
     ├── reporting/      # Geração de relatórios
@@ -169,10 +182,8 @@ src/
   - pandas
   - numpy
   - matplotlib
-  - tensorflow
   - optuna
   - PyYAML
-  - torch (para LSTM)
 
 ### Configuração do Projeto
 
@@ -225,32 +236,6 @@ python main_emotion.py
 python main_mnist.py
 ```
 
-## Recursos Avançados
-
-### LSTM para Sequências Temporais
-
-- Modelo bidirecional com atenção
-- Processamento de sequências temporais
-- Balanceamento de classes por sequência
-
-### Ensemble Learning
-
-- Votação soft/hard
-- Seleção automática dos melhores modelos
-- Combinação de diferentes algoritmos
-
-### Validação Cruzada Estratificada
-
-- Estratificação por classe
-- Estratificação por grupo
-- Validação temporal
-
-### Persistência de Modelos
-
-- Salvamento automático de modelos
-- Gerenciamento de versões
-- Carregamento dinâmico
-
 ## Contribuindo
 
 1. Fork o projeto
@@ -264,6 +249,15 @@ python main_mnist.py
 Este projeto está licenciado sob a Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0). Esta licença permite uso não comercial, incluindo pesquisa acadêmica, com atribuição apropriada. Para uso comercial, entre em contato com os autores.
 
 Para mais detalhes, veja [Creative Commons BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
+## Uso Permitido
+
+Este software está livremente disponível para:
+- Pesquisa acadêmica
+- Ensino e educação
+- Uso pessoal não comercial
+
+Para qualquer uso comercial ou em produção, entre em contato com os autores para obter uma licença comercial.
 
 ## Citação
 

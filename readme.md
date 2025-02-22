@@ -59,11 +59,6 @@ A comprehensive Python framework for multiclass detection and classification, fo
    - Fast and efficient on large datasets
    - Good for text classification
 
-10. **LSTM (Long Short-Term Memory)**
-    - Recurrent neural network for temporal sequences
-    - Capable of learning long-term dependencies
-    - Ideal for sequential or temporal data
-
 ### Feature Selection Techniques
 
 1. **PCA (Principal Component Analysis)**
@@ -105,8 +100,6 @@ A comprehensive Python framework for multiclass detection and classification, fo
 
 ### Feature Engineering
 
-- Temporal feature processing
-- Sequence aggregation
 - Automatic normalization and encoding
 - Missing data handling
 - Class balancing
@@ -119,12 +112,33 @@ A comprehensive Python framework for multiclass detection and classification, fo
 - Result visualization
 - Metrics export
 
+## Advanced Features
+
+### Ensemble Learning
+
+- Soft/hard voting
+- Automatic model selection
+- Different algorithm combinations
+- Best model selection strategies
+
+### Cross-Validation
+
+- Class stratification
+- Group-based validation
+- Performance evaluation metrics
+
+### Model Persistence
+
+- Automatic model saving
+- Version management
+- Dynamic loading
+
 ### Education-Specific Features
 
-- Learning behavior detection
+- Learning behavior pattern detection
 - Emotional state classification
-- Temporal sequence analysis
 - Educational log processing
+- Student interaction analysis
 
 ## Behavior/Emotion Dataset
 
@@ -152,7 +166,6 @@ src/
     ├── config/         # Configuration management
     ├── evaluation/     # Model evaluation
     ├── feature_selection/  # Feature selection
-    ├── lstm/           # LSTM implementation
     ├── models/         # Model definitions
     ├── preprocessors/  # Data processing
     ├── reporting/      # Report generation
@@ -169,10 +182,8 @@ src/
   - pandas
   - numpy
   - matplotlib
-  - tensorflow
   - optuna
   - PyYAML
-  - torch (for LSTM)
 
 ### Project Configuration
 
@@ -224,32 +235,6 @@ python main_emotion.py
 # For MNIST
 python main_mnist.py
 ```
-
-## Advanced Features
-
-### LSTM for Temporal Sequences
-
-- Bidirectional model with attention
-- Temporal sequence processing
-- Sequence-based class balancing
-
-### Ensemble Learning
-
-- Soft/hard voting
-- Automatic model selection
-- Different algorithm combination
-
-### Stratified Cross-Validation
-
-- Class stratification
-- Group stratification
-- Temporal validation
-
-### Model Persistence
-
-- Automatic model saving
-- Version management
-- Dynamic loading
 
 ## Contributing
 
